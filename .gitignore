@@ -1,0 +1,9 @@
+node_modules
+.eslintcache
+package-lock.json
+jest-html-reporters-attach/jest_html_reporters/index.js
+jest-html-reporters-attach/jest_html_reporters/result.js
+jest_html_reporters.html
+build/
+.DS_Store
+postgres_data/
