@@ -2,7 +2,7 @@ import { type NextFunction, type Request, type Response } from 'express'
 import User from '../models/User'
 import { ErrorType, CustomError } from '../types/CustomError'
 
-export async function getUsers (res: Response, next: NextFunction): Promise<void> {
+export async function getUsers (req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const users = await User.findAll()
 
