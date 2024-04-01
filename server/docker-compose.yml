@@ -1,3 +1,4 @@
+name: contacts-sync
 version: '3.8'  #specifies docker compose version
 services:
   db:
