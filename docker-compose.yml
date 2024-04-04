@@ -1,0 +1,14 @@
+name: contacts-sync
+version: '3.8'  #specifies docker compose version
+services:
+  db:
+    image: postgres
+    restart: always
+    volumes:
+    - './postgres_data:/var/lib/postgresql/data'
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: contacts-sync
+    ports:
+      - "5432:5432"
