@@ -16,6 +16,7 @@
     "@mdx-js/loader": "^3.0.0",
     "@mdx-js/react": "^3.0.0",
     "@next/mdx": "^14.0.4",
+    "@prisma/client": "^5.12.1",
     "@tailwindcss/forms": "^0.5.7",
     "@tailwindcss/typography": "^0.5.4",
     "@types/node": "^20.10.8",
@@ -41,6 +42,11 @@
     "eslint-config-next": "^14.0.4",
     "prettier": "^3.1.1",
     "prettier-plugin-tailwindcss": "^0.5.11",
-    "sharp": "0.33.1"
+    "prisma": "^5.12.1",
+    "sharp": "0.33.1",
+    "ts-node": "^10.9.2"
+  },
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   }
 }
