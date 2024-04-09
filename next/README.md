@@ -1,6 +1,4 @@
-# Spotlight
-
-Spotlight is a [Tailwind UI](https://tailwindui.com) site template built using [Tailwind CSS](https://tailwindcss.com) and [Next.js](https://nextjs.org).
+# Blackbookcleaner
 
 ## Getting started
 
@@ -10,10 +8,28 @@ To get started with this template, first install the npm dependencies:
 npm install
 ```
 
-Next, create a `.env.local` file in the root of your project and set the `NEXT_PUBLIC_SITE_URL` variable to your site's public URL:
+Next, create a `.env.local` file in the root of your project and set the following variables:
 
-```
-NEXT_PUBLIC_SITE_URL=https://example.com
+1. **NEXT_PUBLIC_SITE_URL**:
+   - Example: **`https://example.com`**
+   - Usage: Specifies the public BASE URL.
+2. **CLIENT_ID**:
+   - Example: **`abcdefg.apps.googleusercontent.com`**
+   - Usage: GCP client ID for syncing google data into the app
+3. **CLIENT_SECRET**:
+   - Example: **`GOCSPX-abcdefghi`**
+   - Usage: GCP client secret for syncing google data into the app.
+4. **REDIRECT_URL**:
+   - Example: **`https://example.com/`**
+   - Usage: Specifies the URI to which users will be redirected after authorizing the usage of their data.
+5. **DATABASE_URL**:
+   - Example: **`postgresql://foo:bar@localhost:5432/mydb?schema=public`**
+   - Usage: Specifies the connection URL that Prisma will use.
+
+Next, run the migration command to initialize the database and ORM:
+
+```bash
+npm run migrate
 ```
 
 Next, run the development server:
@@ -23,10 +39,6 @@ npm run dev
 ```
 
 Finally, open [http://localhost:3000](http://localhost:3000) in your browser to view the website.
-
-## Customizing
-
-You can start editing this template by modifying the files in the `/src` folder. The site will auto-update as you edit these files.
 
 ## License
 
