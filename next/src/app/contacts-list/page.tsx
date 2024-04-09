@@ -1,3 +1,7 @@
+import { sync } from "@/lib/integrations/google"
+import { people_v1 } from 'googleapis'
+
+
 const people = [
   {
     name: 'Leslie Alexander',
@@ -53,33 +57,52 @@ const people = [
   },
 ]
 
-export default function Example() {
+export default async function Example(
+  {
+    searchParams
+  }: {
+    searchParams?: {
+      code?: string,
+    }
+  }
+) {
+  let results: people_v1.Schema$Person[] = []
+  if (searchParams?.code) {
+    results = await sync(searchParams.code)
+  }
   return (
     <ul role="list" className="divide-y divide-gray-800 max-w-7xl w-full px-24" >
-      {people.map((person) => (
-        <li key={person.email} className="flex justify-between gap-x-6 py-5">
+      {results.map((person) => (
+        <li key={person.phoneNumbers![0].canonicalForm} className="flex justify-between gap-x-6 py-5">
           <div className="flex min-w-0 gap-x-4">
             <img
               className="h-12 w-12 flex-none rounded-full bg-gray-800"
-              src={person.imageUrl}
+              src={person.photos && person.photos[0].url ? person.photos[0].url : '/default.png'}
               alt=""
+              width={25} height={25}
             />
             <div className="min-w-0 flex-auto">
-              <p className="text-sm font-semibold leading-6 text-white">
-                {person.name}
-              </p>
+              <div className="flex">
+
+                <p className="text-sm font-semibold leading-6 text-white">
+                  {person.names && person.names[0].displayName}
+                </p>
+                <p className="mt-1 truncate text-sm leading-5 text-gray-400 ml-2">
+                  {person.phoneNumbers![0].canonicalForm}
+                </p>
+              </div>
               <p className="mt-1 truncate text-xs leading-5 text-gray-400">
-                {person.email}
+                {person.emailAddresses && person.emailAddresses[0].value ? person.emailAddresses[0].value : "No email address"}
               </p>
             </div>
           </div>
           <div className="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
-            <p className="text-sm leading-6 text-white">{person.role}</p>
-            {person.lastSeen ? (
+            <p className="text-sm leading-6 text-white">{person.occupations && person.occupations[0].value ? person.occupations[0].value : "Occupation not found"}</p>
+            {'3h ago' ? (
               <p className="mt-1 text-xs leading-5 text-gray-400">
                 Last seen{' '}
-                <time dateTime={person.lastSeenDateTime}>
-                  {person.lastSeen}
+                <time dateTime={'2023-01-23T13:23Z'}>
+                  {'3h ago'}
                 </time>
               </p>
             ) : (
