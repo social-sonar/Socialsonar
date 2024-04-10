@@ -22,7 +22,7 @@ const people = [
     lastSeenDateTime: '2023-01-23T13:23Z',
     favorite: true,
     location: 'Argentina',
-    category: ['Personal', "Favorites"],
+    category: ['Personal'],
     source: 'custom',
   },
   {
@@ -121,20 +121,12 @@ const filtersTemplate = [
   {
     id: 'category',
     name: 'Category',
-    options: [
-      { value: 'Personal', label: 'Personal', checked: false },
-      { value: 'School', label: 'School', checked: false },
-      { value: 'Tesla', label: 'Tesla', checked: false },
-      { value: 'Apple', label: 'Apple', checked: false },
-    ],
+    options: [],
   },
   {
     id: 'location',
     name: 'Location (city / state / country)',
-    options: [
-      { value: 'United States', label: 'United States', checked: false },
-      { value: 'Argentina', label: 'Argentina', checked: false },
-    ],
+    options: [],
   },
 ]
 
@@ -154,18 +146,61 @@ export default function Example() {
   }
 
   useEffect(() => {
-    filters[0].options = people.map((a) => {
-      return { value: a.role, label: a.role, checked: false }
+    let roleOptions = filters.find((a) => {
+      return a.id == 'role'
     })
+    if (roleOptions) {
+      roleOptions.options = people.map((a) => {
+        return { value: a.role, label: a.role, checked: false }
+      })
+    } else {
+      console.log('ERROR LOADING ROLEOPTIONS')
+    }
+    let categoryOptions = filters.find((a) => {
+      return a.id == 'category'
+    })
+    if (categoryOptions) {
+      categoryOptions.options = people
+        .flatMap((a) => {
+          return a.category.map((b) => {
+            return { value: b, label: b, checked: false }
+          })
+        })
+        .filter((v, i, a) => a.findIndex((v2) => v2.value === v.value) === i)
+    } else {
+      console.log('ERROR LOADING CATEGORIES')
+    }
+    let locationOptions = filters.find((a) => {
+      return a.id == 'location'
+    })
+    if (locationOptions) {
+      locationOptions.options = [
+        ...new Set(
+          people.map((a) => {
+            return a.location
+          }),
+        ),
+      ].map((a) => {
+        return { value: a, label: a, checked: false }
+      })
+    } else {
+      console.log('ERROR LOADING CATEGORIES')
+    }
   }, [])
 
   useEffect(() => {
     let newFilteredContacts = people
 
     if (selectedSource !== 'all') {
-      newFilteredContacts = newFilteredContacts.filter(
-        (person) => person.source === selectedSource,
-      )
+      if (selectedSource == 'favorites') {
+        newFilteredContacts = newFilteredContacts.filter(
+          (person) => person.favorite,
+        )
+      } else {
+        newFilteredContacts = newFilteredContacts.filter((person) =>
+          person.source?.includes(selectedSource),
+        )
+      }
     }
 
     setFilteredContacts(newFilteredContacts)
