@@ -1,9 +1,7 @@
 import Image, { type ImageProps } from 'next/image'
 import Link from 'next/link'
-import clsx from 'clsx'
 
 import { Button } from '@/components/Button'
-import { Card } from '@/components/Card'
 import { Container } from '@/components/Container'
 import {
   GitHubIcon,
@@ -15,7 +13,6 @@ import logoAirbnb from '@/images/logos/airbnb.svg'
 import logoFacebook from '@/images/logos/facebook.svg'
 import logoPlanetaria from '@/images/logos/planetaria.svg'
 import logoStarbucks from '@/images/logos/starbucks.svg'
-import { formatDate } from '@/lib/formatDate'
 
 function MailIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (
@@ -222,24 +219,6 @@ function Photos() {
 
   return (
     <div className="mt-16 sm:mt-20">
-      <div className="-my-4 flex justify-center gap-5 overflow-hidden py-4 sm:gap-8">
-        {[image1, image2, image3, image4, image5].map((image, imageIndex) => (
-          <div
-            key={image.src}
-            className={clsx(
-              'relative aspect-[9/10] w-44 flex-none overflow-hidden rounded-xl bg-zinc-100 sm:w-72 sm:rounded-2xl dark:bg-zinc-800',
-              rotations[imageIndex % rotations.length],
-            )}
-          >
-            <Image
-              src={image}
-              alt=""
-              sizes="(min-width: 640px) 18rem, 11rem"
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-          </div>
-        ))}
-      </div>
     </div>
   )
 }
@@ -282,11 +261,6 @@ export default async function Home() {
       <Photos />
       <Container className="mt-24 md:mt-28">
         <div className="mx-auto grid max-w-xl grid-cols-1 gap-y-20 lg:max-w-none lg:grid-cols-2">
-          <div className="flex flex-col gap-16">
-            {articles.map((article) => (
-              <Article key={article.slug} article={article} />
-            ))}
-          </div>
           <div className="space-y-10 lg:pl-16 xl:pl-24">
             <Newsletter />
             <Resume />
