@@ -1,5 +1,5 @@
 //export the app name
-export const APP_NAME = 'Contacts Sync';
+export const APP_NAME = 'Blackbook cleaner';
 
 //export the app version
 export const APP_VERSION = '0.1.0';
