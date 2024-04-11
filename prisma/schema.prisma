@@ -30,64 +30,130 @@ model User {
 }
 
 model Contact {
-  id           BigInt  @id @default(autoincrement())
-  userId       BigInt
-  user         User    @relation(fields: [userId], references: [id])
-  name         String  @db.VarChar()
-  nickName     String  @db.VarChar()
-  phoneNumber  String  @db.VarChar()
-  email        String? @db.VarChar()
-  address      String? @db.VarChar()
-  photoUrl     String? @db.VarChar()
-  organization String? @db.VarChar()
-  occupation   String? @db.VarChar()
+  id            BigInt                @id @default(autoincrement())
+  userId        BigInt
+  user          User                  @relation(fields: [userId], references: [id])
+  name          String                @db.VarChar()
+  nickName      String                @db.VarChar()
+  organizations ContactOrganization[]
+  phoneNumbers  ContactPhoneNumber[]
+  occupations   ContactOccupation[]
+  photos        ContactPhoto[]
+  addresses     ContactAddress[]
+  emails        ContactEmail[]
 
   @@map("contacts")
 }
 
 model Organization {
-  id   BigInt @id @default(autoincrement())
-  name String @db.VarChar()
+  id       BigInt                @id @default(autoincrement())
+  name     String                @db.VarChar()
+  contacts ContactOrganization[]
 
   @@map("organizations")
 }
 
 model PhoneNumber {
-  id     BigInt          @id @default(autoincrement())
-  number String          @db.VarChar()
-  type   PhoneNumberType
+  id       BigInt               @id @default(autoincrement())
+  number   String               @db.VarChar()
+  type     PhoneNumberType
+  contacts ContactPhoneNumber[]
 
   @@map("phone_numbers")
 }
 
 model Occupation {
-  id   BigInt @id @default(autoincrement())
-  name String @db.VarChar()
+  id       BigInt              @id @default(autoincrement())
+  name     String              @db.VarChar()
+  contacts ContactOccupation[]
 
   @@map("occupations")
 }
 
 model Photo {
-  id  BigInt @id @default(autoincrement())
-  url String @db.VarChar()
+  id       BigInt         @id @default(autoincrement())
+  url      String         @db.VarChar()
+  contacts ContactPhoto[]
 
   @@map("photos")
 }
 
 model Address {
-  id            BigInt @id @default(autoincrement())
-  countryCode   String @db.VarChar()
-  city          String @db.VarChar()
-  region        String @db.VarChar()
-  postalCode    String @db.VarChar()
-  streetAddress String @db.VarChar()
+  id            BigInt           @id @default(autoincrement())
+  countryCode   String           @db.VarChar()
+  city          String           @db.VarChar()
+  region        String           @db.VarChar()
+  postalCode    String           @db.VarChar()
+  streetAddress String           @db.VarChar()
+  contacts      ContactAddress[]
 
   @@map("addresses")
 }
 
 model Email {
-  id      BigInt @id @default(autoincrement())
-  address String @db.VarChar()
+  id       BigInt         @id @default(autoincrement())
+  address  String         @db.VarChar()
+  contacts ContactEmail[]
 
   @@map("emails")
+}
+
+model ContactOrganization {
+  id             BigInt       @id @default(autoincrement())
+  contactId      BigInt
+  organizationId BigInt
+  contact        Contact      @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("contact_organizations")
+}
+
+model ContactPhoneNumber {
+  id            BigInt      @id @default(autoincrement())
+  contactId     BigInt
+  phoneNumberId BigInt
+  contact       Contact     @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  phoneNumber   PhoneNumber @relation(fields: [phoneNumberId], references: [id], onDelete: Cascade)
+
+  @@map("contact_phone_numbers")
+}
+
+model ContactOccupation {
+  id           BigInt     @id @default(autoincrement())
+  contactId    BigInt
+  occupationId BigInt
+  contact      Contact    @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  ocuppation   Occupation @relation(fields: [occupationId], references: [id], onDelete: Cascade)
+
+  @@map("contact_occupations")
+}
+
+model ContactPhoto {
+  id        BigInt  @id @default(autoincrement())
+  contactId BigInt
+  photoId   BigInt
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  photo     Photo   @relation(fields: [photoId], references: [id], onDelete: Cascade)
+
+  @@map("contact_photos")
+}
+
+model ContactAddress {
+  id        BigInt  @id @default(autoincrement())
+  contactId BigInt
+  addressId BigInt
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  address   Address @relation(fields: [addressId], references: [id], onDelete: Cascade)
+
+  @@map("contact_addresses")
+}
+
+model ContactEmail {
+  id        BigInt  @id @default(autoincrement())
+  contactId BigInt
+  emailId   BigInt
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  email     Email   @relation(fields: [emailId], references: [id], onDelete: Cascade)
+
+  @@map("contact_emails")
 }
