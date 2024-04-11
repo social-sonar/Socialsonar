@@ -13,6 +13,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum PhoneNumberType {
+  CELL
+  HOME
+  WORK
+}
+
 model User {
   id       BigInt    @id @default(autoincrement())
   name     String    @db.VarChar()
@@ -28,6 +34,7 @@ model Contact {
   userId       BigInt
   user         User    @relation(fields: [userId], references: [id])
   name         String  @db.VarChar()
+  nickName     String  @db.VarChar()
   phoneNumber  String  @db.VarChar()
   email        String? @db.VarChar()
   address      String? @db.VarChar()
@@ -36,4 +43,51 @@ model Contact {
   occupation   String? @db.VarChar()
 
   @@map("contacts")
+}
+
+model Organization {
+  id   BigInt @id @default(autoincrement())
+  name String @db.VarChar()
+
+  @@map("organizations")
+}
+
+model PhoneNumber {
+  id     BigInt          @id @default(autoincrement())
+  number String          @db.VarChar()
+  type   PhoneNumberType
+
+  @@map("phone_numbers")
+}
+
+model Occupation {
+  id   BigInt @id @default(autoincrement())
+  name String @db.VarChar()
+
+  @@map("occupations")
+}
+
+model Photo {
+  id  BigInt @id @default(autoincrement())
+  url String @db.VarChar()
+
+  @@map("photos")
+}
+
+model Address {
+  id            BigInt @id @default(autoincrement())
+  countryCode   String @db.VarChar()
+  city          String @db.VarChar()
+  region        String @db.VarChar()
+  postalCode    String @db.VarChar()
+  streetAddress String @db.VarChar()
+
+  @@map("addresses")
+}
+
+model Email {
+  id      BigInt @id @default(autoincrement())
+  address String @db.VarChar()
+
+  @@map("emails")
 }
