@@ -24,7 +24,7 @@ model User {
   name     String    @db.VarChar()
   email    String    @unique @db.VarChar()
   password String?   @db.VarChar()
-  Contact  Contact[]
+  contact  Contact[]
 
   @@map("users")
 }
@@ -34,7 +34,7 @@ model Contact {
   userId        BigInt
   user          User                  @relation(fields: [userId], references: [id])
   name          String                @db.VarChar()
-  nickName      String                @db.VarChar()
+  nickName      String?                @db.VarChar()
   organizations ContactOrganization[]
   phoneNumbers  ContactPhoneNumber[]
   occupations   ContactOccupation[]
@@ -80,11 +80,11 @@ model Photo {
 
 model Address {
   id            BigInt           @id @default(autoincrement())
-  countryCode   String           @db.VarChar()
-  city          String           @db.VarChar()
-  region        String           @db.VarChar()
-  postalCode    String           @db.VarChar()
-  streetAddress String           @db.VarChar()
+  countryCode   String?           @db.VarChar()
+  city          String?          @db.VarChar()
+  region        String?          @db.VarChar()
+  postalCode    String?           @db.VarChar()
+  streetAddress String?           @db.VarChar()
   contacts      ContactAddress[]
 
   @@map("addresses")
