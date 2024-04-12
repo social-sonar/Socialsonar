@@ -19,17 +19,6 @@ export default async function Example({
     )
     await syncGoogleContacts(results)
   }
-  const contacts = await findContacts(1n) // dummy search
-  if (contacts.length == 0) {
-    return (
-      <p>
-        No contacts yet. Sync your contacts{' '}
-        <Link href={'/sync'} className="text-teal-500">
-          here
-        </Link>
-      </p>
-    )
-  } else {
-    return redirect('/contacts-list')
-  }
+  // const contacts = await findContacts(1n) // dummy search
+  return redirect('/contacts-list')
 }
