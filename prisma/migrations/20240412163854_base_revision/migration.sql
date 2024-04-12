@@ -1,30 +1,29 @@
-/*
-  Warnings:
-
-  - You are about to drop the column `address` on the `contacts` table. All the data in the column will be lost.
-  - You are about to drop the column `email` on the `contacts` table. All the data in the column will be lost.
-  - You are about to drop the column `occupation` on the `contacts` table. All the data in the column will be lost.
-  - You are about to drop the column `organization` on the `contacts` table. All the data in the column will be lost.
-  - You are about to drop the column `phoneNumber` on the `contacts` table. All the data in the column will be lost.
-  - You are about to drop the column `photoUrl` on the `contacts` table. All the data in the column will be lost.
-  - Added the required column `nickName` to the `contacts` table without a default value. This is not possible if the table is not empty.
-
-*/
 -- CreateEnum
 CREATE TYPE "PhoneNumberType" AS ENUM ('CELL', 'HOME', 'WORK');
 
--- AlterTable
-ALTER TABLE "contacts" DROP COLUMN "address",
-DROP COLUMN "email",
-DROP COLUMN "occupation",
-DROP COLUMN "organization",
-DROP COLUMN "phoneNumber",
-DROP COLUMN "photoUrl",
-ADD COLUMN     "nickName" VARCHAR NOT NULL;
+-- CreateTable
+CREATE TABLE "users" (
+    "id" SERIAL NOT NULL,
+    "name" VARCHAR NOT NULL,
+    "email" VARCHAR NOT NULL,
+    "password" VARCHAR,
+
+    CONSTRAINT "users_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "contacts" (
+    "id" SERIAL NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "name" VARCHAR NOT NULL,
+    "nickName" VARCHAR,
+
+    CONSTRAINT "contacts_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "organizations" (
-    "id" BIGSERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "name" VARCHAR NOT NULL,
 
     CONSTRAINT "organizations_pkey" PRIMARY KEY ("id")
@@ -32,7 +31,7 @@ CREATE TABLE "organizations" (
 
 -- CreateTable
 CREATE TABLE "phone_numbers" (
-    "id" BIGSERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "number" VARCHAR NOT NULL,
     "type" "PhoneNumberType" NOT NULL,
 
@@ -41,7 +40,7 @@ CREATE TABLE "phone_numbers" (
 
 -- CreateTable
 CREATE TABLE "occupations" (
-    "id" BIGSERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "name" VARCHAR NOT NULL,
 
     CONSTRAINT "occupations_pkey" PRIMARY KEY ("id")
@@ -49,7 +48,7 @@ CREATE TABLE "occupations" (
 
 -- CreateTable
 CREATE TABLE "photos" (
-    "id" BIGSERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "url" VARCHAR NOT NULL,
 
     CONSTRAINT "photos_pkey" PRIMARY KEY ("id")
@@ -57,19 +56,19 @@ CREATE TABLE "photos" (
 
 -- CreateTable
 CREATE TABLE "addresses" (
-    "id" BIGSERIAL NOT NULL,
-    "countryCode" VARCHAR NOT NULL,
-    "city" VARCHAR NOT NULL,
-    "region" VARCHAR NOT NULL,
-    "postalCode" VARCHAR NOT NULL,
-    "streetAddress" VARCHAR NOT NULL,
+    "id" SERIAL NOT NULL,
+    "countryCode" VARCHAR,
+    "city" VARCHAR,
+    "region" VARCHAR,
+    "postalCode" VARCHAR,
+    "streetAddress" VARCHAR,
 
     CONSTRAINT "addresses_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "emails" (
-    "id" BIGSERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "address" VARCHAR NOT NULL,
 
     CONSTRAINT "emails_pkey" PRIMARY KEY ("id")
@@ -77,57 +76,81 @@ CREATE TABLE "emails" (
 
 -- CreateTable
 CREATE TABLE "contact_organizations" (
-    "id" BIGSERIAL NOT NULL,
-    "contactId" BIGINT NOT NULL,
-    "organizationId" BIGINT NOT NULL,
+    "id" SERIAL NOT NULL,
+    "contactId" INTEGER NOT NULL,
+    "organizationId" INTEGER NOT NULL,
 
     CONSTRAINT "contact_organizations_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "contact_phone_numbers" (
-    "id" BIGSERIAL NOT NULL,
-    "contactId" BIGINT NOT NULL,
-    "phoneNumberId" BIGINT NOT NULL,
+    "id" SERIAL NOT NULL,
+    "contactId" INTEGER NOT NULL,
+    "phoneNumberId" INTEGER NOT NULL,
 
     CONSTRAINT "contact_phone_numbers_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "contact_occupations" (
-    "id" BIGSERIAL NOT NULL,
-    "contactId" BIGINT NOT NULL,
-    "occupationId" BIGINT NOT NULL,
+    "id" SERIAL NOT NULL,
+    "contactId" INTEGER NOT NULL,
+    "occupationId" INTEGER NOT NULL,
 
     CONSTRAINT "contact_occupations_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "contact_photos" (
-    "id" BIGSERIAL NOT NULL,
-    "contactId" BIGINT NOT NULL,
-    "photoId" BIGINT NOT NULL,
+    "id" SERIAL NOT NULL,
+    "contactId" INTEGER NOT NULL,
+    "photoId" INTEGER NOT NULL,
 
     CONSTRAINT "contact_photos_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "contact_addresses" (
-    "id" BIGSERIAL NOT NULL,
-    "contactId" BIGINT NOT NULL,
-    "addressId" BIGINT NOT NULL,
+    "id" SERIAL NOT NULL,
+    "contactId" INTEGER NOT NULL,
+    "addressId" INTEGER NOT NULL,
 
     CONSTRAINT "contact_addresses_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "contact_emails" (
-    "id" BIGSERIAL NOT NULL,
-    "contactId" BIGINT NOT NULL,
-    "emailId" BIGINT NOT NULL,
+    "id" SERIAL NOT NULL,
+    "contactId" INTEGER NOT NULL,
+    "emailId" INTEGER NOT NULL,
 
     CONSTRAINT "contact_emails_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "contact_organizations_contactId_organizationId_key" ON "contact_organizations"("contactId", "organizationId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "contact_phone_numbers_contactId_phoneNumberId_key" ON "contact_phone_numbers"("contactId", "phoneNumberId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "contact_occupations_contactId_occupationId_key" ON "contact_occupations"("contactId", "occupationId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "contact_photos_contactId_photoId_key" ON "contact_photos"("contactId", "photoId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "contact_addresses_contactId_addressId_key" ON "contact_addresses"("contactId", "addressId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "contact_emails_contactId_emailId_key" ON "contact_emails"("contactId", "emailId");
+
+-- AddForeignKey
+ALTER TABLE "contacts" ADD CONSTRAINT "contacts_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "contact_organizations" ADD CONSTRAINT "contact_organizations_contactId_fkey" FOREIGN KEY ("contactId") REFERENCES "contacts"("id") ON DELETE CASCADE ON UPDATE CASCADE;

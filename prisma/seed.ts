@@ -22,11 +22,16 @@ const userData: Prisma.UserCreateInput[] = [
 
 async function main() {
     console.log(`Start seeding ...`)
-    for (const u of userData) {
-        const user = await prisma.user.create({
-            data: u,
-        })
-        console.log(`Created user with id: ${user.id}`)
+    try {
+
+        for (const u of userData) {
+            const user = await prisma.user.create({
+                data: u,
+            })
+            console.log(`Created user with id: ${user.id}`)
+        }
+    } catch (error) {
+        console.log('Looks like you already created seed users');
     }
 
     await prisma.contact.create(
