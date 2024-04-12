@@ -13,27 +13,153 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum PhoneNumberType {
+  CELL
+  HOME
+  WORK
+}
+
 model User {
-  id       BigInt    @id @default(autoincrement())
+  id       Int       @id @default(autoincrement())
   name     String    @db.VarChar()
   email    String    @unique @db.VarChar()
   password String?   @db.VarChar()
-  Contact  Contact[]
+  contact  Contact[]
 
   @@map("users")
 }
 
 model Contact {
-  id           BigInt  @id @default(autoincrement())
-  userId       BigInt
-  user         User    @relation(fields: [userId], references: [id])
-  name         String  @db.VarChar()
-  phoneNumber  String  @db.VarChar()
-  email        String? @db.VarChar()
-  address      String? @db.VarChar()
-  photoUrl     String? @db.VarChar()
-  organization String? @db.VarChar()
-  occupation   String? @db.VarChar()
+  id            Int                   @id @default(autoincrement())
+  userId        Int
+  user          User                  @relation(fields: [userId], references: [id])
+  name          String                @db.VarChar()
+  nickName      String?               @db.VarChar()
+  organizations ContactOrganization[]
+  phoneNumbers  ContactPhoneNumber[]
+  occupations   ContactOccupation[]
+  photos        ContactPhoto[]
+  addresses     ContactAddress[]
+  emails        ContactEmail[]
 
   @@map("contacts")
+}
+
+model Organization {
+  id       Int                   @id @default(autoincrement())
+  name     String                @db.VarChar()
+  contacts ContactOrganization[]
+
+  @@map("organizations")
+}
+
+model PhoneNumber {
+  id       Int                  @id @default(autoincrement())
+  number   String               @db.VarChar()
+  type     PhoneNumberType
+  contacts ContactPhoneNumber[]
+
+  @@map("phone_numbers")
+}
+
+model Occupation {
+  id       Int                 @id @default(autoincrement())
+  name     String              @db.VarChar()
+  contacts ContactOccupation[]
+
+  @@map("occupations")
+}
+
+model Photo {
+  id       Int            @id @default(autoincrement())
+  url      String         @db.VarChar()
+  contacts ContactPhoto[]
+
+  @@map("photos")
+}
+
+model Address {
+  id            Int              @id @default(autoincrement())
+  countryCode   String?          @db.VarChar()
+  city          String?          @db.VarChar()
+  region        String?          @db.VarChar()
+  postalCode    String?          @db.VarChar()
+  streetAddress String?          @db.VarChar()
+  contacts      ContactAddress[]
+
+  @@map("addresses")
+}
+
+model Email {
+  id       Int            @id @default(autoincrement())
+  address  String         @db.VarChar()
+  contacts ContactEmail[]
+
+  @@map("emails")
+}
+
+model ContactOrganization {
+  id             Int          @id @default(autoincrement())
+  contactId      Int
+  organizationId Int
+  contact        Contact      @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([contactId, organizationId], name: "unique_contact_organization")
+  @@map("contact_organizations")
+}
+
+model ContactPhoneNumber {
+  id            Int         @id @default(autoincrement())
+  contactId     Int
+  phoneNumberId Int
+  contact       Contact     @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  phoneNumber   PhoneNumber @relation(fields: [phoneNumberId], references: [id], onDelete: Cascade)
+
+  @@unique([contactId, phoneNumberId], name: "unique_contact_phone_number")
+  @@map("contact_phone_numbers")
+}
+
+model ContactOccupation {
+  id           Int        @id @default(autoincrement())
+  contactId    Int
+  occupationId Int
+  contact      Contact    @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  ocuppation   Occupation @relation(fields: [occupationId], references: [id], onDelete: Cascade)
+
+  @@unique([contactId, occupationId], name: "unique_contact_occupation")
+  @@map("contact_occupations")
+}
+
+model ContactPhoto {
+  id        Int     @id @default(autoincrement())
+  contactId Int
+  photoId   Int
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  photo     Photo   @relation(fields: [photoId], references: [id], onDelete: Cascade)
+
+  @@unique([contactId, photoId], name: "unique_contact_photo")
+  @@map("contact_photos")
+}
+
+model ContactAddress {
+  id        Int     @id @default(autoincrement())
+  contactId Int
+  addressId Int
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  address   Address @relation(fields: [addressId], references: [id], onDelete: Cascade)
+
+  @@unique([contactId, addressId], name: "unique_contact_address")
+  @@map("contact_addresses")
+}
+
+model ContactEmail {
+  id        Int     @id @default(autoincrement())
+  contactId Int
+  emailId   Int
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  email     Email   @relation(fields: [emailId], references: [id], onDelete: Cascade)
+
+  @@unique([contactId, emailId], name: "unique_contact_email")
+  @@map("contact_emails")
 }

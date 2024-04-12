@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "generate-revision": "dotenv -e .env.local -- npx prisma migrate dev",
     "migrate": "dotenv -e .env.local -- npx prisma migrate deploy && npx prisma generate && dotenv -e .env.local -- npx prisma db seed"
   },
   "browserslist": "defaults, not ie <= 11",
