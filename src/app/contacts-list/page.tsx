@@ -49,6 +49,101 @@ function classNames(...classes) {
 }
 
 export default function Example({}) {
+  // const [contacts, setContacts] = useState([
+  //   {
+  //     id: 1,
+  //     name: 'Abuelita norma',
+  //     email: 'norma@example.com',
+  //     occupation: 'Grandma',
+  //     photoUrl:
+  //       'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fmatthewkimberley.com%2Fwp-content%2Fuploads%2F2013%2F05%2Fgrandmother.jpg&f=1&nofb=1&ipt=d0f05fed654bb8a848720b607e0b3dca7086282bf8125bc62f4c3f2c129b571b&ipo=images',
+  //     lastSeen: '3h ago',
+  //     lastSeenDateTime: '2023-01-23T13:23Z',
+  //     favorite: true,
+  //     location: 'Argentina',
+  //     category: ['Personal'],
+  //     source: 'custom',
+  //   },
+  //   {
+  //     id: 2,
+  //     name: 'Leslie Alexander',
+  //     email: 'leslie.alexander@example.com',
+  //     occupation: 'Co-Founder / CEO',
+  //     photoUrl:
+  //       'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+  //     lastSeen: '3h ago',
+  //     lastSeenDateTime: '2023-01-23T13:23Z',
+  //     favorite: true,
+  //     location: 'United States',
+  //     category: ['Personal', 'School'],
+  //     source: 'google',
+  //   },
+  //   {
+  //     id: 3,
+  //     name: 'Michael Foster',
+  //     email: 'michael.foster@example.com',
+  //     occupation: 'Co-Founder / CTO',
+  //     photoUrl:
+  //       'https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+  //     lastSeen: '3h ago',
+  //     lastSeenDateTime: '2023-01-23T13:23Z',
+  //     favorite: true,
+  //     location: 'United States',
+  //     category: ['Personal', 'School'],
+  //     source: 'google',
+  //   },
+  //   {
+  //     id: 4,
+  //     name: 'Dries Vincent',
+  //     email: 'dries.vincent@example.com',
+  //     occupation: 'Business Relations',
+  //     photoUrl:
+  //       'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+  //     lastSeen: null,
+  //     favorite: false,
+  //     location: 'United States',
+  //     category: ['Apple'],
+  //     source: 'google',
+  //   },
+  //   {
+  //     id: 5,
+  //     name: 'Juana Ladev',
+  //     email: 'juana.ladev@example.com',
+  //     occupation: 'Front-end Developer',
+  //     photoUrl:
+  //       'https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+  //     lastSeen: '3h ago',
+  //     lastSeenDateTime: '2023-01-23T13:23Z',
+  //     favorite: false,
+  //     location: 'Argentina',
+  //     category: ['Personal', 'School'],
+  //   },
+  //   {
+  //     id: 6,
+  //     name: 'Courtney Henry',
+  //     email: 'courtney.henry@example.com',
+  //     occupation: 'Designer',
+  //     photoUrl:
+  //       'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+  //     lastSeen: '3h ago',
+  //     lastSeenDateTime: '2023-01-23T13:23Z',
+  //     favorite: false,
+  //     location: 'United States',
+  //     category: ['Tesla'],
+  //   },
+  //   {
+  //     id: 7,
+  //     name: 'Tom Cook',
+  //     email: 'tom.cook@example.com',
+  //     occupation: 'Director of Product',
+  //     photoUrl:
+  //       'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+  //     lastSeen: null,
+  //     favorite: false,
+  //     location: 'United States',
+  //     category: ['Apple'],
+  //   },
+  // ])
   const [contacts, setContacts] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [filters, setFilters] = useState(filtersTemplate)
@@ -57,10 +152,17 @@ export default function Example({}) {
   const [filteredContacts, setFilteredContacts] = useState([])
   const [selectedSource, setSelectedSource] = useState('all')
 
+  const [hideFilterAdvice, setHideFilterAdvice] = useState(true)
+
   useEffect(() => {
     fetch('/api/contacts-list')
       .then((response) => response.json())
-      .then((data) => setContacts(data))
+      .then((data) => {
+        if (data.length) {
+          setContacts(data)
+          setHideFilterAdvice(false)
+        }
+      })
       .catch((error) => console.error('Failed to load contacts', error))
   }, [])
 
@@ -156,7 +258,7 @@ export default function Example({}) {
       .map((option) => option.value)
     if (selectedRoles.length > 0) {
       newFilteredContacts = newFilteredContacts.filter((person) =>
-        selectedRoles.includes(person.role),
+        selectedRoles.includes(person.occupation),
       )
     }
 
@@ -205,7 +307,7 @@ export default function Example({}) {
           : a.name.localeCompare(b.name)
       }),
     )
-  }, [sortApplied, contacts])
+  }, [sortApplied, contacts, filteredContacts])
 
   return (
     <>
@@ -464,9 +566,8 @@ export default function Example({}) {
                 ))}
               </ul>
 
-              {filters
-                .filter((a) => a.options.length > 0)
-                .map((section) => (
+              {hideFilterAdvice &&
+                filters.map((section) => (
                   <Disclosure
                     as="div"
                     key={section.id}
@@ -536,7 +637,7 @@ export default function Example({}) {
                   </Disclosure>
                 ))}
 
-              {filters.filter((a) => a.options.length < 0).length == 0 ? (
+              {!hideFilterAdvice ? (
                 <p className="text-white-600 sm-text">
                   There are no filters applicable <br></br> for the contacts
                   list
