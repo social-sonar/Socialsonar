@@ -1,9 +1,0 @@
--- AlterTable
-ALTER TABLE "addresses" ALTER COLUMN "countryCode" DROP NOT NULL,
-ALTER COLUMN "city" DROP NOT NULL,
-ALTER COLUMN "region" DROP NOT NULL,
-ALTER COLUMN "postalCode" DROP NOT NULL,
-ALTER COLUMN "streetAddress" DROP NOT NULL;
-
--- AlterTable
-ALTER TABLE "contacts" ALTER COLUMN "nickName" DROP NOT NULL;
