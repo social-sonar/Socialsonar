@@ -1,6 +1,7 @@
 'use client'
 
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useEffect, useState, useCallback } from 'react'
+import { findContacts } from '@/lib/data'
 import { Dialog, Disclosure, Menu, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import {
@@ -11,96 +12,9 @@ import {
   Squares2X2Icon,
 } from '@heroicons/react/20/solid'
 
-const people = [
-  {
-    name: 'Abuelita norma',
-    email: 'norma@example.com',
-    role: 'Grandma',
-    imageUrl:
-      'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fmatthewkimberley.com%2Fwp-content%2Fuploads%2F2013%2F05%2Fgrandmother.jpg&f=1&nofb=1&ipt=d0f05fed654bb8a848720b607e0b3dca7086282bf8125bc62f4c3f2c129b571b&ipo=images',
-    lastSeen: '3h ago',
-    lastSeenDateTime: '2023-01-23T13:23Z',
-    favorite: true,
-    location: 'Argentina',
-    category: ['Personal'],
-    source: 'custom',
-  },
-  {
-    name: 'Leslie Alexander',
-    email: 'leslie.alexander@example.com',
-    role: 'Co-Founder / CEO',
-    imageUrl:
-      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-    lastSeen: '3h ago',
-    lastSeenDateTime: '2023-01-23T13:23Z',
-    favorite: true,
-    location: 'United States',
-    category: ['Personal', 'School'],
-    source: 'google',
-  },
-  {
-    name: 'Michael Foster',
-    email: 'michael.foster@example.com',
-    role: 'Co-Founder / CTO',
-    imageUrl:
-      'https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-    lastSeen: '3h ago',
-    lastSeenDateTime: '2023-01-23T13:23Z',
-    favorite: true,
-    location: 'United States',
-    category: ['Personal', 'School'],
-    source: 'google',
-  },
-  {
-    name: 'Dries Vincent',
-    email: 'dries.vincent@example.com',
-    role: 'Business Relations',
-    imageUrl:
-      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-    lastSeen: null,
-    favorite: false,
-    location: 'United States',
-    category: ['Apple'],
-    source: 'google',
-  },
-  {
-    name: 'Juana Ladev',
-    email: 'juana.ladev@example.com',
-    role: 'Front-end Developer',
-    imageUrl:
-      'https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-    lastSeen: '3h ago',
-    lastSeenDateTime: '2023-01-23T13:23Z',
-    favorite: false,
-    location: 'Argentina',
-    category: ['Personal', 'School'],
-  },
-  {
-    name: 'Courtney Henry',
-    email: 'courtney.henry@example.com',
-    role: 'Designer',
-    imageUrl:
-      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-    lastSeen: '3h ago',
-    lastSeenDateTime: '2023-01-23T13:23Z',
-    favorite: false,
-    location: 'United States',
-    category: ['Tesla'],
-  },
-  {
-    name: 'Tom Cook',
-    email: 'tom.cook@example.com',
-    role: 'Director of Product',
-    imageUrl:
-      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-    lastSeen: null,
-    favorite: false,
-    location: 'United States',
-    category: ['Apple'],
-  },
-]
 import { APP_NAME } from '@/lib/constants'
 import clsx from 'clsx'
+import Link from 'next/link'
 
 const sortOptions = [
   { name: 'A - Z', href: '#', current: true },
@@ -114,8 +28,8 @@ const contactsSource = [
 ]
 const filtersTemplate = [
   {
-    id: 'role',
-    name: 'Job / Role',
+    id: 'occupation',
+    name: 'Job / Role / Occupation',
     options: [],
   },
   {
@@ -134,24 +48,33 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-export default function Example() {
+export default function Example({}) {
+  const [contacts, setContacts] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
   const [filters, setFilters] = useState(filtersTemplate)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [sortApplied, setSortApplied] = useState(undefined)
-  const [filteredContacts, setFilteredContacts] = useState(people)
+  const [filteredContacts, setFilteredContacts] = useState([])
   const [selectedSource, setSelectedSource] = useState('all')
+
+  useEffect(() => {
+    fetch('/api/contacts-list')
+      .then((response) => response.json())
+      .then((data) => setContacts(data))
+      .catch((error) => console.error('Failed to load contacts', error))
+  }, [])
 
   const handleSourceChange = (source) => {
     setSelectedSource(source)
   }
 
   useEffect(() => {
-    let roleOptions = filters.find((a) => {
-      return a.id == 'role'
+    let occupationOptions = filters.find((a) => {
+      return a.id == 'occupation'
     })
-    if (roleOptions) {
-      roleOptions.options = people.map((a) => {
-        return { value: a.role, label: a.role, checked: false }
+    if (occupationOptions) {
+      occupationOptions.options = contacts.map((a) => {
+        return { value: a.occupation, label: a.occupation, checked: false }
       })
     } else {
       console.log('ERROR LOADING ROLEOPTIONS')
@@ -160,7 +83,7 @@ export default function Example() {
       return a.id == 'category'
     })
     if (categoryOptions) {
-      categoryOptions.options = people
+      categoryOptions.options = contacts
         .flatMap((a) => {
           return a.category.map((b) => {
             return { value: b, label: b, checked: false }
@@ -176,7 +99,7 @@ export default function Example() {
     if (locationOptions) {
       locationOptions.options = [
         ...new Set(
-          people.map((a) => {
+          contacts.map((a) => {
             return a.location
           }),
         ),
@@ -189,7 +112,7 @@ export default function Example() {
   }, [])
 
   useEffect(() => {
-    let newFilteredContacts = people
+    let newFilteredContacts = contacts
 
     if (selectedSource !== 'all') {
       if (selectedSource == 'favorites') {
@@ -204,7 +127,7 @@ export default function Example() {
     }
 
     setFilteredContacts(newFilteredContacts)
-  }, [filters, selectedSource])
+  }, [filters, selectedSource, contacts])
 
   const handleFilterChange = (sectionId, optionIdx, checked) => {
     const newFilters = filters.map((section) => {
@@ -223,10 +146,12 @@ export default function Example() {
   }
 
   useEffect(() => {
-    let newFilteredContacts = people
+    let newFilteredContacts = contacts
 
-    const roleFilter = filters.find((filter) => filter.id === 'role')
-    const selectedRoles = roleFilter.options
+    const occupationFilter = filters.find(
+      (filter) => filter.id === 'occupation',
+    )
+    const selectedRoles = occupationFilter.options
       .filter((option) => option.checked)
       .map((option) => option.value)
     if (selectedRoles.length > 0) {
@@ -258,7 +183,7 @@ export default function Example() {
     }
 
     setFilteredContacts(newFilteredContacts)
-  }, [filters])
+  }, [filters, contacts])
 
   useEffect(() => {
     console.log(
@@ -280,7 +205,7 @@ export default function Example() {
           : a.name.localeCompare(b.name)
       }),
     )
-  }, [sortApplied])
+  }, [sortApplied, contacts])
 
   return (
     <>
@@ -344,70 +269,72 @@ export default function Example() {
                     ))}
                   </ul>
 
-                  {filters.map((section) => (
-                    <Disclosure
-                      as="div"
-                      key={section.id}
-                      className="border-t border-gray-200 px-4 py-6"
-                    >
-                      {({ open }) => (
-                        <>
-                          <h3 className="-mx-2 -my-3 flow-root">
-                            <Disclosure.Button className="hover:text-white-500 flex w-full items-center justify-between bg-white px-2 py-3 text-gray-400">
-                              <span className="text-white-900 font-medium">
-                                {section.name}
-                              </span>
-                              <span className="ml-6 flex items-center">
-                                {open ? (
-                                  <MinusIcon
-                                    className="h-5 w-5"
-                                    aria-hidden="true"
-                                  />
-                                ) : (
-                                  <PlusIcon
-                                    className="h-5 w-5"
-                                    aria-hidden="true"
-                                  />
-                                )}
-                              </span>
-                            </Disclosure.Button>
-                          </h3>
-                          <Disclosure.Panel className="pt-6">
-                            <div className="space-y-6">
-                              {section.options.map((option, optionIdx) => (
-                                <div
-                                  key={option.value}
-                                  className="flex items-center"
-                                >
-                                  <input
-                                    id={`filter-mobile-${section.id}-${optionIdx}`}
-                                    name={`${section.id}[]`}
-                                    defaultValue={option.value}
-                                    type="checkbox"
-                                    defaultChecked={option.checked}
-                                    onChange={(e) =>
-                                      handleFilterChange(
-                                        section.id,
-                                        optionIdx,
-                                        e.target.checked,
-                                      )
-                                    }
-                                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                  />
-                                  <label
-                                    htmlFor={`filter-mobile-${section.id}-${optionIdx}`}
-                                    className="text-white-500 ml-3 min-w-0 flex-1"
+                  {filters
+                    .filter((a) => a.options.length > 0)
+                    .map((section) => (
+                      <Disclosure
+                        as="div"
+                        key={section.id}
+                        className="border-t border-gray-200 px-4 py-6"
+                      >
+                        {({ open }) => (
+                          <>
+                            <h3 className="-mx-2 -my-3 flow-root">
+                              <Disclosure.Button className="hover:text-white-500 flex w-full items-center justify-between bg-white px-2 py-3 text-gray-400">
+                                <span className="text-white-900 font-medium">
+                                  {section.name}
+                                </span>
+                                <span className="ml-6 flex items-center">
+                                  {open ? (
+                                    <MinusIcon
+                                      className="h-5 w-5"
+                                      aria-hidden="true"
+                                    />
+                                  ) : (
+                                    <PlusIcon
+                                      className="h-5 w-5"
+                                      aria-hidden="true"
+                                    />
+                                  )}
+                                </span>
+                              </Disclosure.Button>
+                            </h3>
+                            <Disclosure.Panel className="pt-6">
+                              <div className="space-y-6">
+                                {section.options.map((option, optionIdx) => (
+                                  <div
+                                    key={option.value}
+                                    className="flex items-center"
                                   >
-                                    {option.label}
-                                  </label>
-                                </div>
-                              ))}
-                            </div>
-                          </Disclosure.Panel>
-                        </>
-                      )}
-                    </Disclosure>
-                  ))}
+                                    <input
+                                      id={`filter-mobile-${section.id}-${optionIdx}`}
+                                      name={`${section.id}[]`}
+                                      defaultValue={option.value}
+                                      type="checkbox"
+                                      defaultChecked={option.checked}
+                                      onChange={(e) =>
+                                        handleFilterChange(
+                                          section.id,
+                                          optionIdx,
+                                          e.target.checked,
+                                        )
+                                      }
+                                      className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                    />
+                                    <label
+                                      htmlFor={`filter-mobile-${section.id}-${optionIdx}`}
+                                      className="text-white-500 ml-3 min-w-0 flex-1"
+                                    >
+                                      {option.label}
+                                    </label>
+                                  </div>
+                                ))}
+                              </div>
+                            </Disclosure.Panel>
+                          </>
+                        )}
+                      </Disclosure>
+                    ))}
                 </form>
               </Dialog.Panel>
             </Transition.Child>
@@ -537,75 +464,86 @@ export default function Example() {
                 ))}
               </ul>
 
-              {filters.map((section) => (
-                <Disclosure
-                  as="div"
-                  key={section.id}
-                  className="border-b border-gray-200 py-6"
-                >
-                  {({ open }) => (
-                    <>
-                      <h3 className="-my-3 flow-root">
-                        <Disclosure.Button className="hover:text-white-500 flex w-full items-center justify-between bg-white py-3 pl-3 text-sm text-gray-400">
-                          <span className="text-white-900 font-medium">
-                            {section.name}
-                          </span>
-                          <span className="ml-6 mr-2 flex items-center">
-                            {open ? (
-                              <MinusIcon
-                                className="h-5 w-5"
-                                aria-hidden="true"
-                              />
-                            ) : (
-                              <PlusIcon
-                                className="h-5 w-5"
-                                aria-hidden="true"
-                              />
-                            )}
-                          </span>
-                        </Disclosure.Button>
-                      </h3>
-                      <Disclosure.Panel className="pt-8">
-                        <div className="space-y-4">
-                          {section.options.map((option, optionIdx) => (
-                            <div
-                              key={option.value}
-                              className="flex items-center"
-                            >
-                              <input
-                                id={`filter-${section.id}-${optionIdx}`}
-                                name={`${section.id}[]`}
-                                defaultValue={option.value}
-                                type="checkbox"
-                                defaultChecked={option.checked}
-                                onChange={(e) =>
-                                  handleFilterChange(
-                                    section.id,
-                                    optionIdx,
-                                    e.target.checked,
-                                  )
-                                }
-                                className="h-4 w-4 rounded text-teal-600"
-                              />
-                              <label
-                                htmlFor={`filter-${section.id}-${optionIdx}`}
-                                className={clsx(
-                                  'text-white-600 ml-3 text-sm',
-                                  option.checked
-                                    ? 'text-teal-500 dark:text-teal-400'
-                                    : 'hover:text-teal-500 dark:hover:text-teal-400',
-                                )}
+              {filters
+                .filter((a) => a.options.length > 0)
+                .map((section) => (
+                  <Disclosure
+                    as="div"
+                    key={section.id}
+                    className="border-b border-gray-200 py-6"
+                  >
+                    {({ open }) => (
+                      <>
+                        <h3 className="-my-3 flow-root">
+                          <Disclosure.Button className="hover:text-white-500 flex w-full items-center justify-between bg-white py-3 pl-3 text-sm text-gray-400">
+                            <span className="text-white-900 font-medium">
+                              {section.name}
+                            </span>
+                            <span className="ml-6 mr-2 flex items-center">
+                              {open ? (
+                                <MinusIcon
+                                  className="h-5 w-5"
+                                  aria-hidden="true"
+                                />
+                              ) : (
+                                <PlusIcon
+                                  className="h-5 w-5"
+                                  aria-hidden="true"
+                                />
+                              )}
+                            </span>
+                          </Disclosure.Button>
+                        </h3>
+                        <Disclosure.Panel className="pt-8">
+                          <div className="space-y-4">
+                            {section.options.map((option, optionIdx) => (
+                              <div
+                                key={option.value}
+                                className="flex items-center"
                               >
-                                {option.label}
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                      </Disclosure.Panel>
-                    </>
-                  )}
-                </Disclosure>
-              ))}
+                                <input
+                                  id={`filter-${section.id}-${optionIdx}`}
+                                  name={`${section.id}[]`}
+                                  defaultValue={option.value}
+                                  type="checkbox"
+                                  defaultChecked={option.checked}
+                                  onChange={(e) =>
+                                    handleFilterChange(
+                                      section.id,
+                                      optionIdx,
+                                      e.target.checked,
+                                    )
+                                  }
+                                  className="h-4 w-4 rounded text-teal-600"
+                                />
+                                <label
+                                  htmlFor={`filter-${section.id}-${optionIdx}`}
+                                  className={clsx(
+                                    'text-white-600 ml-3 text-sm',
+                                    option.checked
+                                      ? 'text-teal-500 dark:text-teal-400'
+                                      : 'hover:text-teal-500 dark:hover:text-teal-400',
+                                  )}
+                                >
+                                  {option.label}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                        </Disclosure.Panel>
+                      </>
+                    )}
+                  </Disclosure>
+                ))}
+
+              {filters.filter((a) => a.options.length < 0).length == 0 ? (
+                <p className="text-white-600 sm-text">
+                  There are no filters applicable <br></br> for the contacts
+                  list
+                </p>
+              ) : (
+                <></>
+              )}
             </form>
 
             {/* Product grid */}
@@ -615,31 +553,32 @@ export default function Example() {
                   role="list"
                   className="w-full max-w-7xl divide-y divide-gray-800"
                 >
-                  {filteredContacts.map((person) => (
-                    <li
-                      key={person.email}
-                      className="flex justify-between gap-x-6 py-5"
-                    >
-                      <div className="flex min-w-0 gap-x-4">
-                        <img
-                          className="h-12 w-12 flex-none rounded-full bg-gray-800"
-                          src={person.imageUrl}
-                          alt=""
-                        />
-                        <div className="min-w-0 flex-auto">
-                          <p className="text-sm font-semibold leading-6 text-white">
-                            {person.name}
-                          </p>
-                          <p className="mt-1 truncate text-xs leading-5 text-gray-400">
-                            {person.email}
-                          </p>
+                  {filteredContacts.length > 0 ? (
+                    filteredContacts.map((contact) => (
+                      <li
+                        key={contact.id}
+                        className="flex justify-between gap-x-6 py-5"
+                      >
+                        <div className="flex min-w-0 gap-x-4">
+                          <img
+                            className="h-12 w-12 flex-none rounded-full bg-gray-800"
+                            src={contact.photoUrl}
+                            alt=""
+                          />
+                          <div className="min-w-0 flex-auto">
+                            <p className="text-sm font-semibold leading-6 text-white">
+                              {contact.name}
+                            </p>
+                            <p className="mt-1 truncate text-xs leading-5 text-gray-400">
+                              {contact.email}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                      <div className="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
-                        <p className="text-sm leading-6 text-white">
-                          {person.role}
-                        </p>
-                        {/* {person.lastSeen ? (
+                        <div className="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
+                          <p className="text-sm leading-6 text-white">
+                            {contact.occupation}
+                          </p>
+                          {/* {person.lastSeen ? (
                           <p className="mt-1 text-xs leading-5 text-gray-400">
                             Last seen{' '}
                             <time dateTime={person.lastSeenDateTime}>
@@ -656,9 +595,17 @@ export default function Example() {
                             </p>
                           </div>
                         )} */}
-                      </div>
-                    </li>
-                  ))}
+                        </div>
+                      </li>
+                    ))
+                  ) : (
+                    <p>
+                      No contacts yet. Sync your contacts{' '}
+                      <Link href={'/sync'} className="text-teal-500">
+                        here
+                      </Link>
+                    </p>
+                  )}
                 </ul>
               }
             </div>
