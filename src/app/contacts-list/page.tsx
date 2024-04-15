@@ -15,6 +15,7 @@ import {
 import { APP_NAME } from '@/lib/constants'
 import clsx from 'clsx'
 import Link from 'next/link'
+import { FlattenContact } from '@/lib/definitions'
 
 const sortOptions = [
   { name: 'A - Z', href: '#', current: true },
@@ -48,7 +49,7 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-export default function Example({}) {
+export default function Example({ }) {
   // const [contacts, setContacts] = useState([
   //   {
   //     id: 1,
@@ -144,12 +145,12 @@ export default function Example({}) {
   //     category: ['Apple'],
   //   },
   // ])
-  const [contacts, setContacts] = useState([])
+  const [contacts, setContacts] = useState<FlattenContact[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [filters, setFilters] = useState(filtersTemplate)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [sortApplied, setSortApplied] = useState(undefined)
-  const [filteredContacts, setFilteredContacts] = useState([])
+  const [filteredContacts, setFilteredContacts] = useState<FlattenContact[]>([])
   const [selectedSource, setSelectedSource] = useState('all')
 
   const [hideFilterAdvice, setHideFilterAdvice] = useState(true)
@@ -157,7 +158,7 @@ export default function Example({}) {
   useEffect(() => {
     fetch('/api/contacts-list')
       .then((response) => response.json())
-      .then((data) => {
+      .then((data: FlattenContact[]) => {
         if (data.length) {
           setContacts(data)
           setHideFilterAdvice(false)
@@ -176,7 +177,7 @@ export default function Example({}) {
     })
     if (occupationOptions) {
       occupationOptions.options = contacts.map((a) => {
-        return { value: a.occupation, label: a.occupation, checked: false }
+        return { value: a.occupations.length == 0 ? 'No role found' : a.occupations[0].name, label: a.occupations.length == 0 ? 'No role found' : a.occupations[0].name, checked: false }
       })
     } else {
       console.log('ERROR LOADING ROLEOPTIONS')
@@ -663,7 +664,7 @@ export default function Example({}) {
                         <div className="flex min-w-0 gap-x-4">
                           <img
                             className="h-12 w-12 flex-none rounded-full bg-gray-800"
-                            src={contact.photoUrl}
+                            src={contact.photos[0].url}
                             alt=""
                           />
                           <div className="min-w-0 flex-auto">
@@ -671,13 +672,13 @@ export default function Example({}) {
                               {contact.name}
                             </p>
                             <p className="mt-1 truncate text-xs leading-5 text-gray-400">
-                              {contact.email}
+                              {contact.emails.length == 0 ? "No email found" : contact.emails[0].address}
                             </p>
                           </div>
                         </div>
                         <div className="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
                           <p className="text-sm leading-6 text-white">
-                            {contact.occupation}
+                            {contact.occupations.length == 0 ? "No role found" : contact.occupations[0].name}
                           </p>
                           {/* {person.lastSeen ? (
                           <p className="mt-1 text-xs leading-5 text-gray-400">
