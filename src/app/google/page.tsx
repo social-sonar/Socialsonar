@@ -1,7 +1,6 @@
 import { findContacts, syncGoogleContacts } from '@/lib/data'
 import { GoogleResponse } from '@/lib/definitions'
 import { syncContacts, createOAuth2Client } from '@/lib/integrations/google'
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
 export default async function Example({
@@ -19,6 +18,5 @@ export default async function Example({
     )
     await syncGoogleContacts(results)
   }
-  // const contacts = await findContacts(1n) // dummy search
   return redirect('/contacts-list')
 }
