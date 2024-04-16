@@ -1,5 +1,5 @@
 import { PhoneNumberType } from '@prisma/client'
-import prisma from './prisma'
+import prisma from '@/db'
 import { Address, Email, GoogleResponse, Occupation, Organization, PhoneNumber, Photo } from './definitions'
 
 
