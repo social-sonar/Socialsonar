@@ -194,6 +194,9 @@ export const syncGoogleContacts = async (
         userId: 1, // dummy user
       }
     })
+    await prisma.contactGoogle.create({
+      data: { contactId: newContact.id, googleContactId: person.resourceName!.slice(7) } // remove "people/" prefix
+    })
     await prisma.contactOrganization.createMany({
       data: organizationsIDs.map(organization => ({ contactId: newContact.id, organizationId: organization })),
       skipDuplicates: true
