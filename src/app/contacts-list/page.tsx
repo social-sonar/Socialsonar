@@ -4,6 +4,7 @@ import { Fragment, useEffect, useState, useCallback } from 'react'
 import { findContacts } from '@/lib/data'
 import { Dialog, Disclosure, Menu, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
+import { getName, registerLocale } from 'i18n-iso-countries'
 import {
   ChevronDownIcon,
   FunnelIcon,
@@ -49,7 +50,8 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-export default function Example({ }) {
+export default function Example({}) {
+  registerLocale(require('i18n-iso-countries/langs/en.json'))
   // const [contacts, setContacts] = useState([
   //   {
   //     id: 1,
@@ -161,7 +163,7 @@ export default function Example({ }) {
       .then((data: FlattenContact[]) => {
         if (data.length) {
           setContacts(data)
-          setHideFilterAdvice(false)
+          // setHideFilterAdvice(false)
         }
       })
       .catch((error) => console.error('Failed to load contacts', error))
@@ -176,9 +178,13 @@ export default function Example({ }) {
       return a.id == 'occupation'
     })
     if (occupationOptions) {
-      occupationOptions.options = contacts.map((a) => {
-        return { value: a.occupations.length == 0 ? 'No role found' : a.occupations[0].name, label: a.occupations.length == 0 ? 'No role found' : a.occupations[0].name, checked: false }
-      })
+      occupationOptions.options = contacts
+        .flatMap((a) => {
+          return (a.occupations || []).map((b) => {
+            return { value: b.id, label: b.name, checked: false }
+          })
+        })
+        .filter((v, i, a) => a.findIndex((v2) => v2.value === v.value) === i)
     } else {
       console.log('ERROR LOADING ROLEOPTIONS')
     }
@@ -188,7 +194,7 @@ export default function Example({ }) {
     if (categoryOptions) {
       categoryOptions.options = contacts
         .flatMap((a) => {
-          return a.category.map((b) => {
+          return (a.category || []).map((b) => {
             return { value: b, label: b, checked: false }
           })
         })
@@ -212,7 +218,7 @@ export default function Example({ }) {
     } else {
       console.log('ERROR LOADING CATEGORIES')
     }
-  }, [])
+  }, [contacts])
 
   useEffect(() => {
     let newFilteredContacts = contacts
@@ -233,6 +239,8 @@ export default function Example({ }) {
   }, [filters, selectedSource, contacts])
 
   const handleFilterChange = (sectionId, optionIdx, checked) => {
+    console.log('handleFilterChange', sectionId, optionIdx, checked)
+
     const newFilters = filters.map((section) => {
       if (section.id === sectionId) {
         const newOptions = section.options.map((option, idx) => {
@@ -258,9 +266,10 @@ export default function Example({ }) {
       .filter((option) => option.checked)
       .map((option) => option.value)
     if (selectedRoles.length > 0) {
-      newFilteredContacts = newFilteredContacts.filter((person) =>
-        selectedRoles.includes(person.occupation),
+      newFilteredContacts = newFilteredContacts.filter((contact) =>
+        contact.occupations.find((a) => selectedRoles.find(b=> b == a.id)),
       )
+      console.log(newFilteredContacts)
     }
 
     const locationFilter = filters.find((filter) => filter.id === 'location')
@@ -568,75 +577,81 @@ export default function Example({ }) {
               </ul>
 
               {hideFilterAdvice &&
-                filters.map((section) => (
-                  <Disclosure
-                    as="div"
-                    key={section.id}
-                    className="border-b border-gray-200 py-6"
-                  >
-                    {({ open }) => (
-                      <>
-                        <h3 className="-my-3 flow-root">
-                          <Disclosure.Button className="hover:text-white-500 flex w-full items-center justify-between bg-white py-3 pl-3 text-sm text-gray-400">
-                            <span className="text-white-900 font-medium">
-                              {section.name}
-                            </span>
-                            <span className="ml-6 mr-2 flex items-center">
-                              {open ? (
-                                <MinusIcon
-                                  className="h-5 w-5"
-                                  aria-hidden="true"
-                                />
-                              ) : (
-                                <PlusIcon
-                                  className="h-5 w-5"
-                                  aria-hidden="true"
-                                />
-                              )}
-                            </span>
-                          </Disclosure.Button>
-                        </h3>
-                        <Disclosure.Panel className="pt-8">
-                          <div className="space-y-4">
-                            {section.options.map((option, optionIdx) => (
-                              <div
-                                key={option.value}
-                                className="flex items-center"
-                              >
-                                <input
-                                  id={`filter-${section.id}-${optionIdx}`}
-                                  name={`${section.id}[]`}
-                                  defaultValue={option.value}
-                                  type="checkbox"
-                                  defaultChecked={option.checked}
-                                  onChange={(e) =>
-                                    handleFilterChange(
-                                      section.id,
-                                      optionIdx,
-                                      e.target.checked,
-                                    )
-                                  }
-                                  className="h-4 w-4 rounded text-teal-600"
-                                />
-                                <label
-                                  htmlFor={`filter-${section.id}-${optionIdx}`}
-                                  className={clsx(
-                                    'text-white-600 ml-3 text-sm',
-                                    option.checked
-                                      ? 'text-teal-500 dark:text-teal-400'
-                                      : 'hover:text-teal-500 dark:hover:text-teal-400',
-                                  )}
+                filters
+                  .filter((a) => a.options.length > 0)
+                  .map((section) => (
+                    <Disclosure
+                      as="div"
+                      key={section.id}
+                      className="border-b border-gray-200 py-6"
+                    >
+                      {({ open }) => (
+                        <>
+                          <h3 className="-my-3 flow-root">
+                            <Disclosure.Button className="hover:text-white-500 flex w-full items-center justify-between bg-white py-3 pl-3 text-sm text-gray-400">
+                              <span className="text-white-900 font-medium">
+                                {section.name}
+                              </span>
+                              <span className="ml-6 mr-2 flex items-center">
+                                {open ? (
+                                  <MinusIcon
+                                    className="h-5 w-5"
+                                    aria-hidden="true"
+                                  />
+                                ) : (
+                                  <PlusIcon
+                                    className="h-5 w-5"
+                                    aria-hidden="true"
+                                  />
+                                )}
+                              </span>
+                            </Disclosure.Button>
+                          </h3>
+                          <Disclosure.Panel className="pt-8">
+                            <div className="space-y-4">
+                              {section.options.map((option, optionIdx) => (
+                                <div
+                                  key={option.value}
+                                  className="flex items-center"
                                 >
-                                  {option.label}
-                                </label>
-                              </div>
-                            ))}
-                          </div>
-                        </Disclosure.Panel>
-                      </>
-                    )}
-                  </Disclosure>
-                ))}
+                                  <input
+                                    id={`filter-${section.id}-${optionIdx}`}
+                                    name={`${section.id}[]`}
+                                    defaultValue={option.value}
+                                    type="checkbox"
+                                    defaultChecked={option.checked}
+                                    onChange={(e) =>
+                                      handleFilterChange(
+                                        section.id,
+                                        optionIdx,
+                                        e.target.checked,
+                                      )
+                                    }
+                                    className="h-4 w-4 rounded text-teal-600"
+                                  />
+                                  <label
+                                    htmlFor={`filter-${section.id}-${optionIdx}`}
+                                    className={clsx(
+                                      'text-white-600 ml-3 text-sm',
+                                      option.checked
+                                        ? 'text-teal-500 dark:text-teal-400'
+                                        : 'hover:text-teal-500 dark:hover:text-teal-400',
+                                    )}
+                                  >
+                                    {section.id == 'location'
+                                      ? getName(option.label, 'en', {
+                                          select: 'alias',
+                                        }) ?? 'No assigned country'
+                                      : option.label}
+                                  </label>
+                                </div>
+                              ))}
+                            </div>
+                          </Disclosure.Panel>
+                        </>
+                      )}
+                    </Disclosure>
+                  ))}
 
               {!hideFilterAdvice ? (
                 <p className="text-white-600 sm-text">
@@ -662,41 +677,67 @@ export default function Example({ }) {
                         className="flex justify-between gap-x-6 py-5"
                       >
                         <div className="flex min-w-0 gap-x-4">
-                          <img
-                            className="h-12 w-12 flex-none rounded-full bg-gray-800"
-                            src={contact.photos[0].url}
-                            alt=""
-                          />
+                          {contact.photos && contact.photos[0] && (
+                            <img
+                              className="h-12 w-12 flex-none rounded-full bg-gray-800"
+                              src={contact.photos[0].url}
+                              alt=""
+                            />
+                          )}
                           <div className="min-w-0 flex-auto">
                             <p className="text-sm font-semibold leading-6 text-white">
                               {contact.name}
                             </p>
                             <p className="mt-1 truncate text-xs leading-5 text-gray-400">
-                              {contact.emails.length == 0 ? "No email found" : contact.emails[0].address}
+                              {contact.emails.length == 0
+                                ? 'No email found'
+                                : contact.emails[0].address}
                             </p>
                           </div>
                         </div>
                         <div className="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
                           <p className="text-sm leading-6 text-white">
-                            {contact.occupations.length == 0 ? "No role found" : contact.occupations[0].name}
+                            {contact.occupations.length == 0
+                              ? 'No role found'
+                              : contact.occupations
+                                  .map((a) => a.name)
+                                  .join(' | ')}
                           </p>
-                          {/* {person.lastSeen ? (
-                          <p className="mt-1 text-xs leading-5 text-gray-400">
-                            Last seen{' '}
-                            <time dateTime={person.lastSeenDateTime}>
-                              {person.lastSeen}
-                            </time>
-                          </p>
-                        ) : (
-                          <div className="mt-1 flex items-center gap-x-1.5">
-                            <div className="flex-none rounded-full bg-emerald-500/20 p-1">
-                              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                            </div>
-                            <p className="text-xs leading-5 text-gray-400">
-                              Online
+                          {contact.phoneNumbers.length > 0 ? (
+                            <p className="mt-1 text-xs leading-5 text-gray-400">
+                              {contact.phoneNumbers
+                                .map((a, index) => {
+                                  return (
+                                    <a
+                                      key={contact.id + 'index:' + index}
+                                      href={'tel://' + a.number}
+                                    >
+                                      {a.number}
+                                    </a>
+                                  )
+                                })
+                                .reduce(
+                                  (acc, x) =>
+                                    acc === null ? (
+                                      x
+                                    ) : (
+                                      <>
+                                        {acc} | {x}
+                                      </>
+                                    ),
+                                  null,
+                                )}
                             </p>
-                          </div>
-                        )} */}
+                          ) : (
+                            <div className="mt-1 flex items-center gap-x-1.5">
+                              {/* <div className="flex-none rounded-full bg-emerald-500/20 p-1">
+                              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                            </div> */}
+                              <p className="text-xs leading-5 text-gray-400">
+                                No phone
+                              </p>
+                            </div>
+                          )}
                         </div>
                       </li>
                     ))
