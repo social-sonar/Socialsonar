@@ -176,6 +176,7 @@ const getEmailsIDs = async (emails: Email[]): Promise<number[]> => {
 
 export const syncGoogleContacts = async (
   people: GoogleResponse[],
+  userId: string
 ): Promise<void> => {
 
   for (const person of people) {
@@ -191,7 +192,7 @@ export const syncGoogleContacts = async (
       data: {
         name: (person.names && person.names[0].displayName) || 'Contact',
         nickName: person.nicknames && person.nicknames[0].value || null,
-        userId: 1, // dummy user
+        userId: userId
       }
     })
     await prisma.contactGoogle.create({
@@ -226,7 +227,7 @@ export const syncGoogleContacts = async (
 
 }
 
-export const findContacts = async (userId: number) =>
+export const findContacts = async (userId: string) =>
   await prisma.contact.findMany({
     where: { userId: userId },
     include: {

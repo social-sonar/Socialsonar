@@ -1,9 +1,10 @@
 import { findContacts } from '@/lib/data'
 import { FlattenContact } from '@/lib/definitions'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
-export async function GET(req: Request) {
-  const contacts = await findContacts(1) // dummy search
+export async function GET(req: NextRequest) {
+  const userId = req.nextUrl.searchParams.get('userId') as string
+  const contacts = await findContacts(userId)
 
   const responseContacts: FlattenContact[] = contacts.map((contact) => ({
     id: contact.id.toString(),
