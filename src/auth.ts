@@ -18,5 +18,14 @@ export const { handlers: { GET, POST }, auth, signOut, signIn } = NextAuth({
             clientId: GOOGLE_CLIENT_ID,
             clientSecret: GOOGLE_CLIENT_SECRET
         })
-    ]
+    ],
+    callbacks: {
+        // usually not needed, here we are fixing a bug in next-auth
+        async session({ session, user }: any) {
+            if (session && user) {
+                session.user.id = user.id
+            }
+            return session
+        }
+    }
 })
