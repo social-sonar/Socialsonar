@@ -33,6 +33,7 @@ export type FlattenContact = {
         type: $Enums.PhoneNumberType;
     }[],
     occupations: {
+        id: string;
         name: string;
     }[],
     photos: {

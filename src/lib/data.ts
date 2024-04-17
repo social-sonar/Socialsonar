@@ -233,10 +233,11 @@ export const findContacts = async (userId: string) =>
     include: {
       organizations: { select: { organization: { select: { name: true } } } },
       phoneNumbers: { select: { phoneNumber: { select: { number: true, type: true } } } },
-      occupations: { select: { ocuppation: { select: { name: true } } } },
+      occupations: { select: { ocuppation: { select: { name: true, id: true } } } },
       photos: { select: { photo: { select: { url: true } } } },
       addresses: { select: { address: true } },
-      emails: { select: { email: { select: { address: true } } } }
+      emails: { select: { email: { select: { address: true } } } },
+      googleContacts: {select : { googleContactId: true}}
     }
   })
 
