@@ -46,13 +46,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
   let previousPathname = usePrevious(pathname)
 
   return (
-    <SessionProvider>
-      <AppContext.Provider value={{ previousPathname }}>
-        <ThemeProvider attribute="class" disableTransitionOnChange>
-          <ThemeWatcher />
+    <AppContext.Provider value={{ previousPathname }}>
+      <ThemeProvider attribute="class" disableTransitionOnChange>
+        <ThemeWatcher />
+        <SessionProvider>
           {children}
-        </ThemeProvider>
-      </AppContext.Provider>
-    </SessionProvider>
+        </SessionProvider>
+      </ThemeProvider>
+    </AppContext.Provider>
   )
 }
