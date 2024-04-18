@@ -5,8 +5,10 @@ import remarkGfm from 'remark-gfm'
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'mdx'],
+  images: {
+    remotePatterns: [{hostname: 'lh3.googleusercontent.com'}],
+  },
 }
-
 const withMDX = nextMDX({
   extension: /\.mdx?$/,
   options: {
