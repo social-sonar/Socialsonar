@@ -6,8 +6,8 @@ const SCOPES = ['https://www.googleapis.com/auth/contacts.readonly'];
 
 export function createOAuth2Client(tokens?: Auth.Credentials): Auth.OAuth2Client {
     const oauth2Client = new google.auth.OAuth2(
-        process.env.CLIENT_ID,
-        process.env.CLIENT_SECRET,
+        process.env.GOOGLE_CLIENT_ID,
+        process.env.GOOGLE_CLIENT_SECRET,
         process.env.REDIRECT_URL,
     );
     

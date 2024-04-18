@@ -16,15 +16,19 @@ Next, create a `.env.local` file in the root of your project and set the followi
    - Example: **`https://example.com`**
    - Usage: Specifies the public BASE URL.
 2. **GOOGLE_CLIENT_ID**:
+2. **GOOGLE_CLIENT_ID**:
    - Example: **`abcdefg.apps.googleusercontent.com`**
    - Usage: GCP client ID for syncing google data into the app
 3. **GOOGLE_CLIENT_SECRET**:
    - Example: **`GOCSPX-abcdefghi`**
-   - Usage: GCP client secret for syncing google data into the app.
-4. **REDIRECT_URL**:
+   - Usage: GCP client secret for syncing google data into the app (auth and contacts)
+4. **AUTH_SECRET**:
+   - Example: **`abcd1234`**
+   - Usage: Random auth secret, required for OAuth authentication
+5. **REDIRECT_URL**:
    - Example: **`https://example.com/`**
    - Usage: Specifies the URI to which users will be redirected after authorizing the usage of their data.
-5. **DATABASE_URL**:
+6. **DATABASE_URL**:
    - Example: **`postgresql://foo:bar@localhost:5432/mydb?schema=public`**
    - Usage: Specifies the connection URL that Prisma will use.
 

@@ -1,10 +1,11 @@
 import { findContacts } from '@/lib/data'
-import { FlattenContact } from '@/lib/definitions'
-import { NextResponse } from 'next/server'
+import { CleanPhoneData, FlattenContact } from '@/lib/definitions'
+import { NextRequest, NextResponse } from 'next/server'
 import { phone } from 'phone'
 
-export async function GET(req: Request) {
-  const contacts = await findContacts(1) // dummy search
+export async function GET(req: NextRequest) {
+  const userId = req.nextUrl.searchParams.get('userId') as string
+  const contacts = await findContacts(userId)
 
   const responseContacts: FlattenContact[] = contacts.map((contact) => ({
     id: contact.id.toString(),
@@ -14,7 +15,7 @@ export async function GET(req: Request) {
     organizations: contact.organizations.map((item) => ({
       ...item.organization,
     })),
-    phoneNumbers: contact.phoneNumbers.map((item) => {
+    phoneNumbers: contact.phoneNumbers.map((item): CleanPhoneData => {
       let phoneProcesed = phone(item.phoneNumber.number)
       return {
         ...phoneProcesed,
@@ -25,11 +26,10 @@ export async function GET(req: Request) {
     photos: contact.photos.map((item) => ({ ...item.photo })),
     addresses: contact.addresses.map((item) => ({ ...item.address })),
     emails: contact.emails.map((item) => ({ ...item.email })),
-    // location: contact.location ? contact.location : {contact.phoneNumbers[0].countryIso2 ? contact.phoneNumbers[0].countryIso2 : null}
     location:
       contact.phoneNumbers[0] &&
-      phone(contact.phoneNumbers[0].phoneNumber.number) &&
-      phone(contact.phoneNumbers[0].phoneNumber.number).countryIso2
+        phone(contact.phoneNumbers[0].phoneNumber.number) &&
+        phone(contact.phoneNumbers[0].phoneNumber.number).countryIso2
         ? phone(contact.phoneNumbers[0].phoneNumber.number).countryIso2
         : null,
     source: contact.googleContacts.length > 0 ? "google" : "custom"

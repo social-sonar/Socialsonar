@@ -17,6 +17,7 @@ import { APP_NAME } from '@/lib/constants'
 import clsx from 'clsx'
 import Link from 'next/link'
 import { FlattenContact } from '@/lib/definitions'
+import { useSession } from 'next-auth/react'
 
 const sortOptions = [
   { name: 'A - Z', href: '#', current: true },
@@ -46,7 +47,7 @@ const filtersTemplate = [
   },
 ]
 
-function classNames(...classes) {
+function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ')
 }
 
@@ -153,12 +154,13 @@ export default function Example({}) {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [sortApplied, setSortApplied] = useState(undefined)
   const [filteredContacts, setFilteredContacts] = useState<FlattenContact[]>([])
-  const [selectedSource, setSelectedSource] = useState('all')
-
+  const [selectedSource, setSelectedSource] = useState<string>('all')
   const [hideFilterAdvice, setHideFilterAdvice] = useState(true)
 
+  const session = useSession()
+
   useEffect(() => {
-    fetch('/api/contacts-list')
+    fetch(`/api/contacts-list?userId=${session?.data?.user?.id}`)
       .then((response) => response.json())
       .then((data: FlattenContact[]) => {
         if (data.length) {
@@ -169,7 +171,7 @@ export default function Example({}) {
       .catch((error) => console.error('Failed to load contacts', error))
   }, [])
 
-  const handleSourceChange = (source) => {
+  const handleSourceChange = (source: string) => {
     setSelectedSource(source)
   }
 
@@ -454,7 +456,7 @@ export default function Example({}) {
         </Dialog>
       </Transition.Root>
 
-      <main className="mx-auto px-4 sm:px-6 lg:px-8">
+      <main className="mx-auto px-4 sm:px-6 lg:px-8 h-full">
         <div className="flex items-baseline justify-between border-b border-gray-200 pb-6 pt-24">
           <h1 className="text-white-900 text-4xl font-bold tracking-tight">
             Contacts list

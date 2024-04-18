@@ -10,8 +10,11 @@ import clsx from 'clsx'
 
 import { Container } from '@/components/Container'
 import avatarImage from '@/images/avatar.png'
-import { stat } from 'fs'
 import { APP_NAME } from '@/lib/constants'
+import { Button } from './Button'
+import { signIn, signOut } from '@/actions'
+import { useSession } from 'next-auth/react'
+
 
 function CloseIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (
@@ -168,7 +171,7 @@ function MobileNavigation(
                 </MobileNavItem>
                 <MobileNavItem href="/projects">My profile info</MobileNavItem>
                 <MobileNavItem href="/speaking">
-                  Request someone's contact info
+                  Request someone&apos;s contact info
                 </MobileNavItem>
               </ul>
             </nav>
@@ -193,7 +196,7 @@ function NavItem({
       <Link
         href={href}
         className={clsx(
-          'relative block px-3 py-2 transition',
+          'relative block py-2 transition w-auto text-center',
           isActive
             ? 'text-teal-500 dark:text-teal-400'
             : 'hover:text-teal-500 dark:hover:text-teal-400',
@@ -201,22 +204,78 @@ function NavItem({
       >
         {children}
         {isActive && (
-          <span className="absolute inset-x-1 -bottom-px h-px bg-gradient-to-r from-teal-500/0 via-teal-500/40 to-teal-500/0 dark:from-teal-400/0 dark:via-teal-400/40 dark:to-teal-400/0" />
+          <span className="absolute inset-x-1 -bottom-1 h-px bg-gradient-to-r from-teal-500/0 via-teal-500/40 to-teal-500/0 dark:from-teal-400/0 dark:via-teal-400/40 dark:to-teal-400/0" />
         )}
       </Link>
     </li>
   )
 }
 
-function DesktopNavigation(props: React.ComponentPropsWithoutRef<'nav'>) {
+
+export function ProfilePopUp({ userImageUrl, logOutButton }: { userImageUrl: string, logOutButton: React.ReactNode }) {
+  return (
+    <Popover className="relative h-full block w-auto">
+      {({ open }) => (
+        <>
+          <Popover.Button className='focus:outline-none focus:ring-0 focus:border-none h-full' >
+            <div className='lg:w-[40px] sm:w-[70px] h-full'>
+              <Image alt='user image' src={userImageUrl} layout="fill" className='rounded-full' />
+            </div>
+          </Popover.Button>
+          <Transition
+            as={Fragment}
+            enter="transition ease-out duration-200"
+            enterFrom="opacity-0 translate-y-1"
+            enterTo="opacity-100 translate-y-0"
+            leave="transition ease-in duration-150"
+            leaveFrom="opacity-100 translate-y-0"
+            leaveTo="opacity-0 translate-y-1"
+          >
+            <Popover.Panel className="absolute z-10 w-32 max-w-sm -translate-x-1/2  sm:px-0 lg:max-w-3xl">
+              <div className="overflow-hidden rounded-lg shadow-lg ring-1 ring-black/5">
+                <div className="bg-gray-50 p-4 flex flex-col items-center">
+                  {logOutButton}
+                </div>
+              </div>
+            </Popover.Panel>
+          </Transition>
+        </>
+      )}
+    </Popover>
+  )
+}
+
+
+
+
+
+
+
+
+
+
+
+/////////////////////
+
+
+type NavProps = React.ComponentPropsWithoutRef<'nav'> & {
+  className?: string;
+  profileItem: React.ReactNode;
+};
+
+function DesktopNavigation({ profileItem, ...props }: NavProps) {
   return (
     <nav {...props}>
-      <ul className="flex rounded-full bg-white/90 px-3 text-sm font-medium text-zinc-800 shadow-lg shadow-zinc-800/5 ring-1 ring-zinc-900/5 backdrop-blur dark:bg-zinc-800/90 dark:text-zinc-200 dark:ring-white/10">
+      <ul className="flex justify-between lg:gap-4 sm:gap-2 rounded-full bg-white/90 px-3 text-sm font-medium text-zinc-800 shadow-lg shadow-zinc-800/5 ring-1 ring-zinc-900/5 backdrop-blur dark:bg-zinc-800/90 dark:text-zinc-200 dark:ring-white/10 py-1">
+        <NavItem href="/">Home</NavItem>
         <NavItem href="/contacts-list">Contacts list</NavItem>
         <NavItem href="/about">Add new contact</NavItem>
         <NavItem href="/sync">Connected accounts</NavItem>
         <NavItem href="/projects">My profile info</NavItem>
-        <NavItem href="/uses">Request someone's contact info</NavItem>
+        <NavItem href="/uses">Request someone&apos;s contact info</NavItem>
+        <li>
+          {profileItem}
+        </li>
       </ul>
     </nav>
   )
@@ -293,9 +352,10 @@ function Avatar({
   )
 }
 
-export function Header() {
+export default function Header() {
   let isHomePage = usePathname() === '/'
-
+  const session = useSession()
+  let navContent: React.ReactNode
   let headerRef = useRef<React.ElementRef<'div'>>(null)
   let avatarRef = useRef<React.ElementRef<'div'>>(null)
   let isInitial = useRef(true)
@@ -400,10 +460,39 @@ export function Header() {
     }
   }, [isHomePage])
 
+
+  if (session?.status === 'loading') {
+    navContent = null
+  }
+  else if (session?.data?.user) {
+    navContent = <div className="relative flex gap-4">
+      <div className="flex flex-1 justify-end md:justify-center">
+        <MobileNavigation className="pointer-events-auto md:hidden" />
+        <DesktopNavigation className="pointer-events-auto hidden md:block" profileItem={
+          <ProfilePopUp userImageUrl={session.data.user.image || ''} key={session.data.user.id} logOutButton={
+            <form action={signOut}>
+              <Button variant='primary' className='p-2 relative'>Sign Out</Button>
+            </form>
+          } />
+        } />
+      </div>
+    </div>
+  }
+  else {
+    navContent = <div className='flex gap-2 m-2 items-end justify-end'>
+      <form action={signIn}>
+        <Button variant='secondary' className='p-2 relative'>Sign In</Button>
+      </form>
+      <form action={signIn}>
+        <Button variant='primary' className='p-2'>Sign Up</Button>
+      </form>
+    </div>
+  }
+
   return (
     <>
       <header
-        className="pointer-events-none relative z-50 flex flex-none flex-col"
+        className="relative z-50 flex flex-none flex-col"
         style={{
           height: 'var(--header-height)',
           marginBottom: 'var(--header-mb)',
@@ -462,19 +551,7 @@ export function Header() {
                 'var(--header-inner-position)' as React.CSSProperties['position'],
             }}
           >
-            <div className="relative flex gap-4">
-              {/* <div className="flex flex-1">
-                {!isHomePage && (
-                  <AvatarContainer>
-                    <Avatar />
-                  </AvatarContainer>
-                )}
-              </div> */}
-              <div className="flex flex-1 justify-end md:justify-center">
-                <MobileNavigation className="pointer-events-auto md:hidden" />
-                <DesktopNavigation className="pointer-events-auto hidden md:block" />
-              </div>
-            </div>
+            {navContent}
           </Container>
         </div>
       </header>
