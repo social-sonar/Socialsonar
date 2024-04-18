@@ -16,7 +16,6 @@ Next, create a `.env.local` file in the root of your project and set the followi
    - Example: **`https://example.com`**
    - Usage: Specifies the public BASE URL.
 2. **GOOGLE_CLIENT_ID**:
-2. **GOOGLE_CLIENT_ID**:
    - Example: **`abcdefg.apps.googleusercontent.com`**
    - Usage: GCP client ID for syncing google data into the app
 3. **GOOGLE_CLIENT_SECRET**:
