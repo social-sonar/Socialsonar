@@ -1,7 +1,7 @@
 import { type Metadata } from 'next'
 
 import { Providers } from '@/app/providers'
-import { Layout } from '@/components/Layout'
+import Layout from '@/components/Layout'
 
 import '@/styles/tailwind.css'
 import { APP_NAME } from '@/lib/constants'
@@ -45,7 +45,7 @@ export default function RootLayout({
         href="favicon-16x16.png"
       ></link>
       <link rel="icon" href="/favicon.ico"></link>
-      <body className="flex h-full bg-zinc-50 dark:bg-black">
+      <body className="flex h-full bg-zinc-50 dark:bg-black relative">
         <Providers>
           <div className="flex w-full">
             <Layout>{children}</Layout>

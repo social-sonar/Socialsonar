@@ -1,5 +1,7 @@
 import { Prisma, Contact, $Enums } from '@prisma/client'
 import { people_v1 } from 'googleapis'
+import { PhoneResult } from 'phone'
+
 
 
 export type GoogleResponse = people_v1.Schema$Person
@@ -20,6 +22,11 @@ export type ContactCreate = Prisma.ContactUncheckedCreateInput;
 
 export type { Contact }
 
+export type CleanPhoneData = PhoneResult & {
+    number: string;
+    type: $Enums.PhoneNumberType;
+}
+
 export type FlattenContact = {
     id: string,
     userId: string,
@@ -28,12 +35,9 @@ export type FlattenContact = {
     organizations: {
         name: string;
     }[],
-    phoneNumbers: {
-        number: string;
-        type: $Enums.PhoneNumberType;
-    }[],
+    phoneNumbers: CleanPhoneData[],
     occupations: {
-        id: string;
+        id: number;
         name: string;
     }[],
     photos: {
@@ -48,5 +52,7 @@ export type FlattenContact = {
     }[],
     emails: {
         address: string,
-    }[]
+    }[],
+    location: string | null,
+    source: string
 }
