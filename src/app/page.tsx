@@ -1,260 +1,326 @@
-import Image, { type ImageProps } from 'next/image'
-import Link from 'next/link'
-
 import { Button } from '@/components/Button'
-import { Container } from '@/components/Container'
+import { APP_NAME, REPO_URL } from '@/lib/constants'
 import {
-  GitHubIcon,
-  InstagramIcon,
-  LinkedInIcon,
-  XIcon,
-} from '@/components/SocialIcons'
-import logoAirbnb from '@/images/logos/airbnb.svg'
-import logoFacebook from '@/images/logos/facebook.svg'
-import logoPlanetaria from '@/images/logos/planetaria.svg'
-import logoStarbucks from '@/images/logos/starbucks.svg'
+  ArrowPathIcon,
+  ChevronRightIcon,
+  CloudArrowUpIcon,
+  Cog6ToothIcon,
+  FingerPrintIcon,
+  LockClosedIcon,
+  ServerIcon,
+} from '@heroicons/react/20/solid'
+import {
+  EnvelopeOpenIcon,
+  CalendarDaysIcon,
+  UsersIcon,
+} from '@heroicons/react/24/outline'
 
-function MailIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
+import { signIn } from '@/actions'
+
+import Avatar from '@/images/avatar.png'
+import merge from '@/images/photos/merge.jpg'
+import landing from '@/images/photos/landing-1.webp'
+
+const primaryFeatures = [
+  {
+    name: 'Open source',
+    description:
+      'Know exactly what we are doing with your information with the security and long-term plan that an open source community project provides.',
+    href: REPO_URL,
+    icon: EnvelopeOpenIcon,
+  },
+  {
+    name: 'Collaborate',
+    description:
+      `Share your contacts or groups of contacts with your work group in real time in a collaborative way. Never ask a teammate for someone's business card again.`,
+    href: '#',
+    icon: UsersIcon,
+  },
+  {
+    name: 'Scheduling',
+    description:
+      'It has a simple way to share a URL and manage your appointments or those of your team. No thousands of options that get in the way of the options you actually use',
+    href: '',
+    icon: CalendarDaysIcon,
+  },
+]
+const secondaryFeatures = [
+  {
+    name: 'Cloud based',
+    description:
+      'No matter what device you use, all your contacts will be there and updated waiting for you to take advantage',
+    icon: CloudArrowUpIcon,
+  },
+  {
+    name: 'No big data with your YOUR data',
+    description:
+      'The information is only yours, it will not be used for anything other than providing you value.',
+    icon: LockClosedIcon,
+  },
+  {
+    name: 'Stay synchronized',
+    description:
+      'Choose the contacts from the provider you prefer, they will always be updated and synchronized.',
+    icon: ArrowPathIcon,
+  },
+  {
+    name: 'The person behind the contact',
+    description:
+      'We understand your contacts as unique identities and not only as numbers or addresses that are empty of importance.',
+    icon: FingerPrintIcon,
+  },
+  {
+    name: `It's your decision`,
+    description:
+      'Configure which feature you want to use and which not with your contact list, we are here to solve your contact book problems.',
+    icon: Cog6ToothIcon,
+  },
+  {
+    name: 'Export your data as you want',
+    description:
+      'We use the standard vcard format so you can export your contacts and migrate to another platform if is your choice.',
+    icon: ServerIcon,
+  },
+]
+
+export default function Home() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      {...props}
-    >
-      <path
-        d="M2.75 7.75a3 3 0 0 1 3-3h12.5a3 3 0 0 1 3 3v8.5a3 3 0 0 1-3 3H5.75a3 3 0 0 1-3-3v-8.5Z"
-        className="fill-zinc-100 stroke-zinc-400 dark:fill-zinc-100/10 dark:stroke-zinc-500"
-      />
-      <path
-        d="m4 6 6.024 5.479a2.915 2.915 0 0 0 3.952 0L20 6"
-        className="stroke-zinc-400 dark:stroke-zinc-500"
-      />
-    </svg>
-  )
-}
-
-function BriefcaseIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      {...props}
-    >
-      <path
-        d="M2.75 9.75a3 3 0 0 1 3-3h12.5a3 3 0 0 1 3 3v8.5a3 3 0 0 1-3 3H5.75a3 3 0 0 1-3-3v-8.5Z"
-        className="fill-zinc-100 stroke-zinc-400 dark:fill-zinc-100/10 dark:stroke-zinc-500"
-      />
-      <path
-        d="M3 14.25h6.249c.484 0 .952-.002 1.316.319l.777.682a.996.996 0 0 0 1.316 0l.777-.682c.364-.32.832-.319 1.316-.319H21M8.75 6.5V4.75a2 2 0 0 1 2-2h2.5a2 2 0 0 1 2 2V6.5"
-        className="stroke-zinc-400 dark:stroke-zinc-500"
-      />
-    </svg>
-  )
-}
-
-function ArrowDownIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
-  return (
-    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" {...props}>
-      <path
-        d="M4.75 8.75 8 12.25m0 0 3.25-3.5M8 12.25v-8.5"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
-
-function SocialLink({
-  icon: Icon,
-  ...props
-}: React.ComponentPropsWithoutRef<typeof Link> & {
-  icon: React.ComponentType<{ className?: string }>
-}) {
-  return (
-    <Link className="group -m-1 p-1" {...props}>
-      <Icon className="h-6 w-6 fill-zinc-500 transition group-hover:fill-zinc-600 dark:fill-zinc-400 dark:group-hover:fill-zinc-300" />
-    </Link>
-  )
-}
-
-function Newsletter() {
-  return (
-    <form
-      action="/thank-you"
-      className="rounded-2xl border border-zinc-100 p-6 dark:border-zinc-700/40"
-    >
-      <h2 className="flex text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-        <MailIcon className="h-6 w-6 flex-none" />
-        <span className="ml-3">Stay up to date</span>
-      </h2>
-      <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-        Get notified when I publish something new, and unsubscribe at any time.
-      </p>
-      <div className="mt-6 flex">
-        <input
-          type="email"
-          placeholder="Email address"
-          aria-label="Email address"
-          required
-          className="min-w-0 flex-auto appearance-none rounded-md border border-zinc-900/10 bg-white px-3 py-[calc(theme(spacing.2)-1px)] shadow-md shadow-zinc-800/5 placeholder:text-zinc-400 focus:border-teal-500 focus:outline-none focus:ring-4 focus:ring-teal-500/10 sm:text-sm dark:border-zinc-700 dark:bg-zinc-700/[0.15] dark:text-zinc-200 dark:placeholder:text-zinc-500 dark:focus:border-teal-400 dark:focus:ring-teal-400/10"
-        />
-        <Button type="submit" className="ml-4 flex-none">
-          Join
-        </Button>
-      </div>
-    </form>
-  )
-}
-
-interface Role {
-  company: string
-  title: string
-  logo: ImageProps['src']
-  start: string | { label: string; dateTime: string }
-  end: string | { label: string; dateTime: string }
-}
-
-function Role({ role }: { role: Role }) {
-  let startLabel =
-    typeof role.start === 'string' ? role.start : role.start.label
-  let startDate =
-    typeof role.start === 'string' ? role.start : role.start.dateTime
-
-  let endLabel = typeof role.end === 'string' ? role.end : role.end.label
-  let endDate = typeof role.end === 'string' ? role.end : role.end.dateTime
-
-  return (
-    <li className="flex gap-4">
-      <div className="relative mt-1 flex h-10 w-10 flex-none items-center justify-center rounded-full shadow-md shadow-zinc-800/5 ring-1 ring-zinc-900/5 dark:border dark:border-zinc-700/50 dark:bg-zinc-800 dark:ring-0">
-        <Image src={role.logo} alt="" className="h-7 w-7" unoptimized />
-      </div>
-      <dl className="flex flex-auto flex-wrap gap-x-2">
-        <dt className="sr-only">Company</dt>
-        <dd className="w-full flex-none text-sm font-medium text-zinc-900 dark:text-zinc-100">
-          {role.company}
-        </dd>
-        <dt className="sr-only">Role</dt>
-        <dd className="text-xs text-zinc-500 dark:text-zinc-400">
-          {role.title}
-        </dd>
-        <dt className="sr-only">Date</dt>
-        <dd
-          className="ml-auto text-xs text-zinc-400 dark:text-zinc-500"
-          aria-label={`${startLabel} until ${endLabel}`}
-        >
-          <time dateTime={startDate}>{startLabel}</time>{' '}
-          <span aria-hidden="true">—</span>{' '}
-          <time dateTime={endDate}>{endLabel}</time>
-        </dd>
-      </dl>
-    </li>
-  )
-}
-
-function Resume() {
-  let resume: Array<Role> = [
-    {
-      company: 'Planetaria',
-      title: 'CEO',
-      logo: logoPlanetaria,
-      start: '2019',
-      end: {
-        label: 'Present',
-        dateTime: new Date().getFullYear().toString(),
-      },
-    },
-    {
-      company: 'Airbnb',
-      title: 'Product Designer',
-      logo: logoAirbnb,
-      start: '2014',
-      end: '2019',
-    },
-    {
-      company: 'Facebook',
-      title: 'iOS Software Engineer',
-      logo: logoFacebook,
-      start: '2011',
-      end: '2014',
-    },
-    {
-      company: 'Starbucks',
-      title: 'Shift Supervisor',
-      logo: logoStarbucks,
-      start: '2008',
-      end: '2011',
-    },
-  ]
-
-  return (
-    <div className="rounded-2xl border border-zinc-100 p-6 dark:border-zinc-700/40">
-      <h2 className="flex text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-        <BriefcaseIcon className="h-6 w-6 flex-none" />
-        <span className="ml-3">Work</span>
-      </h2>
-      <ol className="mt-6 space-y-4">
-        {resume.map((role, roleIndex) => (
-          <Role key={roleIndex} role={role} />
-        ))}
-      </ol>
-      <Button href="#" variant="secondary" className="group mt-6 w-full">
-        Download CV
-        <ArrowDownIcon className="h-4 w-4 stroke-zinc-400 transition group-active:stroke-zinc-600 dark:group-hover:stroke-zinc-50 dark:group-active:stroke-zinc-50" />
-      </Button>
-    </div>
-  )
-}
-
-function Photos() {
-  let rotations = ['rotate-2', '-rotate-2', 'rotate-2', 'rotate-2', '-rotate-2']
-
-  return (
-    <div className="mt-16 sm:mt-20">
-    </div>
-  )
-}
-
-export default async function Home() {
-
-  return (
-    <>
-      <Container className="mt-9">
-        <div className="max-w-2xl">
-          <h1 className="text-4xl font-bold tracking-tight text-zinc-800 sm:text-5xl dark:text-zinc-100">
-            Blackbook cleaner
-          </h1>
-          <p className="mt-6 text-base text-zinc-600 dark:text-zinc-400">
-            Blackbook cleaner allows you to sync your contacts with your phone. This means that when you add a contact on your computer, it will automatically be added to your phone and vice versa
-          </p>
-          <div className="mt-6 flex gap-6">
-            <SocialLink href="#" aria-label="Follow on X" icon={XIcon} />
-            <SocialLink
-              href="#"
-              aria-label="Follow on Instagram"
-              icon={InstagramIcon}
+    <div className="">
+      <main>
+        {/* Hero section */}
+        <div className="relative isolate overflow-hidden">
+          {/* <svg
+            className="absolute inset-0 -z-10 h-full w-full stroke-white/10 [mask-image:radial-gradient(100%_100%_at_top_right,white,transparent)]"
+            aria-hidden="true"
+          >
+            <defs>
+              <pattern
+                id="983e3e4c-de6d-4c3f-8d64-b9761d1534cc"
+                width={200}
+                height={200}
+                x="50%"
+                y={-1}
+                patternUnits="userSpaceOnUse"
+              >
+                <path d="M.5 200V.5H200" fill="none" />
+              </pattern>
+            </defs>
+            <svg x="50%" y={-1} className="overflow-visible fill-gray-800/20">
+              <path
+                d="M-200 0h201v201h-201Z M600 0h201v201h-201Z M-400 600h201v201h-201Z M200 800h201v201h-201Z"
+                strokeWidth={0}
+              />
+            </svg>
+            <rect
+              width="100%"
+              height="100%"
+              strokeWidth={0}
+              fill="url(#983e3e4c-de6d-4c3f-8d64-b9761d1534cc)"
             />
-            <SocialLink
-              href="#"
-              aria-label="Follow on GitHub"
-              icon={GitHubIcon}
-            />
-            <SocialLink
-              href="#"
-              aria-label="Follow on LinkedIn"
-              icon={LinkedInIcon}
-            />
+          </svg> */}
+          <div
+            className="absolute left-[calc(50%-4rem)] top-10 -z-10 transform-gpu blur-3xl sm:left-[calc(50%-18rem)] lg:left-48 lg:top-[calc(50%-30rem)] xl:left-[calc(50%-24rem)]"
+            aria-hidden="true"
+          >
+            {/* <div
+              className="aspect-[1108/632] w-[69.25rem] bg-gradient-to-r from-[#80caff] to-[#4f46e5] opacity-20"
+              style={{
+                clipPath:
+                  'polygon(73.6% 51.7%, 91.7% 11.8%, 100% 46.4%, 97.4% 82.2%, 92.5% 84.9%, 75.7% 64%, 55.3% 47.5%, 46.5% 49.4%, 45% 62.9%, 50.3% 87.2%, 21.3% 64.1%, 0.1% 100%, 5.4% 51.1%, 21.4% 63.9%, 58.9% 0.2%, 73.6% 51.7%)',
+              }}
+            /> */}
+          </div>
+          <div className="mx-auto max-w-7xl px-6 pb-24 pt-10 sm:pb-40 lg:flex lg:px-8 lg:pt-40">
+            <div className="mx-auto max-w-2xl flex-shrink-0 lg:mx-0 lg:max-w-xl lg:pt-8">
+              {/* <img
+                className="h-11"
+                src={Avatar.src}
+                alt={APP_NAME}
+              /> */}
+              <h1 className="mt-10 text-4xl font-bold tracking-tight text-white sm:text-6xl">
+                {APP_NAME}
+              </h1>
+              <p className="mt-6 text-lg leading-8 text-gray-300">
+                {APP_NAME} keeps your contacts organized by eliminating
+                duplicates, updating all your contact details, and identifying
+                missing information. Optimize your contact book today
+                using {APP_NAME}
+              </p>
+              <div className="mt-10 flex items-center gap-x-6">
+                {CallToActionButton()}
+              </div>
+            </div>
+            <div className="mx-auto mt-16 flex max-w-2xl sm:mt-24 lg:ml-0 lg:mr-0 lg:mt-0 lg:max-w-none lg:flex-none xl:ml-0">
+              <div className="max-w-3xl flex-none sm:max-w-5xl lg:max-w-none">
+                <img
+                  src={landing.src}
+                  alt="App screenshot"
+                  className="w-[76rem] opacity-50"
+                />
+              </div>
+            </div>
           </div>
         </div>
-      </Container>
-    </>
+
+        {/* Feature section */}
+        <div className="mx-auto mt-16 max-w-7xl px-6 sm:mt-56 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="text-base font-semibold leading-7 text-indigo-400">
+              Have your contacts up to date
+            </h2>
+            <p className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              Everything your agenda needs to be updated, reliable and
+              synchronized
+            </p>
+            {/* <p className="mt-6 text-lg leading-8 text-gray-300">
+                Lorem ipsum dolor sit amet consect adipisicing elit. Possimus
+                magnam voluptatum cupiditate veritatis in accusamus quisquam.
+              </p> */}
+          </div>
+          <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
+            <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
+              {primaryFeatures.map((feature) => (
+                <div key={feature.name} className="flex flex-col">
+                  <dt className="text-base font-semibold leading-7 text-white">
+                    <div className="mb-6 flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500">
+                      <feature.icon
+                        className="h-6 w-6 text-white"
+                        aria-hidden="true"
+                      />
+                    </div>
+                    {feature.name}
+                  </dt>
+                  <dd className="mt-1 flex flex-auto flex-col text-base leading-7 text-gray-300">
+                    <p className="flex-auto">{feature.description}</p>
+                    <p className="mt-6">
+                      <a
+                        href={feature.href}
+                        className="text-sm font-semibold leading-6 text-indigo-400"
+                      >
+                        Learn more <span aria-hidden="true">→</span>
+                      </a>
+                    </p>
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </div>
+
+        {/* Feature section */}
+        <div className="mt-32 sm:mt-56">
+          <div className="mx-auto max-w-7xl px-6 lg:px-8">
+            <div className="mx-auto max-w-2xl sm:text-center">
+              <h2 className="text-base font-semibold leading-7 text-indigo-400">
+                Everything you need in your agenda is solved by {APP_NAME}
+              </h2>
+              <p className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                No time to fix your contacts? No problem.
+              </p>
+              <p className="mt-6 text-lg leading-8 text-gray-300">
+                Let artificial intelligence unlock the true value of all the
+                contacts you've collected throughout your life and nourish them
+                with useful information.
+              </p>
+            </div>
+          </div>
+          <div className="relative overflow-hidden pt-16">
+            <div className="mx-auto max-w-7xl px-6 lg:px-8">
+              <img
+                src={merge.src}
+                alt="App screenshot"
+                className="mb-[-12%]"
+                width={2432}
+                height={1442}
+              />
+              <div className="relative" aria-hidden="true">
+                <div className="absolute -inset-x-20 bottom-0 bg-gradient-to-t from-gray-900 pt-[7%]" />
+              </div>
+            </div>
+          </div>
+          <div className="mx-auto mt-16 max-w-7xl px-6 sm:mt-20 md:mt-24 lg:px-8">
+            <dl className="mx-auto grid max-w-2xl grid-cols-1 gap-x-6 gap-y-10 text-base leading-7 text-gray-300 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3 lg:gap-x-8 lg:gap-y-16">
+              {secondaryFeatures.map((feature) => (
+                <div key={feature.name} className="relative pl-9">
+                  <dt className="inline font-semibold text-white">
+                    <feature.icon
+                      className="absolute left-1 top-1 h-5 w-5 text-indigo-500"
+                      aria-hidden="true"
+                    />
+                    {feature.name}
+                  </dt>{' '}
+                  <dd className="inline">{feature.description}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </div>
+
+        {/* CTA section */}
+        <div className="relative isolate mt-32 px-6 py-32 sm:mt-56 sm:py-40 lg:px-8">
+          <svg
+            className="absolute inset-0 -z-10 h-full w-full stroke-white/10 [mask-image:radial-gradient(100%_100%_at_top_right,white,transparent)]"
+            aria-hidden="true"
+          >
+            <defs>
+              <pattern
+                id="1d4240dd-898f-445f-932d-e2872fd12de3"
+                width={200}
+                height={200}
+                x="50%"
+                y={0}
+                patternUnits="userSpaceOnUse"
+              >
+                <path d="M.5 200V.5H200" fill="none" />
+              </pattern>
+            </defs>
+            <svg x="50%" y={0} className="overflow-visible fill-gray-800/20">
+              <path
+                d="M-200 0h201v201h-201Z M600 0h201v201h-201Z M-400 600h201v201h-201Z M200 800h201v201h-201Z"
+                strokeWidth={0}
+              />
+            </svg>
+            <rect
+              width="100%"
+              height="100%"
+              strokeWidth={0}
+              fill="url(#1d4240dd-898f-445f-932d-e2872fd12de3)"
+            />
+          </svg>
+          <div
+            className="absolute inset-x-0 top-10 -z-10 flex transform-gpu justify-center overflow-hidden blur-3xl"
+            aria-hidden="true"
+          >
+            <div
+              className="aspect-[1108/632] w-[69.25rem] flex-none bg-gradient-to-r from-[#80caff] to-[#4f46e5] opacity-20"
+              style={{
+                clipPath:
+                  'polygon(73.6% 51.7%, 91.7% 11.8%, 100% 46.4%, 97.4% 82.2%, 92.5% 84.9%, 75.7% 64%, 55.3% 47.5%, 46.5% 49.4%, 45% 62.9%, 50.3% 87.2%, 21.3% 64.1%, 0.1% 100%, 5.4% 51.1%, 21.4% 63.9%, 58.9% 0.2%, 73.6% 51.7%)',
+              }}
+            />
+          </div>
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              Boost your network. Improve your business.
+              <br />
+              Start using {APP_NAME} today.
+            </h2>
+            <div className="mt-10 flex items-center justify-center gap-x-6">
+              {CallToActionButton()}
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
   )
+
+  function CallToActionButton() {
+    return (
+      <form action={signIn}>
+        <Button className="rounded-md bg-indigo-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400">
+          Get started
+        </Button>
+      </form>
+    )
+  }
 }

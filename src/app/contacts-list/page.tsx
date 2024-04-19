@@ -57,95 +57,102 @@ export default function Example({}) {
   //   {
   //     id: 1,
   //     name: 'Abuelita norma',
-  //     email: 'norma@example.com',
-  //     occupation: 'Grandma',
-  //     photoUrl:
-  //       'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fmatthewkimberley.com%2Fwp-content%2Fuploads%2F2013%2F05%2Fgrandmother.jpg&f=1&nofb=1&ipt=d0f05fed654bb8a848720b607e0b3dca7086282bf8125bc62f4c3f2c129b571b&ipo=images',
+  //     emails: ['norma@example.com'],
+  //     occupations: [{ id: 1, name: 'Grandma' }],
+  //     photos:
+  //       [{url:'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fmatthewkimberley.com%2Fwp-content%2Fuploads%2F2013%2F05%2Fgrandmother.jpg&f=1&nofb=1&ipt=d0f05fed654bb8a848720b607e0b3dca7086282bf8125bc62f4c3f2c129b571b&ipo=images'}],
   //     lastSeen: '3h ago',
   //     lastSeenDateTime: '2023-01-23T13:23Z',
   //     favorite: true,
   //     location: 'Argentina',
   //     category: ['Personal'],
   //     source: 'custom',
+  //     phoneNumbers: [],
   //   },
   //   {
   //     id: 2,
   //     name: 'Leslie Alexander',
-  //     email: 'leslie.alexander@example.com',
-  //     occupation: 'Co-Founder / CEO',
-  //     photoUrl:
-  //       'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+  //     emails: ['leslie.alexander@example.com'],
+  //     occupations: [{ id: 2, name: 'Co-Founder / CEO' }],
+  //     photos:
+  //       [{url:'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'}],
   //     lastSeen: '3h ago',
   //     lastSeenDateTime: '2023-01-23T13:23Z',
   //     favorite: true,
   //     location: 'United States',
   //     category: ['Personal', 'School'],
   //     source: 'google',
+  //     phoneNumbers: [],
   //   },
   //   {
   //     id: 3,
   //     name: 'Michael Foster',
-  //     email: 'michael.foster@example.com',
-  //     occupation: 'Co-Founder / CTO',
-  //     photoUrl:
-  //       'https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+  //     emails: ['michael.foster@example.com'],
+  //     occupations: [{ id: 3, name: 'Co-Founder / CTO' }],
+  //     photos:
+  //       [{url:'https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'}],
   //     lastSeen: '3h ago',
   //     lastSeenDateTime: '2023-01-23T13:23Z',
   //     favorite: true,
   //     location: 'United States',
   //     category: ['Personal', 'School'],
   //     source: 'google',
+  //     phoneNumbers: [],
   //   },
   //   {
   //     id: 4,
   //     name: 'Dries Vincent',
-  //     email: 'dries.vincent@example.com',
-  //     occupation: 'Business Relations',
-  //     photoUrl:
-  //       'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+  //     emails: ['dries.vincent@example.com'],
+  //     occupations: [{ id: 4, name: 'Business Relations' }],
+  //     photos:
+  //       [{url:'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'}],
   //     lastSeen: null,
   //     favorite: false,
   //     location: 'United States',
   //     category: ['Apple'],
   //     source: 'google',
+  //     phoneNumbers: [],
   //   },
   //   {
   //     id: 5,
   //     name: 'Juana Ladev',
-  //     email: 'juana.ladev@example.com',
-  //     occupation: 'Front-end Developer',
-  //     photoUrl:
-  //       'https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+  //     emails: ['juana.ladev@example.com'],
+  //     occupations: [{ id: 5, name: 'Front-end Developer' }],
+  //     photos:
+  //       [{url:'https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'}],
   //     lastSeen: '3h ago',
   //     lastSeenDateTime: '2023-01-23T13:23Z',
   //     favorite: false,
   //     location: 'Argentina',
   //     category: ['Personal', 'School'],
+  //     phoneNumbers: [],
   //   },
   //   {
   //     id: 6,
   //     name: 'Courtney Henry',
-  //     email: 'courtney.henry@example.com',
-  //     occupation: 'Designer',
-  //     photoUrl:
-  //       'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+  //     emails: ['courtney.henry@example.com'],
+  //     occupations: [{ id: 6, name: 'Designer' }],
+  //     photos:
+  //       [{url:'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'}],
   //     lastSeen: '3h ago',
   //     lastSeenDateTime: '2023-01-23T13:23Z',
   //     favorite: false,
   //     location: 'United States',
   //     category: ['Tesla'],
+  //     phoneNumbers: [],
   //   },
   //   {
   //     id: 7,
   //     name: 'Tom Cook',
-  //     email: 'tom.cook@example.com',
-  //     occupation: 'Director of Product',
-  //     photoUrl:
-  //       'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+  //     emails: ['tom.cook@example.com'],
+  //     occupations: [{ id: 7, name: 'Director of Product' }],
+  //     photos:
+  //       [{url:'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'}],
   //     lastSeen: null,
   //     favorite: false,
   //     location: 'United States',
   //     category: ['Apple'],
+  //     phoneNumbers: [],
   //   },
   // ])
   const [contacts, setContacts] = useState<FlattenContact[]>([])
@@ -269,9 +276,8 @@ export default function Example({}) {
       .map((option) => option.value)
     if (selectedRoles.length > 0) {
       newFilteredContacts = newFilteredContacts.filter((contact) =>
-        contact.occupations.find((a) => selectedRoles.find(b=> b == a.id)),
+        contact.occupations.find((a) => selectedRoles.find((b) => b == a.id)),
       )
-      console.log(newFilteredContacts)
     }
 
     const locationFilter = filters.find((filter) => filter.id === 'location')
@@ -300,13 +306,6 @@ export default function Example({}) {
   }, [filters, contacts])
 
   useEffect(() => {
-    console.log(
-      filteredContacts.sort((a, b) => {
-        return sortApplied == 'AZ'
-          ? b.name.localeCompare(a.name)
-          : a.name.localeCompare(b.name)
-      }),
-    )
 
     if (sortApplied == undefined) {
       return
@@ -456,10 +455,10 @@ export default function Example({}) {
         </Dialog>
       </Transition.Root>
 
-      <main className="mx-auto px-4 sm:px-6 lg:px-8 h-full">
+      <main className="mx-auto h-full px-4 sm:px-6 lg:px-8">
         <div className="flex items-baseline justify-between border-b border-gray-200 pb-6 pt-24">
           <h1 className="text-white-900 text-4xl font-bold tracking-tight">
-            Contacts list
+            Contact book
           </h1>
 
           <div className="flex items-center">
