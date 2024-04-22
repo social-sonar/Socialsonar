@@ -165,7 +165,7 @@ export default function Example({}) {
   const [isLoading, setIsLoading] = useState(false)
   const [filters, setFilters] = useState(filtersTemplate)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
-  const [sortApplied, setSortApplied] = useState(undefined)
+  const [sortApplied, setSortApplied] = useState<string | null>(null)
   const [filteredContacts, setFilteredContacts] = useState<FlattenContact[]>([])
   const [selectedSource, setSelectedSource] = useState<string>('all')
   const [hideFilterAdvice, setHideFilterAdvice] = useState(true)
@@ -253,13 +253,17 @@ export default function Example({}) {
     setFilteredContacts(newFilteredContacts)
   }, [filters, selectedSource, contacts])
 
-  const handleFilterChange = (sectionId: string, optionIdx: string, checked: boolean) => {
+  const handleFilterChange = (
+    sectionId: string,
+    optionIdx: string,
+    checked: boolean,
+  ) => {
     console.log('handleFilterChange', sectionId, optionIdx, checked)
 
     const newFilters = filters.map((section) => {
       if (section.id === sectionId) {
         const newOptions = section.options.map((option, idx) => {
-          if (idx === optionIdx) {
+          if (idx.toString() === optionIdx) {
             return { ...option, checked }
           }
           return option
@@ -277,32 +281,34 @@ export default function Example({}) {
     const occupationFilter = filters.find(
       (filter) => filter.id === 'occupation',
     )
-    const selectedRoles = occupationFilter.options
+    const selectedRoles = occupationFilter?.options
       .filter((option) => option.checked)
       .map((option) => option.value)
-    if (selectedRoles.length > 0) {
+    if ((selectedRoles || []).length > 0) {
       newFilteredContacts = newFilteredContacts.filter((contact) =>
-        contact.occupations.find((a) => selectedRoles.find((b) => b == a.id)),
+        contact.occupations.find((a) =>
+          selectedRoles!.find((b) => b == a.id.toString()),
+        ),
       )
     }
 
     const locationFilter = filters.find((filter) => filter.id === 'location')
-    const selectedLocations = locationFilter.options
+    const selectedLocations = locationFilter?.options
       .filter((option) => option.checked)
       .map((option) => option.value)
-    if (selectedLocations.length > 0) {
+    if ((selectedLocations || []).length > 0) {
       newFilteredContacts = newFilteredContacts.filter((person) =>
-        selectedLocations.includes(person.location),
+        selectedLocations!.includes(person.location),
       )
     }
 
     const categoryFilter = filters.find((filter) => filter.id === 'category')
-    const selectedCategories = categoryFilter.options
+    const selectedCategories = (categoryFilter?.options || [])
       .filter((option) => option.checked)
       .map((option) => option.value)
     if (selectedCategories.length > 0) {
       newFilteredContacts = newFilteredContacts.filter((person) =>
-        person.category.some((category) =>
+        (person.category || []).some((category) =>
           selectedCategories.includes(category),
         ),
       )
@@ -427,13 +433,13 @@ export default function Example({}) {
                                     <input
                                       id={`filter-mobile-${section.id}-${optionIdx}`}
                                       name={`${section.id}[]`}
-                                      defaultValue={option.value}
+                                      defaultValue={option.value || undefined}
                                       type="checkbox"
                                       defaultChecked={option.checked}
                                       onChange={(e) =>
                                         handleFilterChange(
                                           section.id,
-                                          optionIdx,
+                                          optionIdx.toString(),
                                           e.target.checked,
                                         )
                                       }
@@ -623,13 +629,13 @@ export default function Example({}) {
                                   <input
                                     id={`filter-${section.id}-${optionIdx}`}
                                     name={`${section.id}[]`}
-                                    defaultValue={option.value}
+                                    defaultValue={option.value || undefined}
                                     type="checkbox"
                                     defaultChecked={option.checked}
                                     onChange={(e) =>
                                       handleFilterChange(
                                         section.id,
-                                        optionIdx,
+                                        optionIdx.toString(),
                                         e.target.checked,
                                       )
                                     }
@@ -644,7 +650,7 @@ export default function Example({}) {
                                         : 'hover:text-teal-500 dark:hover:text-teal-400',
                                     )}
                                   >
-                                    {section.id == 'location'
+                                    {section.id == 'location' && option.label
                                       ? getName(option.label, 'en', {
                                           select: 'alias',
                                         }) ?? 'No assigned country'
@@ -731,7 +737,7 @@ export default function Example({}) {
                                         {acc} | {x}
                                       </>
                                     ),
-                                  null,
+                                  null as React.ReactNode | null,
                                 )}
                             </p>
                           ) : (
