@@ -270,7 +270,7 @@ function DesktopNavigation({ profileItem, ...props }: NavProps) {
         <NavItem href="/">Home</NavItem>
         <NavItem href="/contacts-list">Contacts list</NavItem>
         <NavItem href="/about">Add new contact</NavItem>
-        <NavItem href="/sync">Connected accounts</NavItem>
+        <NavItem href="/sync">Sync contacts</NavItem>
         <NavItem href="/projects">My profile info</NavItem>
         <NavItem href="/uses">Request someone&apos;s contact info</NavItem>
         <li>

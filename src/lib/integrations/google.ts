@@ -2,7 +2,7 @@ import { google, Auth } from 'googleapis';
 import { GoogleResponse } from '../definitions';
 
 // Define scopes and redirect URL
-const SCOPES = ['https://www.googleapis.com/auth/contacts.readonly'];
+const SCOPES = ['https://www.googleapis.com/auth/contacts'];
 
 export function createOAuth2Client(tokens?: Auth.Credentials): Auth.OAuth2Client {
     const oauth2Client = new google.auth.OAuth2(
