@@ -21,6 +21,8 @@ import Avatar from '@/images/avatar.png'
 import merge from '@/images/photos/merge.jpg'
 import landing from '@/images/photos/landing-1.webp'
 
+import Image from 'next/image'
+
 const primaryFeatures = [
   {
     name: 'Open source',
@@ -152,10 +154,12 @@ export default function Home() {
             </div>
             <div className="mx-auto mt-16 flex max-w-2xl sm:mt-24 lg:ml-0 lg:mr-0 lg:mt-0 lg:max-w-none lg:flex-none xl:ml-0">
               <div className="max-w-3xl flex-none sm:max-w-5xl lg:max-w-none">
-                <img
+                <Image
                   src={landing.src}
                   alt="App screenshot"
                   className="w-[76rem] opacity-50"
+                  width={1792}
+                  height={1024}
                 />
               </div>
             </div>
@@ -219,14 +223,14 @@ export default function Home() {
               </p>
               <p className="mt-6 text-lg leading-8 text-gray-300">
                 Let artificial intelligence unlock the true value of all the
-                contacts you've collected throughout your life and nourish them
+                contacts you have collected throughout your life and nourish them
                 with useful information.
               </p>
             </div>
           </div>
           <div className="relative overflow-hidden pt-16">
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
-              <img
+              <Image
                 src={merge.src}
                 alt="App screenshot"
                 className="mb-[-12%]"
