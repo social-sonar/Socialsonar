@@ -28,6 +28,8 @@ export type CleanPhoneData = PhoneResult & {
 }
 
 export type FlattenContact = {
+    category?: string[],
+    favorite?: boolean
     id: string,
     userId: string,
     name: string,

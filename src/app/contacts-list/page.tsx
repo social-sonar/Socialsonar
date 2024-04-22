@@ -33,22 +33,28 @@ const filtersTemplate = [
   {
     id: 'occupation',
     name: 'Job / Role / Occupation',
-    options: [],
+    options: [] as Option[],
   },
   {
     id: 'category',
     name: 'Category',
-    options: [],
+    options: [] as Option[],
   },
   {
     id: 'location',
     name: 'Location (city / state / country)',
-    options: [],
+    options: [] as Option[],
   },
 ]
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ')
+}
+
+interface Option {
+  value: string | null
+  label: string | null
+  checked: boolean
 }
 
 export default function Example({}) {
@@ -190,7 +196,7 @@ export default function Example({}) {
       occupationOptions.options = contacts
         .flatMap((a) => {
           return (a.occupations || []).map((b) => {
-            return { value: b.id, label: b.name, checked: false }
+            return { value: b.id.toString(), label: b.name, checked: false }
           })
         })
         .filter((v, i, a) => a.findIndex((v2) => v2.value === v.value) === i)
@@ -247,7 +253,7 @@ export default function Example({}) {
     setFilteredContacts(newFilteredContacts)
   }, [filters, selectedSource, contacts])
 
-  const handleFilterChange = (sectionId, optionIdx, checked) => {
+  const handleFilterChange = (sectionId: string, optionIdx: string, checked: boolean) => {
     console.log('handleFilterChange', sectionId, optionIdx, checked)
 
     const newFilters = filters.map((section) => {
@@ -306,7 +312,6 @@ export default function Example({}) {
   }, [filters, contacts])
 
   useEffect(() => {
-
     if (sortApplied == undefined) {
       return
     }
