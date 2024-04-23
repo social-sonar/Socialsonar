@@ -1,6 +1,6 @@
 import { PhoneNumberType } from '@prisma/client'
 import prisma from '@/db'
-import { Address, Email, GoogleResponse, Occupation, Organization, PhoneNumber, Photo } from './definitions'
+import { Address, Email, GoogleContactRelation, GoogleResponse, Occupation, Organization, PhoneNumber, Photo } from './definitions'
 
 
 const getPhoneNumberType = (type: string): PhoneNumberType => {
@@ -174,10 +174,28 @@ const getEmailsIDs = async (emails: Email[]): Promise<number[]> => {
   return emailsIDs
 };
 
+
+const findExistingGoogleIds = async (googleIds: string[]): Promise<GoogleContactRelation[]> =>
+  await prisma.contactGoogle.findMany({
+    where: {
+      googleContactId: {
+        in: googleIds
+      }
+    },
+    select: {
+      contactId: true,
+      googleContactId: true
+    }
+  })
+
+
 export const syncGoogleContacts = async (
   people: GoogleResponse[],
   userId: string
 ): Promise<void> => {
+
+  const googleIds = people.map(person => person.resourceName!.slice(7))
+  const existingGoogleIds = await findExistingGoogleIds(googleIds)
 
   for (const person of people) {
 
@@ -237,7 +255,7 @@ export const findContacts = async (userId: string) =>
       photos: { select: { photo: { select: { url: true } } } },
       addresses: { select: { address: true } },
       emails: { select: { email: { select: { address: true } } } },
-      googleContacts: {select : { googleContactId: true}}
+      googleContacts: { select: { googleContactId: true } }
     }
   })
 

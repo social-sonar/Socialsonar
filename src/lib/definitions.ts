@@ -58,3 +58,9 @@ export type FlattenContact = {
     location: string | null,
     source: string
 }
+
+
+export type GoogleContactRelation = {
+    googleContactId: string,
+    contactId: number
+}
