@@ -1,6 +1,6 @@
 import googleContactsLogo from '@/images/logos/google-contacts.svg'
 
-import { fetchGoogleContacts } from '@/actions/integrations'
+import { fetchGoogleContacts } from '@/actions'
 import SyncButton from './common/form-button'
 
 

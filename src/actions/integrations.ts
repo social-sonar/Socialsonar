@@ -21,16 +21,47 @@ export async function fetchGoogleContacts(userId: string) {
         auth: oauth2Client,
     });
 
+    const syncToken = await prisma.googleSyncToken.findFirst({
+        where: {
+            userId: userId
+        },
+        select: {
+            token: true
+        }
+    })
+
     // Fetch the user's Google Contacts
     const res = await people.people.connections.list({
         resourceName: 'people/me',
         sortOrder: 'LAST_MODIFIED_DESCENDING',
         pageSize: 1000,
         personFields: 'names,emailAddresses,addresses,phoneNumbers,photos,organizations,occupations',
+        requestSyncToken: true,
+        syncToken: syncToken?.token,
     });
+
+    if (syncToken?.token) {
+        await prisma.googleSyncToken.update({
+            where: {
+                userId: userId
+            },
+            data: {
+                token: res.data.nextSyncToken!
+            }
+        })
+    }
+    else {
+        await prisma.googleSyncToken.create({
+            data: {
+                userId: userId,
+                token: res.data.nextSyncToken!
+            }
+        })
+    }
 
     // Handle the response as needed
     if (res.data.connections)
+        // TODO: add logic to handle duplicates
         await syncGoogleContacts(res.data.connections, userId)
     redirect('/contacts-list')
 }
