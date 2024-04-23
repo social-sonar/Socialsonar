@@ -41,3 +41,5 @@ jest-html-reporters-attach/jest_html_reporters/result.js
 jest_html_reporters.html
 postgres_data/
 .env
+
+.next
