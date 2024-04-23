@@ -1,6 +1,6 @@
 import { PhoneNumberType } from '@prisma/client'
 import prisma from '@/db'
-import { Address, Email, GoogleContactRelation, GoogleResponse, Occupation, Organization, PhoneNumber, Photo } from './definitions'
+import { GoogleAddress, GoogleEmail, GoogleContactRelation, GoogleResponse, GoogleOccupation, GoogleOrganization, GooglePhoneNumber, GooglePhoto } from './definitions'
 
 
 const getPhoneNumberType = (type: string): PhoneNumberType => {
@@ -13,7 +13,7 @@ const getPhoneNumberType = (type: string): PhoneNumberType => {
   return typeMap[type] ?? PhoneNumberType.CELL;
 };
 
-const getOrganizationIDs = async (organizations: Organization[]): Promise<number[]> => {
+const getOrganizationIDs = async (organizations: GoogleOrganization[]): Promise<number[]> => {
   const cleanOrgs = organizations.filter(org => org.name && org.name !== undefined);
   // Use Promise.all to resolve all promises in the array of asynchronous operations
   const organizationIDs = await Promise.all(
@@ -45,7 +45,7 @@ const getOrganizationIDs = async (organizations: Organization[]): Promise<number
   return organizationIDs
 };
 
-const getPhoneNumberIDs = async (phoneNumbers: PhoneNumber[]): Promise<number[]> => {
+const getPhoneNumberIDs = async (phoneNumbers: GooglePhoneNumber[]): Promise<number[]> => {
   const cleanItems = phoneNumbers.filter(phoneNumber => phoneNumber.canonicalForm);
   const phoneNumbersIDs = await Promise.all(
     cleanItems.map(async (phoneNumber) => {
@@ -71,7 +71,7 @@ const getPhoneNumberIDs = async (phoneNumbers: PhoneNumber[]): Promise<number[]>
 };
 
 
-const getOccupationIDs = async (occupations: Occupation[]): Promise<number[]> => {
+const getOccupationIDs = async (occupations: GoogleOccupation[]): Promise<number[]> => {
   const cleanItems = occupations.filter(occupation => occupation.value);
   const occupationsIDs = await Promise.all(
     cleanItems.map(async (occupation) => {
@@ -96,7 +96,7 @@ const getOccupationIDs = async (occupations: Occupation[]): Promise<number[]> =>
   return occupationsIDs
 };
 
-const getPhotoIDs = async (photos: Photo[]): Promise<number[]> => {
+const getPhotoIDs = async (photos: GooglePhoto[]): Promise<number[]> => {
   const cleanItems = photos.filter(photo => photo.url);
   const photoIDs = await Promise.all(
     cleanItems.map(async (photo) => {
@@ -122,7 +122,7 @@ const getPhotoIDs = async (photos: Photo[]): Promise<number[]> => {
 };
 
 
-const getAddressIDs = async (addresses: Address[]): Promise<number[]> => {
+const getAddressIDs = async (addresses: GoogleAddress[]): Promise<number[]> => {
   const addressesIDs = await Promise.all(
     addresses.map(async (address) => {
       let addressResult = await prisma.address.findFirst({
@@ -149,7 +149,7 @@ const getAddressIDs = async (addresses: Address[]): Promise<number[]> => {
 };
 
 
-const getEmailsIDs = async (emails: Email[]): Promise<number[]> => {
+const getEmailsIDs = async (emails: GoogleEmail[]): Promise<number[]> => {
   const cleanItems = emails.filter(email => email.value);
   const emailsIDs = await Promise.all(
     cleanItems.map(async (email) => {
@@ -175,17 +175,53 @@ const getEmailsIDs = async (emails: Email[]): Promise<number[]> => {
 };
 
 
-const findExistingGoogleIds = async (googleIds: string[]): Promise<GoogleContactRelation[]> =>
+const findExistingGoogleIds = async (googleIds: string[], userId: string): Promise<GoogleContactRelation[]> =>
   await prisma.contactGoogle.findMany({
     where: {
       googleContactId: {
         in: googleIds
+      },
+      contact: {
+        userId: userId
       }
     },
     select: {
-      contactId: true,
-      googleContactId: true
-    }
+      googleContactId: true,
+      contact: {
+        select: {
+          organizations: {
+            select: {
+              organization: true
+            }
+          },
+          phoneNumbers: {
+            select: {
+              phoneNumber: true,
+            }
+          },
+          occupations: {
+            select: {
+              ocuppation: true
+            }
+          },
+          photos: {
+            select: {
+              photo: true
+            }
+          },
+          addresses: {
+            select: {
+              address: true
+            }
+          },
+          emails: {
+            select: {
+              email: true
+            }
+          }
+        }
+      }
+    },
   })
 
 
@@ -195,10 +231,13 @@ export const syncGoogleContacts = async (
 ): Promise<void> => {
 
   const googleIds = people.map(person => person.resourceName!.slice(7))
-  const existingGoogleIds = await findExistingGoogleIds(googleIds)
+  const existingGoogleIds = await findExistingGoogleIds(googleIds, userId)
+  const existingGoogleIdsSet = new Set(existingGoogleIds.map(googleContact => googleContact.googleContactId))
+  // non existing google IDs
+  const googleIdsSet = new Set(googleIds.filter(id => !existingGoogleIdsSet.has(id)))
 
-  for (const person of people) {
 
+  for (const person of people.filter(person => googleIdsSet.has(person.resourceName!.slice(7)))) {
     const organizationsIDs = await getOrganizationIDs(person.organizations ?? [])
     const phoneNumbersIDs = await getPhoneNumberIDs(person.phoneNumbers ?? [])
     const occupationIDs = await getOccupationIDs(person.occupations ?? [])

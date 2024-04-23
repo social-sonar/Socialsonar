@@ -1,4 +1,4 @@
-import { Prisma, Contact, $Enums } from '@prisma/client'
+import { Prisma, Contact, $Enums, Organization, PhoneNumber, Occupation, Photo, Address, Email } from '@prisma/client'
 import { people_v1 } from 'googleapis'
 import { PhoneResult } from 'phone'
 
@@ -6,17 +6,17 @@ import { PhoneResult } from 'phone'
 
 export type GoogleResponse = people_v1.Schema$Person
 
-export type Organization = people_v1.Schema$Organization
+export type GoogleOrganization = people_v1.Schema$Organization
 
-export type Occupation = people_v1.Schema$Occupation
+export type GoogleOccupation = people_v1.Schema$Occupation
 
-export type Photo = people_v1.Schema$Photo
+export type GooglePhoto = people_v1.Schema$Photo
 
-export type Address = people_v1.Schema$Address
+export type GoogleAddress = people_v1.Schema$Address
 
-export type Email = people_v1.Schema$EmailAddress
+export type GoogleEmail = people_v1.Schema$EmailAddress
 
-export type PhoneNumber = people_v1.Schema$PhoneNumber
+export type GooglePhoneNumber = people_v1.Schema$PhoneNumber
 
 export type ContactCreate = Prisma.ContactUncheckedCreateInput;
 
@@ -62,5 +62,24 @@ export type FlattenContact = {
 
 export type GoogleContactRelation = {
     googleContactId: string,
-    contactId: number
+    contact: {
+        organizations: {
+            organization: Organization
+        }[],
+        phoneNumbers: {
+            phoneNumber: PhoneNumber
+        }[],
+        occupations: {
+            ocuppation: Occupation
+        }[],
+        photos: {
+            photo: Photo
+        }[],
+        addresses: {
+            address: Address
+        }[],
+        emails: {
+            email: Email
+        }[]
+    }
 }
