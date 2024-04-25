@@ -10,12 +10,13 @@ export default async function (request: any) {
     // this workaround fixes the above as 'authjs.session-token' only exists when the user is authenticated
     // Note that as far as I know, nextjs handles cookies as HTTP-only
     const cookieData: Map<string, any> = request.cookies._parsed
-    if (!cookieData.get('authjs.session-token')) {
-        const session = await auth(request)
-        if (!session?.user) {
-            return NextResponse.redirect(new URL('/', request.url))
-        }
+    const session = await auth(request)
+    console.log("Middleware response:", session, request);
+    if (!session?.user) {
+        // return NextResponse.redirect(new URL('/', request.url))
     }
+    // if (!cookieData.get('authjs.session-token')) {
+    // }
 }
 
 // protect all routes except the ones that match this pattern
