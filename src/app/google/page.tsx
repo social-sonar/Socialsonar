@@ -1,3 +1,5 @@
+export const maxDuration = 60; // This function can run for a maximum of 60 seconds
+
 import { auth } from '@/auth'
 import {  syncGoogleContacts } from '@/lib/data'
 import { GoogleResponse } from '@/lib/definitions'
