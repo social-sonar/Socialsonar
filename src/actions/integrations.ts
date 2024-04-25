@@ -3,7 +3,7 @@
 import { google } from 'googleapis';
 import prisma from '@/db';
 import { redirect } from 'next/navigation';
-import { syncGoogleContacts } from '@/lib/data';
+import { syncGoogleContacts } from '@/lib/data/common';
 
 export async function fetchGoogleContacts(userId: string) {
     // Create a new OAuth2 client with your app's credentials and set the access token

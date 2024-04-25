@@ -1,6 +1,7 @@
 import { PhoneNumberType } from '@prisma/client'
 import prisma from '@/db'
-import { GoogleAddress, GoogleEmail, GoogleContactRelation, GoogleResponse, GoogleOccupation, GoogleOrganization, GooglePhoneNumber, GooglePhoto } from './definitions'
+import { GoogleAddress, GoogleEmail, GoogleContactRelation, GoogleResponse, GoogleOccupation, GoogleOrganization, GooglePhoneNumber, GooglePhoto } from '../definitions'
+import { syncExisting } from './google';
 
 
 const getPhoneNumberType = (type: string): PhoneNumberType => {
@@ -13,7 +14,7 @@ const getPhoneNumberType = (type: string): PhoneNumberType => {
   return typeMap[type] ?? PhoneNumberType.CELL;
 };
 
-const getOrganizationIDs = async (organizations: GoogleOrganization[]): Promise<number[]> => {
+export const getOrganizationIDs = async (organizations: GoogleOrganization[]): Promise<number[]> => {
   const cleanOrgs = organizations.filter(org => org.name && org.name !== undefined);
   // Use Promise.all to resolve all promises in the array of asynchronous operations
   const organizationIDs = await Promise.all(
@@ -45,7 +46,7 @@ const getOrganizationIDs = async (organizations: GoogleOrganization[]): Promise<
   return organizationIDs
 };
 
-const getPhoneNumberIDs = async (phoneNumbers: GooglePhoneNumber[]): Promise<number[]> => {
+export const getPhoneNumberIDs = async (phoneNumbers: GooglePhoneNumber[]): Promise<number[]> => {
   const cleanItems = phoneNumbers.filter(phoneNumber => phoneNumber.canonicalForm);
   const phoneNumbersIDs = await Promise.all(
     cleanItems.map(async (phoneNumber) => {
@@ -71,7 +72,7 @@ const getPhoneNumberIDs = async (phoneNumbers: GooglePhoneNumber[]): Promise<num
 };
 
 
-const getOccupationIDs = async (occupations: GoogleOccupation[]): Promise<number[]> => {
+export const getOccupationIDs = async (occupations: GoogleOccupation[]): Promise<number[]> => {
   const cleanItems = occupations.filter(occupation => occupation.value);
   const occupationsIDs = await Promise.all(
     cleanItems.map(async (occupation) => {
@@ -96,7 +97,7 @@ const getOccupationIDs = async (occupations: GoogleOccupation[]): Promise<number
   return occupationsIDs
 };
 
-const getPhotoIDs = async (photos: GooglePhoto[]): Promise<number[]> => {
+export const getPhotoIDs = async (photos: GooglePhoto[]): Promise<number[]> => {
   const cleanItems = photos.filter(photo => photo.url);
   const photoIDs = await Promise.all(
     cleanItems.map(async (photo) => {
@@ -149,7 +150,7 @@ const getAddressIDs = async (addresses: GoogleAddress[]): Promise<number[]> => {
 };
 
 
-const getEmailsIDs = async (emails: GoogleEmail[]): Promise<number[]> => {
+export const getEmailsIDs = async (emails: GoogleEmail[]): Promise<number[]> => {
   const cleanItems = emails.filter(email => email.value);
   const emailsIDs = await Promise.all(
     cleanItems.map(async (email) => {
@@ -186,6 +187,7 @@ const findExistingGoogleIds = async (googleIds: string[], userId: string): Promi
       }
     },
     select: {
+      contactId: true,
       googleContactId: true,
       contact: {
         select: {
@@ -222,6 +224,9 @@ const findExistingGoogleIds = async (googleIds: string[], userId: string): Promi
         }
       }
     },
+    orderBy: {
+      googleContactId: 'asc'
+    }
   })
 
 
@@ -231,12 +236,13 @@ export const syncGoogleContacts = async (
 ): Promise<void> => {
 
   const googleIds = people.map(person => person.resourceName!.slice(7))
-  const existingGoogleIds = await findExistingGoogleIds(googleIds, userId)
-  const existingGoogleIdsSet = new Set(existingGoogleIds.map(googleContact => googleContact.googleContactId))
+  const existingGoogleContacts = await findExistingGoogleIds(googleIds, userId)
+  const existingGoogleIdsSet = new Set(existingGoogleContacts.map(googleContact => googleContact.googleContactId))
   // non existing google IDs
   const googleIdsSet = new Set(googleIds.filter(id => !existingGoogleIdsSet.has(id)))
-
-
+  //  sync of google contacts that already exist and were updated somehow
+  await syncExisting(existingGoogleContacts, people.filter(person => !googleIdsSet.has(person.resourceName!.slice(7))))
+  // creation of non existing google contacts
   for (const person of people.filter(person => googleIdsSet.has(person.resourceName!.slice(7)))) {
     const organizationsIDs = await getOrganizationIDs(person.organizations ?? [])
     const phoneNumbersIDs = await getPhoneNumberIDs(person.phoneNumbers ?? [])

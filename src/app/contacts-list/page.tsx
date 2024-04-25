@@ -1,7 +1,7 @@
 'use client'
 
 import { Fragment, useEffect, useState, useCallback } from 'react'
-import { findContacts } from '@/lib/data'
+import { findContacts } from '@/lib/data/common'
 import { Dialog, Disclosure, Menu, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { getName, registerLocale } from 'i18n-iso-countries'
@@ -57,7 +57,7 @@ interface Option {
   checked: boolean
 }
 
-export default function Example({}) {
+export default function Example({ }) {
   registerLocale(require('i18n-iso-countries/langs/en.json'))
   // const [contacts, setContacts] = useState([
   //   {
@@ -655,8 +655,8 @@ export default function Example({}) {
                                   >
                                     {section.id == 'location' && option.label
                                       ? getName(option.label, 'en', {
-                                          select: 'alias',
-                                        }) ?? 'No assigned country'
+                                        select: 'alias',
+                                      }) ?? 'No assigned country'
                                       : option.label}
                                   </label>
                                 </div>
@@ -715,8 +715,8 @@ export default function Example({}) {
                             {contact.occupations.length == 0
                               ? 'No role found'
                               : contact.occupations
-                                  .map((a) => a.name)
-                                  .join(' | ')}
+                                .map((a) => a.name)
+                                .join(' | ')}
                           </p>
                           {contact.phoneNumbers.length > 0 ? (
                             <p className="mt-1 text-xs leading-5 text-gray-400">
