@@ -12,6 +12,7 @@ export default async function (request: any) {
     const cookieData: Map<string, any> = request.cookies._parsed
     const session = await auth(request)
     console.log("Middleware response:", session, request);
+    
     if (!session?.user) {
         // return NextResponse.redirect(new URL('/', request.url))
     }
