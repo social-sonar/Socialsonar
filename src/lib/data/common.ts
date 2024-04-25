@@ -4,14 +4,15 @@ import { GoogleAddress, GoogleEmail, GoogleContactRelation, GoogleResponse, Goog
 import { syncExisting } from './google';
 
 
-const getPhoneNumberType = (type: string): PhoneNumberType => {
+export const getPhoneNumberType = (type: string): PhoneNumberType => {
   const typeMap: { [key: string]: PhoneNumberType } = {
-    WORK: PhoneNumberType.WORK,
-    CELL: PhoneNumberType.CELL,
-    HOME: PhoneNumberType.HOME
+    work: PhoneNumberType.WORK,
+    cell: PhoneNumberType.MOBILE,
+    mobile: PhoneNumberType.MOBILE,
+    home: PhoneNumberType.HOME
   };
 
-  return typeMap[type] ?? PhoneNumberType.CELL;
+  return typeMap[type] ?? PhoneNumberType.MOBILE;
 };
 
 export const getOrganizationIDs = async (organizations: GoogleOrganization[]): Promise<number[]> => {
@@ -52,7 +53,8 @@ export const getPhoneNumberIDs = async (phoneNumbers: GooglePhoneNumber[]): Prom
     cleanItems.map(async (phoneNumber) => {
       let phoneNumberResult = await prisma.phoneNumber.findFirst({
         where: {
-          number: phoneNumber.canonicalForm!
+          number: phoneNumber.canonicalForm!,
+          type: getPhoneNumberType(phoneNumber.type?.toLowerCase() || "cell")
         },
         select: {
           id: true
@@ -62,7 +64,7 @@ export const getPhoneNumberIDs = async (phoneNumbers: GooglePhoneNumber[]): Prom
         return phoneNumberResult.id;
       }
       phoneNumberResult = await prisma.phoneNumber.create({
-        data: { number: phoneNumber.canonicalForm!, type: getPhoneNumberType(phoneNumber.type || "CELL") }
+        data: { number: phoneNumber.canonicalForm!, type: getPhoneNumberType(phoneNumber.type?.toLowerCase() || "cell") }
       });
       return phoneNumberResult.id;
     }
@@ -123,12 +125,16 @@ export const getPhotoIDs = async (photos: GooglePhoto[]): Promise<number[]> => {
 };
 
 
-const getAddressIDs = async (addresses: GoogleAddress[]): Promise<number[]> => {
+export const getAddressIDs = async (addresses: GoogleAddress[]): Promise<number[]> => {
   const addressesIDs = await Promise.all(
     addresses.map(async (address) => {
       let addressResult = await prisma.address.findFirst({
         where: {
-          countryCode: address.countryCode, city: address.city, region: address.region, postalCode: address.postalCode, streetAddress: address.streetAddress
+          countryCode: address.countryCode,
+          city: address.city,
+          region: address.region,
+          postalCode: address.postalCode,
+          streetAddress: address.streetAddress
         },
         select: {
           id: true

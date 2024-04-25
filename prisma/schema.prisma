@@ -16,6 +16,7 @@ datasource db {
 }
 
 enum PhoneNumberType {
+  MOBILE
   CELL
   HOME
   WORK
