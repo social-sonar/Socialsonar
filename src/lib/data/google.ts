@@ -2,6 +2,7 @@ import prisma from '@/db'
 import { Address, Email, Occupation, Organization, PhoneNumber, PhoneNumberType, Photo } from '@prisma/client'
 
 import {
+    ContactNames,
     GoogleAddress,
     GoogleContactRelation,
     GoogleEmail,
@@ -10,6 +11,10 @@ import {
     GooglePhoneNumber,
     GooglePhoto,
     GoogleResponse,
+    MetaParams,
+    MetaParamsMultiProperty,
+    PrismaHandlerMultiple,
+    PrismaHandlerSingle,
 } from '../definitions'
 
 import {
@@ -22,24 +27,6 @@ import {
     getPhotoIDs,
 } from '../data/common'
 
-type MetaParams = {
-    dbField: {
-        obj: string
-        property: string
-    }
-    googleField: string
-}
-
-type MetaParamsMultiProperty = {
-    dbField: {
-        obj: string
-        properties: string[]
-    }
-    googleFields: string[]
-}
-
-type PrismaHandlerSingle = (addedItems: (string | null | undefined)[], removedItems: string[]) => Promise<void>
-type PrismaHandlerMultiple = (addedItems: Record<string, any>[], removedItems: Record<string, any>[]) => Promise<void>
 
 const compareItems = (itemA: Record<string, any>, itemB: Record<string, any>, metaParams: MetaParamsMultiProperty) =>
     metaParams.dbField.properties.every(
@@ -443,6 +430,25 @@ const syncEmails = async (
     )
 }
 
+const syncNames = async (contactId: number, dbNames: ContactNames, googleNames: ContactNames) => {
+    let data: Partial<ContactNames> = {}
+
+    if (googleNames.name && dbNames.name !== googleNames.name) {
+        data.name = googleNames.name
+    }
+
+    if (googleNames.nickName && dbNames.nickName !== googleNames.nickName) {
+        data.nickName = googleNames.nickName
+    }
+
+    await prisma.contact.update({
+        where: {
+            id: contactId,
+        },
+        data: data,
+    })
+}
+
 export const syncExisting = async (
     existingGoogleContacts: GoogleContactRelation[],
     googlePayload: GoogleResponse[],
@@ -454,6 +460,12 @@ export const syncExisting = async (
         // both existingGoogleContacts and googlePayload will have the same size
         const existingGoogleContact = existingGoogleContacts[index]
         const googlePayloadItem = googlePayload[index]
+
+        await syncNames(existingGoogleContact.contactId, existingGoogleContact.contact, {
+            name: googlePayloadItem.names?.[0].displayName!,
+            nickName: googlePayloadItem.nicknames?.[0].value!,
+        })
+
         await syncOrganizations(
             existingGoogleContact.contact.organizations,
             existingGoogleContact.contactId,

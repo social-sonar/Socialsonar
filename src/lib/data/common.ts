@@ -197,6 +197,8 @@ const findExistingGoogleIds = async (googleIds: string[], userId: string): Promi
       googleContactId: true,
       contact: {
         select: {
+          name: true,
+          nickName: true,
           organizations: {
             select: {
               organization: true

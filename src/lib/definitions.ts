@@ -64,6 +64,8 @@ export type GoogleContactRelation = {
     contactId: number,
     googleContactId: string,
     contact: {
+        name: string,
+        nickname?: string,
         organizations: {
             organization: Organization
         }[],
@@ -84,3 +86,28 @@ export type GoogleContactRelation = {
         }[]
     }
 }
+
+export type ContactNames = {
+    name?: string
+    nickName?: string
+}
+
+export type MetaParams = {
+    dbField: {
+        obj: string
+        property: string
+    }
+    googleField: string
+}
+
+export type MetaParamsMultiProperty = {
+    dbField: {
+        obj: string
+        properties: string[]
+    }
+    googleFields: string[]
+}
+
+export type PrismaHandlerSingle = (addedItems: (string | null | undefined)[], removedItems: string[]) => Promise<void>
+
+export type PrismaHandlerMultiple = (addedItems: Record<string, any>[], removedItems: Record<string, any>[]) => Promise<void>
