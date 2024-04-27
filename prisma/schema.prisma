@@ -22,6 +22,12 @@ enum PhoneNumberType {
   WORK
 }
 
+enum ContactMergeStatus {
+  MERGED_BETWEEN
+  SINGLE_CHOICE
+  PENDING
+}
+
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -64,17 +70,17 @@ model GoogleSyncToken {
 }
 
 model User {
-  id            String            @id @default(cuid())
-  name          String?
-  email         String?           @unique
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
-  contact       Contact[]
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
-  googleSyncTokens    GoogleSyncToken[]
+  id               String            @id @default(cuid())
+  name             String?
+  email            String?           @unique
+  emailVerified    DateTime?
+  image            String?
+  accounts         Account[]
+  sessions         Session[]
+  contact          Contact[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  googleSyncTokens GoogleSyncToken[]
 
   @@map("user")
 }
@@ -103,8 +109,26 @@ model Contact {
   googleContacts ContactGoogle[]
   createdAt      DateTime              @default(now())
   updatedAt      DateTime              @updatedAt
+  firstContacts  ContactStatus[]       @relation("firstContact")
+  secondContacts ContactStatus[]       @relation("secondContact")
+  finalContacts  ContactStatus[]       @relation("finalContact")
 
   @@map("contacts")
+}
+
+model ContactStatus {
+  id              Int                @id @default(autoincrement())
+  firstContactId  Int
+  secondContactId Int
+  finalContactId  Int?
+  firstContact    Contact            @relation("firstContact", fields: [firstContactId], references: [id])
+  secondContact   Contact            @relation("secondContact", fields: [secondContactId], references: [id])
+  finalContact    Contact?           @relation("finalContact", fields: [finalContactId], references: [id])
+  mergeStatus     ContactMergeStatus @default(PENDING)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@map("contact_status")
 }
 
 model ContactGoogle {
