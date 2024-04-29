@@ -173,16 +173,19 @@ export default function Example({}) {
   const session = useSession()
 
   useEffect(() => {
-    fetch(`/api/contacts-list?userId=${session?.data?.user?.id}`)
-      .then((response) => response.json())
-      .then((data: FlattenContact[]) => {
-        if (data.length) {
-          setContacts(data)
-          // setHideFilterAdvice(false)
-        }
-      })
-      .catch((error) => console.error('Failed to load contacts', error))
-  }, [])
+    if (session.status == 'authenticated' && session?.data.user?.id) {
+      
+      fetch(`/api/contacts-list?userId=${session?.data.user?.id}`)
+        .then((response) => response.json())
+        .then((data: FlattenContact[]) => {
+          if (data.length) {
+            setContacts(data)
+            // setHideFilterAdvice(false)
+          }
+        })
+        .catch((error) => console.error('Failed to load contacts', error))      
+    }
+  }, [session.status])
 
   const handleSourceChange = (source: string) => {
     setSelectedSource(source)

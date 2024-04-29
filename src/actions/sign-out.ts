@@ -1,6 +1,6 @@
 'use server'
-import * as auth from '@/auth'
+import nextauth from '@/auth'
 
 export async function signOut() {
-    return auth.signOut()
+    return nextauth.signOut()
 }

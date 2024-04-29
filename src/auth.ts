@@ -1,31 +1,48 @@
+
+
+import NextAuth from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter"
-import NextAuth from "next-auth"
-import db from "@/db"
-import Google from "@auth/core/providers/google"
+import { prisma } from "@/db/index"
 
 
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET
+export default NextAuth({
+  providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+  ],
+  secret: process.env.AUTH_SECRET,
+  adapter: PrismaAdapter(prisma),
+  session: {
+    strategy: 'jwt'
+  },
+  callbacks: {
+    async jwt({ token, user, account }) {
+      
+      if (account && user) {
+        token.accessToken = account.access_token;
+        token.user = user;        
+      }
+      return token;
+    },
+    async session({ session, token }) {
 
-if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
-    throw new Error('Missing Google OAuth credentials')
-}
+      let feededSession = session as any;
 
-export const { handlers: { GET, POST }, auth, signOut, signIn } = NextAuth({
-    adapter: PrismaAdapter(db),
-    providers: [
-        Google({
-            clientId: GOOGLE_CLIENT_ID,
-            clientSecret: GOOGLE_CLIENT_SECRET
-        })
-    ],
-    callbacks: {
-        // usually not needed, here we are fixing a bug in next-auth
-        async session({ session, user }: any) {
-            if (session && user) {
-                session.user.id = user.id
-            }
-            return session
-        }
+      feededSession.user = token.user as any;
+      feededSession.accessToken = token.accessToken
+      
+      return feededSession;
     }
-})
+  }
+});
+
+import {
+  signIn as nextSignIn,
+  signOut as nextSignOut
+} from 'next-auth/react'
+
+export const signIn = nextSignIn
+export const signOut = nextSignOut

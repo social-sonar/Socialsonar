@@ -1,6 +1,6 @@
 'use server'
-import * as auth from '@/auth'
+import nextauth from '@/auth'
 
 export async function signIn() {
-    return auth.signIn('google')
+    return nextauth.signIn('google')
 }

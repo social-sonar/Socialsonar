@@ -1,6 +1,6 @@
 export const maxDuration = 90; // This function can run for a maximum of 90 seconds
 
-import { auth } from '@/auth'
+import nextauth from '@/auth'
 import {  syncGoogleContacts } from '@/lib/data'
 import { GoogleResponse } from '@/lib/definitions'
 import { syncContacts, createOAuth2Client } from '@/lib/integrations/google'
@@ -14,7 +14,7 @@ export default async function Example({
   }
 }) {
   if (searchParams?.code) {
-    const session = await auth()
+    const session = await nextauth.auth()
     const oauth = createOAuth2Client()
     const results: GoogleResponse[] = await syncContacts(
       oauth,
