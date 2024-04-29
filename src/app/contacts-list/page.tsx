@@ -173,7 +173,7 @@ export default function Example({}) {
   const session = useSession()
 
   useEffect(() => {
-    if (session.status == 'authenticated' && session?.data.user?.id) {
+    if (session.status == 'authenticated') {
       
       fetch(`/api/contacts-list?userId=${session?.data.user?.id}`)
         .then((response) => response.json())
