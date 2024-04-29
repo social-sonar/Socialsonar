@@ -4,7 +4,7 @@ Blackbookcleaner allows you to sync your contacts with your phone. This means th
 
 ## Getting started
 
-To get started with this template, first install the npm dependencies:
+To get started with this project, first install the npm dependencies:
 
 ```bash
 npm install
@@ -13,7 +13,7 @@ npm install
 Next, create a `.env.local` file in the root of your project and set the following variables:
 
 1. **NEXT_PUBLIC_SITE_URL**:
-   - Example: **`https://example.com`**
+   - Example: **`https://blackbookcleaner.vercel.app`**
    - Usage: Specifies the public BASE URL.
 2. **GOOGLE_CLIENT_ID**:
    - Example: **`abcdefg.apps.googleusercontent.com`**
@@ -25,11 +25,14 @@ Next, create a `.env.local` file in the root of your project and set the followi
    - Example: **`abcd1234`**
    - Usage: Random auth secret, required for OAuth authentication
 5. **REDIRECT_URL**:
-   - Example: **`https://example.com/`**
+   - Example: **`http://localhost:3000/google`**
    - Usage: Specifies the URI to which users will be redirected after authorizing the usage of their data.
-6. **DATABASE_URL**:
+6. **POSTGRES_PRISMA_URL**:
    - Example: **`postgresql://foo:bar@localhost:5432/mydb?schema=public`**
-   - Usage: Specifies the connection URL that Prisma will use.
+   - Usage: Specifies the connection pool that Prisma will use.
+7. **POSTGRES_URL_NON_POOLING**:
+   - Example: **`postgresql://foo:bar@localhost:5432/mydb?schema=public`**
+   - Usage: Specifies the connection URL that Prisma will use to run migrations
 
 Next, run the migration command to initialize the database and ORM:
 
@@ -45,13 +48,9 @@ npm run dev
 
 Finally, open [http://localhost:3000](http://localhost:3000) in your browser to view the website.
 
-## License
-
-This site template is a commercial product and is licensed under the [Tailwind UI license](https://tailwindui.com/license).
-
 ## Learn more
 
-To learn more about the technologies used in this site template, see the following resources:
+To learn more about the technologies used in this platform, see the following resources:
 
 - [Tailwind CSS](https://tailwindcss.com/docs) - the official Tailwind CSS documentation
 - [Next.js](https://nextjs.org/docs) - the official Next.js documentation

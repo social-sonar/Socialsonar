@@ -8,11 +8,11 @@ import { APP_NAME } from '@/lib/constants'
 
 export const metadata: Metadata = {
   title: {
-    template: '%s - Spencer Sharp',
+    template: '%s - Blackbook cleaner',
     default: APP_NAME,
   },
   description:
-    'I’m Spencer, a software designer and entrepreneur based in New York City. I’m the founder and CEO of Planetaria, where we develop technologies that empower regular people to explore space on their own terms.',
+    'Blackbook cleaner keeps your contacts organized by eliminating duplicates, updating all your contact details, and identifying missing information.',
   alternates: {
     types: {
       'application/rss+xml': `${process.env.NEXT_PUBLIC_SITE_URL}/feed.xml`,

@@ -4,7 +4,6 @@ import nextauth from "@/auth"
 export default async function middleware(request : NextRequest) {
     try {
         const user = await nextauth.auth()
-        console.log('Usuario', user);
         if (!user) {
             return NextResponse.redirect(new URL('/', request.url));
         }
