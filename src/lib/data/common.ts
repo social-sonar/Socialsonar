@@ -2,7 +2,7 @@ import { PhoneNumberType } from '@prisma/client'
 import prisma from '@/db'
 import { GoogleAddress, GoogleEmail, GoogleContactRelation, GoogleResponse, GoogleOccupation, GoogleOrganization, GooglePhoneNumber, GooglePhoto } from '../definitions'
 import { syncExisting } from './google';
-
+import { fuzzy } from 'fast-fuzzy'
 
 export const getPhoneNumberType = (type: string): PhoneNumberType => {
   const typeMap: { [key: string]: PhoneNumberType } = {
@@ -238,6 +238,59 @@ const findExistingGoogleIds = async (googleIds: string[], userId: string): Promi
   })
 
 
+
+type Duplicate = {
+  firstContactId: number,
+  secondContactId: number
+}
+
+const findDuplicates = async (userId: string) => {
+  const duplicates: Duplicate[] = []
+  const contacts = await prisma.contact.findMany({
+    where: {
+      userId: userId
+    },
+    select: {
+      id: true,
+      name: true,
+      phoneNumbers: {
+        select: {
+          phoneNumber: true
+        }
+      }
+    }
+  })
+
+  contacts.forEach(contact => {
+    contacts.forEach(innerContact => {
+      if (contact.id !== innerContact.id) {
+        const posibleDuplicate = fuzzy(contact.name, innerContact.name) > 0.9
+        if (posibleDuplicate) {
+          duplicates.push({
+            firstContactId: contact.id,
+            secondContactId: innerContact.id
+          })
+        }
+        const contactPhoneNumber = contact.phoneNumbers[0]?.phoneNumber;
+        const innerContactPhoneNumber = innerContact.phoneNumbers[0]?.phoneNumber;
+        if (contactPhoneNumber && innerContactPhoneNumber && contactPhoneNumber === innerContactPhoneNumber) {
+          duplicates.push({
+            firstContactId: contact.id,
+            secondContactId: innerContact.id
+          })
+        }
+      }
+    });
+  })
+
+  await prisma.contactStatus.createMany({
+    data: duplicates,
+    skipDuplicates: true
+  })
+
+}
+
+
 export const syncGoogleContacts = async (
   people: GoogleResponse[],
   userId: string
@@ -248,7 +301,7 @@ export const syncGoogleContacts = async (
   const existingGoogleIdsSet = new Set(existingGoogleContacts.map(googleContact => googleContact.googleContactId))
   // non existing google IDs
   const googleIdsSet = new Set(googleIds.filter(id => !existingGoogleIdsSet.has(id)))
-  //  sync of google contacts that already exist and were updated somehow
+  //  sync of google contacts thasecondContacts.length > 0t already exist and were updated somehow
   await syncExisting(existingGoogleContacts, people.filter(person => !googleIdsSet.has(person.resourceName!.slice(7))))
   // creation of non existing google contacts
   for (const person of people.filter(person => googleIdsSet.has(person.resourceName!.slice(7)))) {
@@ -295,6 +348,8 @@ export const syncGoogleContacts = async (
     })
 
   }
+
+  await findDuplicates(userId)
 
 }
 
