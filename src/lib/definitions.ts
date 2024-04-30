@@ -30,7 +30,7 @@ export type CleanPhoneData = PhoneResult & {
 export type FlattenContact = {
     category?: string[],
     favorite?: boolean
-    id: string,
+    id: number,
     userId: string,
     name: string,
     nickName: string | null,
@@ -112,3 +112,16 @@ export type MetaParamsMultiProperty = {
 export type PrismaHandlerSingle = (addedItems: (string | null | undefined)[], removedItems: string[]) => Promise<void>
 
 export type PrismaHandlerMultiple = (addedItems: Record<string, any>[], removedItems: Record<string, any>[]) => Promise<void>
+
+export enum ResolutionStrategy {
+    KEEP_ONE = "KEEP_ONE",
+    KEEP_BOTH = "KEEP_BOTH",
+    MERGE = "MERGE",
+}
+
+export type DuplicateContactResolutionPayload = {
+    strategy: ResolutionStrategy,
+    contactA?: number,
+    contactB?: number,
+    mergeName?: string
+}
