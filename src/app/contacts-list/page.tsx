@@ -1,7 +1,6 @@
 'use client'
 
 import { Fragment, useEffect, useState, useCallback } from 'react'
-import { findContacts } from '@/lib/data/common'
 import { Dialog, Disclosure, Menu, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { getName, registerLocale } from 'i18n-iso-countries'
@@ -10,7 +9,6 @@ import {
   FunnelIcon,
   MinusIcon,
   PlusIcon,
-  Squares2X2Icon,
 } from '@heroicons/react/20/solid'
 
 import { APP_NAME } from '@/lib/constants'
@@ -19,6 +17,7 @@ import Link from 'next/link'
 import { FlattenContact } from '@/lib/definitions'
 import { useSession } from 'next-auth/react'
 import DuplicatesScreen from '@/components/DuplicatesScreen'
+import LoadingSpinner from '@/components/common/spinner'
 
 const sortOptions = [
   { name: 'A - Z', href: '#', current: true },
@@ -163,7 +162,7 @@ export default function Example({ }) {
   //   },
   // ])
   const [contacts, setContacts] = useState<FlattenContact[]>([])
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [filters, setFilters] = useState(filtersTemplate)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [sortApplied, setSortApplied] = useState<string | null>(null)
@@ -181,10 +180,13 @@ export default function Example({ }) {
         .then((data: FlattenContact[]) => {
           if (data.length) {
             setContacts(data)
-            // setHideFilterAdvice(false)
+            setIsLoading(false)
           }
         })
-        .catch((error) => console.error('Failed to load contacts', error))      
+        .catch((error) => {
+        console.error('Failed to load contacts', error)
+        setIsLoading(false)
+      })      
     }
   }, [session.status])
 
@@ -469,309 +471,311 @@ export default function Example({ }) {
           </div>
         </Dialog>
       </Transition.Root>
+      {isLoading ?
+        <LoadingSpinner size={100} /> :
+        <main className="mx-auto h-full px-4 sm:px-6 lg:px-8">
+          <DuplicatesScreen contacts={contacts.filter(contact => contact.duplicates?.length! > 0 || false)} />
 
-      <main className="mx-auto h-full px-4 sm:px-6 lg:px-8">
-      <DuplicatesScreen contacts={contacts.filter(contact => contact.duplicates?.length! > 0 || false)} />
+          <div className="flex items-baseline justify-between border-b border-gray-200 pb-6 pt-2">
+            <h1 className="text-white-900 text-4xl font-bold tracking-tight">
+              Contact book
+            </h1>
 
-        <div className="flex items-baseline justify-between border-b border-gray-200 pb-6 pt-2">
-          <h1 className="text-white-900 text-4xl font-bold tracking-tight">
-            Contact book
-          </h1>
+            <div className="flex items-center">
+              <Menu as="div" className="relative inline-block text-left">
+                <div>
+                  <Menu.Button className="hover:text-white-900 text-white-700 group inline-flex justify-center pl-6 text-sm font-medium">
+                    Sort{' '}
+                    {sortApplied ? (sortApplied == 'AZ' ? 'A - Z' : 'Z - A') : ''}
+                    <ChevronDownIcon
+                      className="group-hover:text-white-500 -mr-1 ml-1 h-5 w-5 flex-shrink-0 text-gray-400"
+                      aria-hidden="true"
+                    />
+                  </Menu.Button>
+                </div>
 
-          <div className="flex items-center">
-            <Menu as="div" className="relative inline-block text-left">
-              <div>
-                <Menu.Button className="hover:text-white-900 text-white-700 group inline-flex justify-center pl-6 text-sm font-medium">
-                  Sort{' '}
-                  {sortApplied ? (sortApplied == 'AZ' ? 'A - Z' : 'Z - A') : ''}
-                  <ChevronDownIcon
-                    className="group-hover:text-white-500 -mr-1 ml-1 h-5 w-5 flex-shrink-0 text-gray-400"
-                    aria-hidden="true"
-                  />
-                </Menu.Button>
-              </div>
+                <Transition
+                  as={Fragment}
+                  enter="transition ease-out duration-100"
+                  enterFrom="transform opacity-0 scale-95"
+                  enterTo="transform opacity-100 scale-100"
+                  leave="transition ease-in duration-75"
+                  leaveFrom="transform opacity-100 scale-100"
+                  leaveTo="transform opacity-0 scale-95"
+                >
+                  <Menu.Items className="w-18 absolute right-0 z-10 mt-2 origin-top-right rounded-md bg-white shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none">
+                    <div className="py-1">
+                      <Menu.Item>
+                        {({ active }) => (
+                          <a
+                            href="#"
+                            className={classNames(
+                              sortApplied == 'AZ'
+                                ? 'font-medium text-gray-900'
+                                : 'text-gray-500',
+                              active ? 'bg-gray-100' : '',
+                              'block px-4 py-2 text-sm',
+                            )}
+                            onClick={() => {
+                              setSortApplied('AZ')
+                            }}
+                          >
+                            A - Z
+                          </a>
+                        )}
+                      </Menu.Item>
+                      <Menu.Item>
+                        {({ active }) => (
+                          <a
+                            href="#"
+                            className={classNames(
+                              sortApplied == 'ZA'
+                                ? 'font-medium text-gray-900'
+                                : 'text-gray-500',
+                              active ? 'bg-gray-100' : '',
+                              'block px-4 py-2 text-sm',
+                            )}
+                            onClick={() => {
+                              setSortApplied('ZA')
+                            }}
+                          >
+                            Z - A
+                          </a>
+                        )}
+                      </Menu.Item>
+                    </div>
+                  </Menu.Items>
+                </Transition>
+              </Menu>
 
-              <Transition
-                as={Fragment}
-                enter="transition ease-out duration-100"
-                enterFrom="transform opacity-0 scale-95"
-                enterTo="transform opacity-100 scale-100"
-                leave="transition ease-in duration-75"
-                leaveFrom="transform opacity-100 scale-100"
-                leaveTo="transform opacity-0 scale-95"
-              >
-                <Menu.Items className="w-18 absolute right-0 z-10 mt-2 origin-top-right rounded-md bg-white shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none">
-                  <div className="py-1">
-                    <Menu.Item>
-                      {({ active }) => (
-                        <a
-                          href="#"
-                          className={classNames(
-                            sortApplied == 'AZ'
-                              ? 'font-medium text-gray-900'
-                              : 'text-gray-500',
-                            active ? 'bg-gray-100' : '',
-                            'block px-4 py-2 text-sm',
-                          )}
-                          onClick={() => {
-                            setSortApplied('AZ')
-                          }}
-                        >
-                          A - Z
-                        </a>
-                      )}
-                    </Menu.Item>
-                    <Menu.Item>
-                      {({ active }) => (
-                        <a
-                          href="#"
-                          className={classNames(
-                            sortApplied == 'ZA'
-                              ? 'font-medium text-gray-900'
-                              : 'text-gray-500',
-                            active ? 'bg-gray-100' : '',
-                            'block px-4 py-2 text-sm',
-                          )}
-                          onClick={() => {
-                            setSortApplied('ZA')
-                          }}
-                        >
-                          Z - A
-                        </a>
-                      )}
-                    </Menu.Item>
-                  </div>
-                </Menu.Items>
-              </Transition>
-            </Menu>
-
-            {/* <button
+              {/* <button
               type="button"
               className="-m-2 ml-5 p-2 text-gray-400 hover:text-white-500 sm:ml-7"
             >
               <span className="sr-only">View grid</span>
               <Squares2X2Icon className="h-5 w-5" aria-hidden="true" />
             </button> */}
-            <button
-              type="button"
-              className="hover:text-white-500 -m-2 ml-4 p-2 text-gray-400 sm:ml-6 lg:hidden"
-              onClick={() => setMobileFiltersOpen(true)}
-            >
-              <span className="sr-only">Filters</span>
-              <FunnelIcon className="h-5 w-5" aria-hidden="true" />
-            </button>
-          </div>
-        </div>
-
-        <section aria-labelledby="products-heading" className="pb-24 pt-6">
-          <h2 id="products-heading" className="sr-only">
-            Products
-          </h2>
-
-          <div className="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4">
-            {/* Filters */}
-            <form className="hidden lg:block">
-              <h3 className="sr-only">Categories</h3>
-              <ul
-                role="list"
-                className="text-white-900 space-y-4 border-b border-gray-200 pb-6 text-sm font-medium"
+              <button
+                type="button"
+                className="hover:text-white-500 -m-2 ml-4 p-2 text-gray-400 sm:ml-6 lg:hidden"
+                onClick={() => setMobileFiltersOpen(true)}
               >
-                {contactsSource.map((category) => (
-                  <li key={category.name}>
-                    <button
-                      type="button"
-                      onClick={() => handleSourceChange(category.value)}
-                      className={clsx(
-                        'text-white-600 ml-3 text-sm',
-                        selectedSource === category.value
-                          ? 'text-teal-500 dark:text-teal-400'
-                          : 'hover:text-teal-500 dark:hover:text-teal-400',
-                      )}
-                    >
-                      {category.name}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-
-              {hideFilterAdvice &&
-                filters
-                  .filter((a) => a.options.length > 0)
-                  .map((section) => (
-                    <Disclosure
-                      as="div"
-                      key={section.id}
-                      className="border-b border-gray-200 py-6"
-                    >
-                      {({ open }) => (
-                        <>
-                          <h3 className="-my-3 flow-root">
-                            <Disclosure.Button className="hover:text-white-500 flex w-full items-center justify-between bg-white py-3 pl-3 text-sm text-gray-400">
-                              <span className="text-white-900 font-medium">
-                                {section.name}
-                              </span>
-                              <span className="ml-6 mr-2 flex items-center">
-                                {open ? (
-                                  <MinusIcon
-                                    className="h-5 w-5"
-                                    aria-hidden="true"
-                                  />
-                                ) : (
-                                  <PlusIcon
-                                    className="h-5 w-5"
-                                    aria-hidden="true"
-                                  />
-                                )}
-                              </span>
-                            </Disclosure.Button>
-                          </h3>
-                          <Disclosure.Panel className="pt-8">
-                            <div className="space-y-4">
-                              {section.options.map((option, optionIdx) => (
-                                <div
-                                  key={option.value}
-                                  className="flex items-center"
-                                >
-                                  <input
-                                    id={`filter-${section.id}-${optionIdx}`}
-                                    name={`${section.id}[]`}
-                                    defaultValue={option.value || undefined}
-                                    type="checkbox"
-                                    defaultChecked={option.checked}
-                                    onChange={(e) =>
-                                      handleFilterChange(
-                                        section.id,
-                                        optionIdx.toString(),
-                                        e.target.checked,
-                                      )
-                                    }
-                                    className="h-4 w-4 rounded text-teal-600"
-                                  />
-                                  <label
-                                    htmlFor={`filter-${section.id}-${optionIdx}`}
-                                    className={clsx(
-                                      'text-white-600 ml-3 text-sm',
-                                      option.checked
-                                        ? 'text-teal-500 dark:text-teal-400'
-                                        : 'hover:text-teal-500 dark:hover:text-teal-400',
-                                    )}
-                                  >
-                                    {section.id == 'location' && option.label
-                                      ? getName(option.label, 'en', {
-                                        select: 'alias',
-                                      }) ?? 'No assigned country'
-                                      : option.label}
-                                  </label>
-                                </div>
-                              ))}
-                            </div>
-                          </Disclosure.Panel>
-                        </>
-                      )}
-                    </Disclosure>
-                  ))}
-
-              {!hideFilterAdvice ? (
-                <p className="text-white-600 sm-text">
-                  There are no filters applicable <br></br> for the contacts
-                  list
-                </p>
-              ) : (
-                <></>
-              )}
-            </form>
-            {/* Product grid */}
-            <div className="lg:col-span-3">
-              {
-                <ul
-                  role="list"
-                  className="w-full max-w-7xl divide-y divide-gray-800"
-                >
-                  {filteredContacts.length > 0 ? (
-                    filteredContacts.map((contact) => (
-                      <li
-                        key={contact.id}
-                        className="flex justify-between gap-x-6 py-5"
-                      >
-                        <div className="flex min-w-0 gap-x-4">
-                          {contact.photos && contact.photos[0] && (
-                            <img
-                              className="h-12 w-12 flex-none rounded-full bg-gray-800"
-                              src={contact.photos[0].url}
-                              alt=""
-                            />
-                          )}
-                          <div className="min-w-0 flex-auto">
-                            <p className="text-sm font-semibold leading-6 text-white">
-                              {contact.name}
-                            </p>
-                            <p className="mt-1 truncate text-xs leading-5 text-gray-400">
-                              {contact.emails.length == 0
-                                ? 'No email found'
-                                : contact.emails[0].address}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
-                          <p className="text-sm leading-6 text-white">
-                            {contact.occupations.length == 0
-                              ? 'No role found'
-                              : contact.occupations
-                                .map((a) => a.name)
-                                .join(' | ')}
-                          </p>
-                          {contact.phoneNumbers.length > 0 ? (
-                            <p className="mt-1 text-xs leading-5 text-gray-400">
-                              {contact.phoneNumbers
-                                .map((a, index) => {
-                                  return (
-                                    <a
-                                      key={contact.id + 'index:' + index}
-                                      href={'tel://' + a.number}
-                                    >
-                                      {a.number}
-                                    </a>
-                                  )
-                                })
-                                .reduce(
-                                  (acc, x) =>
-                                    acc === null ? (
-                                      x
-                                    ) : (
-                                      <>
-                                        {acc} | {x}
-                                      </>
-                                    ),
-                                  null as React.ReactNode | null,
-                                )}
-                            </p>
-                          ) : (
-                            <div className="mt-1 flex items-center gap-x-1.5">
-                              {/* <div className="flex-none rounded-full bg-emerald-500/20 p-1">
-                              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                            </div> */}
-                              <p className="text-xs leading-5 text-gray-400">
-                                No phone
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </li>
-                    ))
-                  ) : (
-                    <p>
-                      No contacts yet. Sync your contacts{' '}
-                      <Link href={'/sync'} className="text-teal-500">
-                        here
-                      </Link>
-                    </p>
-                  )}
-                </ul>
-              }
+                <span className="sr-only">Filters</span>
+                <FunnelIcon className="h-5 w-5" aria-hidden="true" />
+              </button>
             </div>
           </div>
-        </section>
-      </main>
+
+          <section aria-labelledby="products-heading" className="pb-24 pt-6">
+            <h2 id="products-heading" className="sr-only">
+              Products
+            </h2>
+
+            <div className="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4">
+              {/* Filters */}
+              <form className="hidden lg:block">
+                <h3 className="sr-only">Categories</h3>
+                <ul
+                  role="list"
+                  className="text-white-900 space-y-4 border-b border-gray-200 pb-6 text-sm font-medium"
+                >
+                  {contactsSource.map((category) => (
+                    <li key={category.name}>
+                      <button
+                        type="button"
+                        onClick={() => handleSourceChange(category.value)}
+                        className={clsx(
+                          'text-white-600 ml-3 text-sm',
+                          selectedSource === category.value
+                            ? 'text-teal-500 dark:text-teal-400'
+                            : 'hover:text-teal-500 dark:hover:text-teal-400',
+                        )}
+                      >
+                        {category.name}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+
+                {hideFilterAdvice &&
+                  filters
+                    .filter((a) => a.options.length > 0)
+                    .map((section) => (
+                      <Disclosure
+                        as="div"
+                        key={section.id}
+                        className="border-b border-gray-200 py-6"
+                      >
+                        {({ open }) => (
+                          <>
+                            <h3 className="-my-3 flow-root">
+                              <Disclosure.Button className="hover:text-white-500 flex w-full items-center justify-between bg-white py-3 pl-3 text-sm text-gray-400">
+                                <span className="text-white-900 font-medium">
+                                  {section.name}
+                                </span>
+                                <span className="ml-6 mr-2 flex items-center">
+                                  {open ? (
+                                    <MinusIcon
+                                      className="h-5 w-5"
+                                      aria-hidden="true"
+                                    />
+                                  ) : (
+                                    <PlusIcon
+                                      className="h-5 w-5"
+                                      aria-hidden="true"
+                                    />
+                                  )}
+                                </span>
+                              </Disclosure.Button>
+                            </h3>
+                            <Disclosure.Panel className="pt-8">
+                              <div className="space-y-4">
+                                {section.options.map((option, optionIdx) => (
+                                  <div
+                                    key={option.value}
+                                    className="flex items-center"
+                                  >
+                                    <input
+                                      id={`filter-${section.id}-${optionIdx}`}
+                                      name={`${section.id}[]`}
+                                      defaultValue={option.value || undefined}
+                                      type="checkbox"
+                                      defaultChecked={option.checked}
+                                      onChange={(e) =>
+                                        handleFilterChange(
+                                          section.id,
+                                          optionIdx.toString(),
+                                          e.target.checked,
+                                        )
+                                      }
+                                      className="h-4 w-4 rounded text-teal-600"
+                                    />
+                                    <label
+                                      htmlFor={`filter-${section.id}-${optionIdx}`}
+                                      className={clsx(
+                                        'text-white-600 ml-3 text-sm',
+                                        option.checked
+                                          ? 'text-teal-500 dark:text-teal-400'
+                                          : 'hover:text-teal-500 dark:hover:text-teal-400',
+                                      )}
+                                    >
+                                      {section.id == 'location' && option.label
+                                        ? getName(option.label, 'en', {
+                                          select: 'alias',
+                                        }) ?? 'No assigned country'
+                                        : option.label}
+                                    </label>
+                                  </div>
+                                ))}
+                              </div>
+                            </Disclosure.Panel>
+                          </>
+                        )}
+                      </Disclosure>
+                    ))}
+
+                {!hideFilterAdvice ? (
+                  <p className="text-white-600 sm-text">
+                    There are no filters applicable <br></br> for the contacts
+                    list
+                  </p>
+                ) : (
+                  <></>
+                )}
+              </form>
+              {/* Product grid */}
+              <div className="lg:col-span-3">
+                {
+                  <ul
+                    role="list"
+                    className="w-full max-w-7xl divide-y divide-gray-800"
+                  >
+                    {filteredContacts.length > 0 && !isLoading ? (
+                      filteredContacts.map((contact) => (
+                        <li
+                          key={contact.id}
+                          className="flex justify-between gap-x-6 py-5"
+                        >
+                          <div className="flex min-w-0 gap-x-4">
+                            {contact.photos && contact.photos[0] && (
+                              <img
+                                className="h-12 w-12 flex-none rounded-full bg-gray-800"
+                                src={contact.photos[0].url}
+                                alt=""
+                              />
+                            )}
+                            <div className="min-w-0 flex-auto">
+                              <p className="text-sm font-semibold leading-6 text-white">
+                                {contact.name}
+                              </p>
+                              <p className="mt-1 truncate text-xs leading-5 text-gray-400">
+                                {contact.emails.length == 0
+                                  ? 'No email found'
+                                  : contact.emails[0].address}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
+                            <p className="text-sm leading-6 text-white">
+                              {contact.occupations.length == 0
+                                ? 'No role found'
+                                : contact.occupations
+                                  .map((a) => a.name)
+                                  .join(' | ')}
+                            </p>
+                            {contact.phoneNumbers.length > 0 ? (
+                              <p className="mt-1 text-xs leading-5 text-gray-400">
+                                {contact.phoneNumbers
+                                  .map((a, index) => {
+                                    return (
+                                      <a
+                                        key={contact.id + 'index:' + index}
+                                        href={'tel://' + a.number}
+                                      >
+                                        {a.number}
+                                      </a>
+                                    )
+                                  })
+                                  .reduce(
+                                    (acc, x) =>
+                                      acc === null ? (
+                                        x
+                                      ) : (
+                                        <>
+                                          {acc} | {x}
+                                        </>
+                                      ),
+                                    null as React.ReactNode | null,
+                                  )}
+                              </p>
+                            ) : (
+                              <div className="mt-1 flex items-center gap-x-1.5">
+                                {/* <div className="flex-none rounded-full bg-emerald-500/20 p-1">
+                              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                            </div> */}
+                                <p className="text-xs leading-5 text-gray-400">
+                                  No phone
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </li>
+                      ))
+                    ) : (
+                      <p>
+                        No contacts yet. Sync your contacts{' '}
+                        <Link href={'/sync'} className="text-teal-500">
+                          here
+                        </Link>
+                      </p>
+                    )}
+                  </ul>
+                }
+              </div>
+            </div>
+          </section>
+        </main>
+      }
     </>
   )
 }
