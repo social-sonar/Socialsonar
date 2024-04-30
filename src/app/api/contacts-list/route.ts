@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   const contacts = await findContacts(userId)
 
   const normalizeContact = <C extends Omit<typeof contacts[number], 'firstContacts'>>(contact: C): FlattenContact => ({
-    id: contact.id.toString(),
+    id: contact.id,
     userId: contact.userId.toString(),
     name: contact.name,
     nickName: contact.nickName,
