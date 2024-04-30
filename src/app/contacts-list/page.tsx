@@ -18,6 +18,7 @@ import clsx from 'clsx'
 import Link from 'next/link'
 import { FlattenContact } from '@/lib/definitions'
 import { useSession } from 'next-auth/react'
+import DuplicatesScreen from '@/components/DuplicatesScreen'
 
 const sortOptions = [
   { name: 'A - Z', href: '#', current: true },
@@ -470,7 +471,9 @@ export default function Example({ }) {
       </Transition.Root>
 
       <main className="mx-auto h-full px-4 sm:px-6 lg:px-8">
-        <div className="flex items-baseline justify-between border-b border-gray-200 pb-6 pt-24">
+      <DuplicatesScreen contacts={contacts.filter(contact => contact.duplicates?.length! > 0 || false)} />
+
+        <div className="flex items-baseline justify-between border-b border-gray-200 pb-6 pt-2">
           <h1 className="text-white-900 text-4xl font-bold tracking-tight">
             Contact book
           </h1>
@@ -677,7 +680,6 @@ export default function Example({ }) {
                 <></>
               )}
             </form>
-
             {/* Product grid */}
             <div className="lg:col-span-3">
               {
