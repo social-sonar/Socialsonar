@@ -264,7 +264,7 @@ const findDuplicates = async (userId: string) => {
   contacts.forEach(contact => {
     contacts.forEach(innerContact => {
       if (contact.id !== innerContact.id) {
-        const posibleDuplicate = fuzzy(contact.name, innerContact.name) > 0.9
+        const posibleDuplicate = fuzzy(contact.name, innerContact.name) > 0.95
         if (posibleDuplicate) {
           duplicates.push({
             firstContactId: contact.id,
@@ -363,8 +363,26 @@ export const findContacts = async (userId: string) =>
       photos: { select: { photo: { select: { url: true } } } },
       addresses: { select: { address: true } },
       emails: { select: { email: { select: { address: true } } } },
-      googleContacts: { select: { googleContactId: true } }
+      googleContacts: { select: { googleContactId: true } },
+      firstContacts: {
+        select: {
+          secondContact: {
+            include: {
+              organizations: { select: { organization: { select: { name: true } } } },
+              phoneNumbers: { select: { phoneNumber: { select: { number: true, type: true } } } },
+              occupations: { select: { ocuppation: { select: { name: true, id: true } } } },
+              photos: { select: { photo: { select: { url: true } } } },
+              addresses: { select: { address: true } },
+              emails: { select: { email: { select: { address: true } } } },
+              googleContacts: { select: { googleContactId: true } },
+            }
+          }
+        }
+      }
     }
   })
+
+
+
 
 
