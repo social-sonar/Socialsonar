@@ -57,6 +57,7 @@ export type FlattenContact = {
     }[],
     location: string | null,
     source: string
+    duplicates?: FlattenContact[]
 }
 
 
