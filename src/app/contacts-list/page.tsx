@@ -180,9 +180,9 @@ export default function Example({ }) {
         .then((data: FlattenContact[]) => {
           if (data.length) {
             setContacts(data)
-            setIsLoading(false)
-          }
-        })
+            }
+          setIsLoading(false)
+      })
         .catch((error) => {
         console.error('Failed to load contacts', error)
         setIsLoading(false)
