@@ -18,6 +18,7 @@ import { FlattenContact } from '@/lib/definitions'
 import { useSession } from 'next-auth/react'
 import DuplicatesScreen from '@/components/DuplicatesScreen'
 import LoadingSpinner from '@/components/common/spinner'
+import UserIcon from '@/images/icons/user.svg'
 
 const sortOptions = [
   { name: 'A - Z', href: '#', current: true },
@@ -697,13 +698,11 @@ export default function Example({ }) {
                           className="flex justify-between gap-x-6 py-5"
                         >
                           <div className="flex min-w-0 gap-x-4">
-                            {contact.photos && contact.photos[0] && (
-                              <img
-                                className="h-12 w-12 flex-none rounded-full bg-gray-800"
-                                src={contact.photos[0].url}
-                                alt=""
-                              />
-                            )}
+                            <img
+                              className="h-12 w-12 flex-none rounded-full bg-gray-800"
+                              src={contact.photos && contact.photos[0] ? contact.photos[0].url : UserIcon.src}
+                              alt=""
+                            />
                             <div className="min-w-0 flex-auto">
                               <p className="text-sm font-semibold leading-6 text-white">
                                 {contact.name}
