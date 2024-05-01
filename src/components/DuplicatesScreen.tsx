@@ -168,7 +168,7 @@ export default function DuplicatesScreen({ contacts, className }: DuplicatedCont
         <Popover className='relative lg:mt-10 my-4 md:mt-9 flex justify-normal lg:justify-end md:justify-end'>
             {({ open }) => (
                 <>
-                    <Popover.Button className='flex items-center gap-10 rounded border border-gray-500 bg-gray-800 p-3 md:mt-4 lg:mt-0 w-full lg:w-auto md:w-auto lg:justify-normal md:justify-normal sm:justify-between'>
+                    <Popover.Button className='flex items-center gap-10 rounded border border-gray-500 bg-gray-800 p-3 md:mt-4 lg:mt-0 w-full lg:w-auto md:w-auto lg:justify-normal md:justify-normal justify-between'>
                         <div className="flex flex-col items-start">
                             <p>Possible duplicates</p>
                             <p className="text-sm text-yellow-400">
