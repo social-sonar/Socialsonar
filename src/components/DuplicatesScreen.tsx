@@ -46,7 +46,7 @@ function DuplicateContactCard({ optionA, optionB, localDeletionHandler }: Option
                             await handleDuplication({
                                 strategy: ResolutionStrategy.KEEP_BOTH,
                                 contactA: optionA.id,
-                                contactB: optionB.id
+                                contactB: optionB.id,
                             })
                             localDeletionHandler(optionB.id)
                         }}
@@ -56,7 +56,7 @@ function DuplicateContactCard({ optionA, optionB, localDeletionHandler }: Option
                 )}
                 {mergeSelected && optionA.name !== optionB.name && (
                     <input
-                        className='text-black'
+                        className="text-black"
                         type="text"
                         placeholder="New name..."
                         onChange={(evt) => setMergeName(evt.target.value)}
@@ -68,12 +68,11 @@ function DuplicateContactCard({ optionA, optionB, localDeletionHandler }: Option
                         onClick={async () => {
                             if (optionA.name !== optionB.name) {
                                 setMergeSelection(true)
-                            }
-                            else {
+                            } else {
                                 await handleDuplication({
                                     strategy: ResolutionStrategy.MERGE,
                                     contactA: optionA.id,
-                                    contactB: optionB.id
+                                    contactB: optionB.id,
                                 })
                                 localDeletionHandler(optionB.id)
                             }
@@ -103,7 +102,7 @@ function DuplicateContactCard({ optionA, optionB, localDeletionHandler }: Option
                             await handleDuplication({
                                 strategy: ResolutionStrategy.KEEP_ONE,
                                 contactA: contactId,
-                                contactB: contactId == optionA.id ? optionB.id : optionA.id
+                                contactB: contactId == optionA.id ? optionB.id : optionA.id,
                             })
                             localDeletionHandler(optionB.id)
                         }}
@@ -133,7 +132,11 @@ function Contact({ contact, className }: { contact: FlattenContact; className: s
             <div className="flex flex-col">
                 <h1 className="text-xl font-bold">{contact.name}</h1>
                 {contact.phoneNumbers &&
-                    contact.phoneNumbers.map((item) => <p className="text-sm">{item.phoneNumber || item.number}</p>)}
+                    contact.phoneNumbers.map((item) => (
+                        <p key={item.phoneNumber || item.number} className="text-sm">
+                            {item.phoneNumber || item.number}
+                        </p>
+                    ))}
             </div>
         </div>
     )
@@ -165,7 +168,7 @@ export default function DuplicatesScreen({ contacts }: DuplicatedContacts) {
                         <div className="flex flex-col items-start">
                             <p>Possible duplicates</p>
                             <p className="text-sm text-yellow-400">
-                                {contacts[0].name} and {contacts.length} more
+                                {updatedContacts[0].name} and {updatedContacts.length} more
                             </p>
                         </div>
                         <p>Review</p>
