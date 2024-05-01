@@ -24,8 +24,9 @@ enum PhoneNumberType {
 
 enum ContactMergeStatus {
   MERGED_BETWEEN
-  SINGLE_CHOICE
+  MULTIPLE_CHOICE
   PENDING
+  SINGLE_CHOICE
 }
 
 model Account {
