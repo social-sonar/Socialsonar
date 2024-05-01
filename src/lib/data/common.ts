@@ -251,6 +251,7 @@ type Duplicate = {
 }
 
 const findDuplicates = async (userId: string) => {
+  const combinations = new Set<string>()
   const duplicates: Duplicate[] = []
   const contacts = await prisma.contact.findMany({
     where: {
@@ -269,13 +270,15 @@ const findDuplicates = async (userId: string) => {
 
   contacts.forEach((contact) => {
     contacts.forEach((innerContact) => {
-      if (contact.id !== innerContact.id) {
+      const currentCombination = [contact.id, innerContact.id].sort().toString()
+      if (contact.id !== innerContact.id && !combinations.has(currentCombination)) {
         const posibleDuplicate = fuzzy(contact.name, innerContact.name) > 0.95
         if (posibleDuplicate) {
           duplicates.push({
             firstContactId: contact.id,
             secondContactId: innerContact.id,
           })
+          combinations.add([contact.id, innerContact.id].sort().toString())
         }
         const contactPhoneNumber = contact.phoneNumbers[0]?.phoneNumber
         const innerContactPhoneNumber = innerContact.phoneNumbers[0]?.phoneNumber
@@ -284,6 +287,7 @@ const findDuplicates = async (userId: string) => {
             firstContactId: contact.id,
             secondContactId: innerContact.id,
           })
+          combinations.add([contact.id, innerContact.id].sort().toString())
         }
       }
     })
