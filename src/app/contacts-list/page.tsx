@@ -19,6 +19,8 @@ import { useSession } from 'next-auth/react'
 import DuplicatesScreen from '@/components/DuplicatesScreen'
 import LoadingSpinner from '@/components/common/spinner'
 import UserIcon from '@/images/icons/user.svg'
+import RefreshIcon from '@/images/icons/refresh.svg'
+
 
 const sortOptions = [
   { name: 'A - Z', href: '#', current: true },
@@ -163,7 +165,7 @@ export default function Example({ }) {
   //   },
   // ])
   const [contacts, setContacts] = useState<FlattenContact[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [filters, setFilters] = useState(filtersTemplate)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [sortApplied, setSortApplied] = useState<string | null>(null)
@@ -173,29 +175,34 @@ export default function Example({ }) {
 
   const session = useSession()
 
-  useEffect(() => {
+  const fetchContacts = () => {
     if (session.status == 'authenticated') {
-      
+      setIsLoading(true)
       fetch(`/api/contacts-list?userId=${session?.data.user?.id}`)
         .then((response) => response.json())
         .then((data: FlattenContact[]) => {
           if (data.length) {
             setContacts(data)
-            }
+          }
           setIsLoading(false)
-      })
+        })
         .catch((error) => {
-        console.error('Failed to load contacts', error)
-        setIsLoading(false)
-      })      
+          console.error('Failed to load contacts', error)
+          setIsLoading(false)
+        })
     }
-  }, [session.status])
+  }
+
+  useEffect(() => {
+    fetchContacts()
+  }, [])
 
   const handleSourceChange = (source: string) => {
     setSelectedSource(source)
   }
 
   useEffect(() => {
+    setFilteredContacts(contacts)
     let occupationOptions = filters.find((a) => {
       return a.id == 'occupation'
     })
@@ -483,6 +490,14 @@ export default function Example({ }) {
             </h1>
 
             <div className="flex items-center">
+              <button
+                className='h-[25px] w-[25px]'>
+                <img
+                  src={RefreshIcon.src}
+                  alt="Refresh icon"
+                  title='Refresh contact list'
+                  onClick={fetchContacts} />
+              </button>
               <Menu as="div" className="relative inline-block text-left">
                 <div>
                   <Menu.Button className="hover:text-white-900 text-white-700 group inline-flex justify-center pl-6 text-sm font-medium">
@@ -548,7 +563,6 @@ export default function Example({ }) {
                   </Menu.Items>
                 </Transition>
               </Menu>
-
               {/* <button
               type="button"
               className="-m-2 ml-5 p-2 text-gray-400 hover:text-white-500 sm:ml-7"
