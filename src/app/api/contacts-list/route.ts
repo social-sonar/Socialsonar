@@ -1,5 +1,6 @@
 import { findContacts } from '@/lib/data/common'
 import { CleanPhoneData, FlattenContact } from '@/lib/definitions'
+import { ContactMergeStatus } from '@prisma/client'
 import { NextRequest, NextResponse } from 'next/server'
 import { phone } from 'phone'
 
@@ -7,7 +8,9 @@ export async function GET(req: NextRequest) {
   const userId = req.nextUrl.searchParams.get('userId') as string
   const contacts = await findContacts(userId)
 
-  const normalizeContact = <C extends Omit<typeof contacts[number], 'firstContacts'>>(contact: C): FlattenContact => ({
+  const normalizeContact = <C extends Omit<(typeof contacts)[number], 'firstContacts'>>(
+    contact: C,
+  ): FlattenContact => ({
     id: contact.id,
     userId: contact.userId.toString(),
     name: contact.name,
@@ -28,22 +31,22 @@ export async function GET(req: NextRequest) {
     emails: contact.emails.map((item) => ({ ...item.email })),
     location:
       contact.phoneNumbers[0] &&
-        phone(contact.phoneNumbers[0].phoneNumber.number) &&
-        phone(contact.phoneNumbers[0].phoneNumber.number).countryIso2
+      phone(contact.phoneNumbers[0].phoneNumber.number) &&
+      phone(contact.phoneNumbers[0].phoneNumber.number).countryIso2
         ? phone(contact.phoneNumbers[0].phoneNumber.number).countryIso2
         : null,
-    source: contact.googleContacts.length > 0 ? "google" : "custom",
+    source: contact.googleContacts.length > 0 ? 'google' : 'custom',
   })
 
   const responseContacts: FlattenContact[] = contacts.map((contact) => {
-
     const normalizedContact = normalizeContact(contact)
     if (contact.firstContacts.length > 0) {
-      normalizedContact.duplicates = contact.firstContacts.map((contact) => normalizeContact(contact.secondContact))
+      normalizedContact.duplicates = contact.firstContacts
+        .filter((contact) => contact.mergeStatus == ContactMergeStatus.PENDING)
+        .map((contact) => normalizeContact(contact.secondContact))
     }
 
     return normalizedContact
-
   })
 
   return NextResponse.json(responseContacts)
