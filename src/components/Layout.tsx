@@ -31,7 +31,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       } */}
       <div className="relative flex w-full flex-col justify-between">
         <Header />
-        <main className="grid grid-cols-1 divide-y justify-items-center">{children}</main>
+        <main className="lg:grid md:grid divide-y justify-items-center">{children}</main>
         <Footer />
       </div>
     </>

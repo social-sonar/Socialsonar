@@ -30,7 +30,7 @@ function DuplicateContactCard({ optionA, optionB, localDeletionHandler }: Option
 
     return (
         <div className="flex flex-col items-center justify-center gap-3 rounded-xl bg-slate-950 p-4">
-            <RadioGroup value={contactId} onChange={setContactId} className="flex cursor-pointer gap-4">
+            <RadioGroup value={contactId} onChange={setContactId} className="flex flex-col lg:flex-row md:flex-row cursor-pointer gap-4">
                 <RadioGroup.Option value={optionA.id}>
                     {({ checked }) => <Contact contact={optionA} className={`${checked ? 'bg-slate-900' : ''} rounded`} />}
                 </RadioGroup.Option>
@@ -54,15 +54,6 @@ function DuplicateContactCard({ optionA, optionB, localDeletionHandler }: Option
                         Keep both
                     </Button>
                 )}
-                {mergeSelected && optionA.name !== optionB.name && (
-                    <input
-                        className="text-black"
-                        type="text"
-                        placeholder="New name..."
-                        onChange={(evt) => setMergeName(evt.target.value)}
-                        value={mergeName}
-                    />
-                )}
                 {!mergeSelected && !contactId && (
                     <Button
                         onClick={async () => {
@@ -81,21 +72,6 @@ function DuplicateContactCard({ optionA, optionB, localDeletionHandler }: Option
                         Merge
                     </Button>
                 )}
-                {mergeSelected && (
-                    <Button
-                        onClick={async () => {
-                            await handleDuplication({
-                                strategy: ResolutionStrategy.MERGE,
-                                contactA: optionA.id,
-                                contactB: optionB.id,
-                                mergeName,
-                            })
-                            localDeletionHandler(optionB.id)
-                        }}
-                    >
-                        Done
-                    </Button>
-                )}
                 {contactId && (
                     <Button
                         onClick={async () => {
@@ -110,16 +86,44 @@ function DuplicateContactCard({ optionA, optionB, localDeletionHandler }: Option
                         Keep selected contact
                     </Button>
                 )}
-                {(mergeSelected || contactId) && (
-                    <button
-                        onClick={() => {
-                            setMergeSelection(false)
-                            setContactId(null)
-                        }}
-                    >
-                        Clear
-                    </button>
-                )}
+                <div className='flex lg:flex-row md:flex-row flex-col gap-3 justify-center'>
+
+                    {mergeSelected && optionA.name !== optionB.name && !contactId && (
+                        <input
+                            className="text-black lg:w-auto md:w-auto w-52"
+                            type="text"
+                            placeholder="New name..."
+                            onChange={(evt) => setMergeName(evt.target.value)}
+                            value={mergeName}
+                        />
+                    )}
+                    {mergeSelected && !contactId && (
+                        <Button
+                            onClick={async () => {
+                                await handleDuplication({
+                                    strategy: ResolutionStrategy.MERGE,
+                                    contactA: optionA.id,
+                                    contactB: optionB.id,
+                                    mergeName,
+                                })
+                                localDeletionHandler(optionB.id)
+                            }}
+                        >
+                            Done
+                        </Button>
+                    )}
+
+                    {(mergeSelected || contactId) && (
+                        <button
+                            onClick={() => {
+                                setMergeSelection(false)
+                                setContactId(null)
+                            }}
+                        >
+                            Clear
+                        </button>
+                    )}
+                </div>
             </div>
         </div>
     )
@@ -142,7 +146,7 @@ function Contact({ contact, className }: { contact: FlattenContact; className: s
     )
 }
 
-export default function DuplicatesScreen({ contacts }: DuplicatedContacts) {
+export default function DuplicatesScreen({ contacts, className }: DuplicatedContacts & { className?: string }) {
     const [updatedContacts, setUpdatedContacts] = useState<FlattenContact[]>([])
     useEffect(() => {
         // Code to execute when 'contacts' array changes
@@ -161,10 +165,10 @@ export default function DuplicatesScreen({ contacts }: DuplicatedContacts) {
     if (updatedContacts.length == 0) return null
 
     return (
-        <Popover className="relative mt-10 flex w-auto justify-end">
+        <Popover className='relative lg:mt-10 my-4 md:mt-9 flex justify-normal lg:justify-end md:justify-end'>
             {({ open }) => (
                 <>
-                    <Popover.Button className="flex items-center gap-10 rounded border border-gray-500 bg-gray-800 p-3">
+                    <Popover.Button className='flex items-center gap-10 rounded border border-gray-500 bg-gray-800 p-3 md:mt-4 lg:mt-0 w-full lg:w-auto md:w-auto lg:justify-normal md:justify-normal sm:justify-between'>
                         <div className="flex flex-col items-start">
                             <p>Possible duplicates</p>
                             <p className="text-sm text-yellow-400">

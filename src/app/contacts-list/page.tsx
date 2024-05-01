@@ -482,21 +482,23 @@ export default function Example({ }) {
       {isLoading ?
         <LoadingSpinner size={100} /> :
         <main className="mx-auto h-full px-4 sm:px-6 lg:px-8">
+
           <DuplicatesScreen contacts={contacts.filter(contact => contact.duplicates?.length! > 0 || false)} />
 
-          <div className="flex items-baseline justify-between border-b border-gray-200 pb-6 pt-2">
-            <h1 className="text-white-900 text-4xl font-bold tracking-tight">
+          <div className="flex items-center gap-7 justify-between border-b border-gray-200 pb-6 pt-2 lg:mt-5 md:mt-10">
+            <h1 className="text-white-900 lg:text-4xl md:text-4xl text-xl font-bold tracking-tight">
               Contact book
             </h1>
 
-            <div className="flex items-center">
+            <div className="flex gap-0">
               <button
                 className='h-[25px] w-[25px]'>
                 <img
                   src={RefreshIcon.src}
                   alt="Refresh icon"
                   title='Refresh contact list'
-                  onClick={fetchContacts} />
+                  onClick={fetchContacts}
+                />
               </button>
               <Menu as="div" className="relative inline-block text-left">
                 <div>
@@ -563,13 +565,6 @@ export default function Example({ }) {
                   </Menu.Items>
                 </Transition>
               </Menu>
-              {/* <button
-              type="button"
-              className="-m-2 ml-5 p-2 text-gray-400 hover:text-white-500 sm:ml-7"
-            >
-              <span className="sr-only">View grid</span>
-              <Squares2X2Icon className="h-5 w-5" aria-hidden="true" />
-            </button> */}
               <button
                 type="button"
                 className="hover:text-white-500 -m-2 ml-4 p-2 text-gray-400 sm:ml-6 lg:hidden"
