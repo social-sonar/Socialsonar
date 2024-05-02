@@ -1,18 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
-import nextauth from "@/auth"
+import { NextResponse } from "next/server";
 
-export default async function middleware(request : NextRequest) {
-    try {
-        const user = await nextauth.auth()
-        if (!user) {
-            return NextResponse.redirect(new URL('/', request.url));
-        }
-
-        return NextResponse.next();
-    } catch (error) {
-        console.error('Error validating token:', error);
+export default async function middleware(request : any) {
+    const cookieData: Map<string, any> = request.cookies._parsed;
+    if (!cookieData.get('authjs.session-token')?.['value']) {
         return NextResponse.redirect(new URL('/', request.url));
     }
+    return NextResponse.next();
 }
 
 export const config = {
