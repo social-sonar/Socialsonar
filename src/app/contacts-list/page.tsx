@@ -100,7 +100,6 @@ export default function ContactList({ }) {
   }
 
   useEffect(() => {
-    setFilteredContacts(contacts)
     let occupationOptions = filters.find((a) => {
       return a.id == 'occupation'
     })
