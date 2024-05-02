@@ -30,7 +30,11 @@ function DuplicateContactCard({ optionA, optionB, localDeletionHandler }: Option
 
     return (
         <div className="flex flex-col items-center justify-center gap-3 rounded-xl bg-slate-950 p-4">
-            <RadioGroup value={contactId} onChange={setContactId} className="flex flex-col lg:flex-row md:flex-row cursor-pointer gap-4">
+            <RadioGroup
+                value={contactId}
+                onChange={setContactId}
+                className="flex cursor-pointer flex-col gap-4 md:flex-row lg:flex-row"
+            >
                 <RadioGroup.Option value={optionA.id}>
                     {({ checked }) => <Contact contact={optionA} className={`${checked ? 'bg-slate-900' : ''} rounded`} />}
                 </RadioGroup.Option>
@@ -86,11 +90,10 @@ function DuplicateContactCard({ optionA, optionB, localDeletionHandler }: Option
                         Keep selected contact
                     </Button>
                 )}
-                <div className='flex lg:flex-row md:flex-row flex-col gap-3 justify-center'>
-
+                <div className="flex flex-col justify-center gap-3 md:flex-row lg:flex-row">
                     {mergeSelected && optionA.name !== optionB.name && !contactId && (
                         <input
-                            className="text-black lg:w-auto md:w-auto w-52"
+                            className="w-52 text-black md:w-auto lg:w-auto"
                             type="text"
                             placeholder="New name..."
                             onChange={(evt) => setMergeName(evt.target.value)}
@@ -165,14 +168,14 @@ export default function DuplicatesScreen({ contacts }: DuplicatedContacts) {
     if (updatedContacts.length == 0) return null
 
     return (
-        <Popover className='relative lg:mt-10 my-4 md:mt-9 flex justify-normal lg:justify-end md:justify-end'>
+        <Popover className="relative my-4 flex justify-normal md:mt-9 md:justify-end lg:mt-10 lg:justify-end">
             {({ open }) => (
                 <>
-                    <Popover.Button className='flex items-center gap-10 rounded border border-gray-500 bg-gray-800 p-3 md:mt-4 lg:mt-0 w-full lg:w-auto md:w-auto lg:justify-normal md:justify-normal justify-between'>
+                    <Popover.Button className="flex w-full items-center justify-between gap-10 rounded border border-gray-500 bg-gray-800 p-3 md:mt-4 md:w-auto md:justify-normal lg:mt-0 lg:w-auto lg:justify-normal">
                         <div className="flex flex-col items-start">
                             <p>Possible duplicates</p>
                             <p className="text-sm text-yellow-400">
-                                {updatedContacts[0].name} and {updatedContacts.length} more
+                                {updatedContacts[0].name} {updatedContacts.length > 1 && `and ${updatedContacts.length - 1} more`}
                             </p>
                         </div>
                         <p>Review</p>
