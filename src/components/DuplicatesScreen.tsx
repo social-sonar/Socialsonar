@@ -36,10 +36,10 @@ function DuplicateContactCard({ optionA, optionB, localDeletionHandler }: Option
                 className="flex cursor-pointer flex-col gap-4 md:flex-row lg:flex-row"
             >
                 <RadioGroup.Option value={optionA.id}>
-                    {({ checked }) => <Contact contact={optionA} className={`${checked ? 'bg-slate-900' : ''} rounded`} />}
+                    {({ checked }) => <Contact contact={optionA} className={`${checked ? 'bg-slate-700' : ''} rounded`} />}
                 </RadioGroup.Option>
                 <RadioGroup.Option value={optionB.id}>
-                    {({ checked }) => <Contact contact={optionB} className={`${checked ? 'bg-slate-900' : ''} rounded`} />}
+                    {({ checked }) => <Contact contact={optionB} className={`${checked ? 'bg-slate-700' : ''} rounded`} />}
                 </RadioGroup.Option>
             </RadioGroup>
 
@@ -102,6 +102,8 @@ function DuplicateContactCard({ optionA, optionB, localDeletionHandler }: Option
                     )}
                     {mergeSelected && !contactId && (
                         <Button
+                            disabled={!mergeName}
+                            className={!mergeName ? 'opacity-50 cursor-not-allowed' : ''}
                             onClick={async () => {
                                 await handleDuplication({
                                     strategy: ResolutionStrategy.MERGE,
@@ -119,11 +121,12 @@ function DuplicateContactCard({ optionA, optionB, localDeletionHandler }: Option
                     {(mergeSelected || contactId) && (
                         <button
                             onClick={() => {
+                                setMergeName('')
                                 setMergeSelection(false)
                                 setContactId(null)
                             }}
                         >
-                            Clear
+                            Cancel
                         </button>
                     )}
                 </div>
