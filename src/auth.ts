@@ -1,9 +1,7 @@
-
-
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter"
-import { prisma } from "@/db/index"
+import { prisma } from "@/db"
 
 
 export default NextAuth({
@@ -45,11 +43,3 @@ export default NextAuth({
     }
   }
 });
-
-import {
-  signIn as nextSignIn,
-  signOut as nextSignOut
-} from 'next-auth/react'
-
-export const signIn = nextSignIn
-export const signOut = nextSignOut

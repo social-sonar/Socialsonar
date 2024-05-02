@@ -1,9 +1,9 @@
 import { GoogleSyncButton } from "@/components/Sync";
-import { auth } from "@/auth";
+import nextauth from "@/auth";
 
 
 export default async function Page() {
-    const session = await auth()
+    const session = await nextauth.auth()
     return <div>
         <GoogleSyncButton userId={session?.user?.id!} />
     </div>
