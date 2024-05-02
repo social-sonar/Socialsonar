@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment, useEffect, useState, useCallback } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { Dialog, Disclosure, Menu, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { getName, registerLocale } from 'i18n-iso-countries'
@@ -60,110 +60,8 @@ interface Option {
   checked: boolean
 }
 
-export default function Example({ }) {
+export default function ContactList({ }) {
   registerLocale(require('i18n-iso-countries/langs/en.json'))
-  // const [contacts, setContacts] = useState([
-  //   {
-  //     id: 1,
-  //     name: 'Abuelita norma',
-  //     emails: ['norma@example.com'],
-  //     occupations: [{ id: 1, name: 'Grandma' }],
-  //     photos:
-  //       [{url:'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fmatthewkimberley.com%2Fwp-content%2Fuploads%2F2013%2F05%2Fgrandmother.jpg&f=1&nofb=1&ipt=d0f05fed654bb8a848720b607e0b3dca7086282bf8125bc62f4c3f2c129b571b&ipo=images'}],
-  //     lastSeen: '3h ago',
-  //     lastSeenDateTime: '2023-01-23T13:23Z',
-  //     favorite: true,
-  //     location: 'Argentina',
-  //     category: ['Personal'],
-  //     source: 'custom',
-  //     phoneNumbers: [],
-  //   },
-  //   {
-  //     id: 2,
-  //     name: 'Leslie Alexander',
-  //     emails: ['leslie.alexander@example.com'],
-  //     occupations: [{ id: 2, name: 'Co-Founder / CEO' }],
-  //     photos:
-  //       [{url:'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'}],
-  //     lastSeen: '3h ago',
-  //     lastSeenDateTime: '2023-01-23T13:23Z',
-  //     favorite: true,
-  //     location: 'United States',
-  //     category: ['Personal', 'School'],
-  //     source: 'google',
-  //     phoneNumbers: [],
-  //   },
-  //   {
-  //     id: 3,
-  //     name: 'Michael Foster',
-  //     emails: ['michael.foster@example.com'],
-  //     occupations: [{ id: 3, name: 'Co-Founder / CTO' }],
-  //     photos:
-  //       [{url:'https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'}],
-  //     lastSeen: '3h ago',
-  //     lastSeenDateTime: '2023-01-23T13:23Z',
-  //     favorite: true,
-  //     location: 'United States',
-  //     category: ['Personal', 'School'],
-  //     source: 'google',
-  //     phoneNumbers: [],
-  //   },
-  //   {
-  //     id: 4,
-  //     name: 'Dries Vincent',
-  //     emails: ['dries.vincent@example.com'],
-  //     occupations: [{ id: 4, name: 'Business Relations' }],
-  //     photos:
-  //       [{url:'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'}],
-  //     lastSeen: null,
-  //     favorite: false,
-  //     location: 'United States',
-  //     category: ['Apple'],
-  //     source: 'google',
-  //     phoneNumbers: [],
-  //   },
-  //   {
-  //     id: 5,
-  //     name: 'Juana Ladev',
-  //     emails: ['juana.ladev@example.com'],
-  //     occupations: [{ id: 5, name: 'Front-end Developer' }],
-  //     photos:
-  //       [{url:'https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'}],
-  //     lastSeen: '3h ago',
-  //     lastSeenDateTime: '2023-01-23T13:23Z',
-  //     favorite: false,
-  //     location: 'Argentina',
-  //     category: ['Personal', 'School'],
-  //     phoneNumbers: [],
-  //   },
-  //   {
-  //     id: 6,
-  //     name: 'Courtney Henry',
-  //     emails: ['courtney.henry@example.com'],
-  //     occupations: [{ id: 6, name: 'Designer' }],
-  //     photos:
-  //       [{url:'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'}],
-  //     lastSeen: '3h ago',
-  //     lastSeenDateTime: '2023-01-23T13:23Z',
-  //     favorite: false,
-  //     location: 'United States',
-  //     category: ['Tesla'],
-  //     phoneNumbers: [],
-  //   },
-  //   {
-  //     id: 7,
-  //     name: 'Tom Cook',
-  //     emails: ['tom.cook@example.com'],
-  //     occupations: [{ id: 7, name: 'Director of Product' }],
-  //     photos:
-  //       [{url:'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'}],
-  //     lastSeen: null,
-  //     favorite: false,
-  //     location: 'United States',
-  //     category: ['Apple'],
-  //     phoneNumbers: [],
-  //   },
-  // ])
   const [contacts, setContacts] = useState<FlattenContact[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [filters, setFilters] = useState(filtersTemplate)
@@ -758,9 +656,6 @@ export default function Example({ }) {
                               </p>
                             ) : (
                               <div className="mt-1 flex items-center gap-x-1.5">
-                                {/* <div className="flex-none rounded-full bg-emerald-500/20 p-1">
-                              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                            </div> */}
                                 <p className="text-xs leading-5 text-gray-400">
                                   No phone
                                 </p>

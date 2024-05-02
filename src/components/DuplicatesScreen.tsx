@@ -146,7 +146,7 @@ function Contact({ contact, className }: { contact: FlattenContact; className: s
     )
 }
 
-export default function DuplicatesScreen({ contacts, className }: DuplicatedContacts & { className?: string }) {
+export default function DuplicatesScreen({ contacts }: DuplicatedContacts) {
     const [updatedContacts, setUpdatedContacts] = useState<FlattenContact[]>([])
     useEffect(() => {
         // Code to execute when 'contacts' array changes
