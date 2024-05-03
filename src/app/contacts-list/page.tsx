@@ -1,6 +1,15 @@
 'use client'
 
-import { Fragment, useEffect, useState, useCallback } from 'react'
+import {
+  Fragment,
+  useEffect,
+  useState,
+  useCallback,
+  AwaitedReactNode,
+  JSXElementConstructor,
+  ReactElement,
+  ReactNode,
+} from 'react'
 import { findContacts } from '@/lib/data'
 import { Dialog, Disclosure, Menu, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
@@ -16,8 +25,12 @@ import {
 import { APP_NAME } from '@/lib/constants'
 import clsx from 'clsx'
 import Link from 'next/link'
-import { FlattenContact } from '@/lib/definitions'
+import { FlattenContact } from '@/lib/FlattenContact'
 import { useSession } from 'next-auth/react'
+
+import { useContacts } from '@/app/ContactsProvider'
+
+import ContactDetail from '@/components/ContactDetail'
 
 const sortOptions = [
   { name: 'A - Z', href: '#', current: true },
@@ -161,7 +174,8 @@ export default function Example({}) {
   //     phoneNumbers: [],
   //   },
   // ])
-  const [contacts, setContacts] = useState<FlattenContact[]>([])
+
+  const { contacts, updateContact, setContacts } = useContacts()
   const [isLoading, setIsLoading] = useState(false)
   const [filters, setFilters] = useState(filtersTemplate)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
@@ -172,9 +186,13 @@ export default function Example({}) {
 
   const session = useSession()
 
+  const [showContactDetail, setShowContactDetail] = useState(false)
+  const [detailedContact, setDetailedContact] = useState<FlattenContact | null>(
+    null,
+  )
+
   useEffect(() => {
     if (session.status == 'authenticated') {
-      
       fetch(`/api/contacts-list?userId=${session?.data.user?.id}`)
         .then((response) => response.json())
         .then((data: FlattenContact[]) => {
@@ -183,7 +201,7 @@ export default function Example({}) {
             // setHideFilterAdvice(false)
           }
         })
-        .catch((error) => console.error('Failed to load contacts', error))      
+        .catch((error) => console.error('Failed to load contacts', error))
     }
   }, [session.status])
 
@@ -336,6 +354,12 @@ export default function Example({}) {
 
   return (
     <>
+      <ContactDetail
+        open={showContactDetail}
+        setOpen={setShowContactDetail}
+        contact={detailedContact}
+      />
+
       {/* Mobile filter dialog */}
       <Transition.Root show={mobileFiltersOpen} as={Fragment}>
         <Dialog
@@ -690,6 +714,10 @@ export default function Example({}) {
                       <li
                         key={contact.id}
                         className="flex justify-between gap-x-6 py-5"
+                        onClick={(e) => {
+                          setShowContactDetail(true)
+                          setDetailedContact(contact)
+                        }}
                       >
                         <div className="flex min-w-0 gap-x-4">
                           {contact.photos && contact.photos[0] && (
@@ -715,7 +743,7 @@ export default function Example({}) {
                             {contact.occupations.length == 0
                               ? 'No role found'
                               : contact.occupations
-                                  .map((a) => a.name)
+                                  .map((a: { name: any }) => a.name)
                                   .join(' | ')}
                           </p>
                           {contact.phoneNumbers.length > 0 ? (
