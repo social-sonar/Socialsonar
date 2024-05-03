@@ -754,9 +754,9 @@ export default function Example({}) {
                                   return (
                                     <a
                                       key={contact.id + 'index:' + index}
-                                      href={'tel://' + a.number}
+                                      href={'tel://' + a.phoneNumber}
                                     >
-                                      {a.number}
+                                      {a.phoneNumber}
                                     </a>
                                   )
                                 })

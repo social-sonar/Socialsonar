@@ -11,6 +11,7 @@ import { PhotoIcon, UserCircleIcon } from '@heroicons/react/24/solid'
 import ContactDetailAddress from './ContactDetailAddress'
 import { FlattenContact } from '@/lib/definitions'
 import { useContacts } from '@/app/ContactsProvider'
+import ContactDetailPhone from './ContactDetailPhone'
 
 interface ContactDetailProps {
   children?: React.ReactNode
@@ -24,6 +25,7 @@ export default function ContactDetail(props: ContactDetailProps) {
   const [isEdited, setIsEdited] = useState(false)
 
   const [showAdresses, setShowAdresses] = useState(false)
+  const [showPhones, setShowPhones] = useState(false)
 
   const { contact } = props
   const { updateContact } = useContacts()
@@ -126,15 +128,15 @@ export default function ContactDetail(props: ContactDetailProps) {
                                 id="mainphone"
                                 autoComplete="family-name"
                                 className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
-                                defaultValue={contact.phoneNumbers[0]?.number}
+                                value={contact.phoneNumbers[0]?.phoneNumber}
                                 onChange={(e) => {
                                   if (contact.phoneNumbers.length > 0) {
-                                    contact.phoneNumbers[0]!.number =
+                                    contact.phoneNumbers[0]!.phoneNumber =
                                       e.target.value
                                   } else {
                                     contact.phoneNumbers = [
                                       {
-                                        number: e.target.value,
+                                        phoneNumber: e.target.value,
                                       },
                                     ]
                                   }
@@ -160,7 +162,7 @@ export default function ContactDetail(props: ContactDetailProps) {
                                 type="email"
                                 autoComplete="email"
                                 className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
-                                defaultValue={contact.emails[0]?.address ?? ""}
+                                defaultValue={contact.emails[0]?.address ?? ''}
                                 onChange={(e) => {
                                   if (contact.emails.length > 0) {
                                     contact.emails[0].address = e.target.value
@@ -193,7 +195,9 @@ export default function ContactDetail(props: ContactDetailProps) {
                                 id="mainphone"
                                 autoComplete="family-name"
                                 className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
-                                defaultValue={contact.occupations[0]?.name ?? ''}
+                                defaultValue={
+                                  contact.occupations[0]?.name ?? ''
+                                }
                                 onChange={(e) => {
                                   if (contact.occupations.length > 0) {
                                     contact.occupations[0]!.name =
@@ -201,7 +205,7 @@ export default function ContactDetail(props: ContactDetailProps) {
                                   } else {
                                     contact.occupations = [
                                       {
-                                        id: Math.round((Math.random() * 100000)),
+                                        id: Math.round(Math.random() * 100000),
                                         name: e.target.value,
                                       },
                                     ]
@@ -228,10 +232,13 @@ export default function ContactDetail(props: ContactDetailProps) {
                                 type="email"
                                 autoComplete="email"
                                 className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
-                                defaultValue={contact.organizations[0]?.name ?? ""}
+                                defaultValue={
+                                  contact.organizations[0]?.name ?? ''
+                                }
                                 onChange={(e) => {
                                   if (contact.organizations.length > 0) {
-                                    contact.organizations[0].name = e.target.value
+                                    contact.organizations[0].name =
+                                      e.target.value
                                   } else {
                                     contact.organizations = [
                                       {
@@ -260,12 +267,15 @@ export default function ContactDetail(props: ContactDetailProps) {
                                 type="number"
                                 min={1}
                                 max={31}
-                                placeholder='day'
+                                placeholder="day"
                                 className="w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
-                                defaultValue={contact.organizations[0]?.name ?? ""}
+                                defaultValue={
+                                  contact.organizations[0]?.name ?? ''
+                                }
                                 onChange={(e) => {
                                   if (contact.organizations.length > 0) {
-                                    contact.organizations[0].name = e.target.value
+                                    contact.organizations[0].name =
+                                      e.target.value
                                   } else {
                                     contact.organizations = [
                                       {
@@ -284,12 +294,15 @@ export default function ContactDetail(props: ContactDetailProps) {
                                 type="number"
                                 min={1}
                                 max={12}
-                                placeholder='month'
+                                placeholder="month"
                                 className="w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
-                                defaultValue={contact.organizations[0]?.name ?? ""}
+                                defaultValue={
+                                  contact.organizations[0]?.name ?? ''
+                                }
                                 onChange={(e) => {
                                   if (contact.organizations.length > 0) {
-                                    contact.organizations[0].name = e.target.value
+                                    contact.organizations[0].name =
+                                      e.target.value
                                   } else {
                                     contact.organizations = [
                                       {
@@ -308,13 +321,16 @@ export default function ContactDetail(props: ContactDetailProps) {
                                 type="number"
                                 min={1900}
                                 max={2024}
-                                placeholder='year'
+                                placeholder="year"
                                 autoComplete="email"
                                 className="w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
-                                defaultValue={contact.organizations[0]?.name ?? ""}
+                                defaultValue={
+                                  contact.organizations[0]?.name ?? ''
+                                }
                                 onChange={(e) => {
                                   if (contact.organizations.length > 0) {
-                                    contact.organizations[0].name = e.target.value
+                                    contact.organizations[0].name =
+                                      e.target.value
                                   } else {
                                     contact.organizations = [
                                       {
@@ -332,6 +348,67 @@ export default function ContactDetail(props: ContactDetailProps) {
                         </div>
                       </div>
                       <div className="relative">
+                        <div
+                          className="absolute inset-0 flex items-center"
+                          aria-hidden="true"
+                        >
+                          <div className="w-full border-t border-gray-300" />
+                        </div>
+                        <div className="relative flex items-center justify-between">
+                          <span className="text-white-900 pr-3text-base bg-black font-semibold leading-6">
+                            Phones
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              if ((contact.phoneNumbers?.length || 0) == 0) {
+                                contact.phoneNumbers = [
+                                  {
+                                    phoneNumber: '',
+                                  },
+                                ]
+                              }
+                              setShowPhones(!showPhones)
+                            }}
+                            type="button"
+                            className="text-white-900 inline-flex items-center gap-x-1.5 rounded-full bg-black px-3 py-1.5 text-sm font-semibold shadow-sm ring-1 ring-inset ring-gray-300"
+                          >
+                            {showPhones ? (
+                              <MinusIcon
+                                className="-ml-1 -mr-0.5 h-5 w-5 text-gray-400"
+                                aria-hidden="true"
+                              ></MinusIcon>
+                            ) : (
+                              <PlusIcon
+                                className="-ml-1 -mr-0.5 h-5 w-5 text-gray-400"
+                                aria-hidden="true"
+                              />
+                            )}
+                            <span>
+                              {showPhones
+                                ? 'Hide'
+                                : (props.contact?.phoneNumbers?.length || 0) > 0
+                                  ? 'Show'
+                                  : 'Add'}
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+                      {showPhones &&
+                        props.contact?.phoneNumbers.map((a, i) => {
+                          return (
+                            <ContactDetailPhone
+                              key={contact.id + '_' + i}
+                              callUpdate={(updatedPhone) => {
+                                contact.phoneNumbers[i] = updatedPhone
+                                updateContact(contact.id, {
+                                  phoneNumbers: contact.phoneNumbers,
+                                })
+                              }}
+                              phone={a}
+                            ></ContactDetailPhone>
+                          )
+                        })}
+                      <div className="relative mt-8">
                         <div
                           className="absolute inset-0 flex items-center"
                           aria-hidden="true"
@@ -429,7 +506,8 @@ export default function ContactDetail(props: ContactDetailProps) {
                                     Any update
                                   </label>
                                   <p className="text-gray-400">
-                                    Get notified when we get any new update of this contact
+                                    Get notified when we get any new update of
+                                    this contact
                                   </p>
                                 </div>
                               </div>
@@ -450,7 +528,8 @@ export default function ContactDetail(props: ContactDetailProps) {
                                     Candidates
                                   </label>
                                   <p className="text-gray-400">
-                                    Get notified when a social network profile candidate applies for this contact
+                                    Get notified when a social network profile
+                                    candidate applies for this contact
                                   </p>
                                 </div>
                               </div>
@@ -471,7 +550,8 @@ export default function ContactDetail(props: ContactDetailProps) {
                                     {"Don't notify me"}
                                   </label>
                                   <p className="text-gray-400">
-                                    We will not send you any notification from this contact
+                                    We will not send you any notification from
+                                    this contact
                                   </p>
                                 </div>
                               </div>
