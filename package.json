@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:vercel": "vercel dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -56,6 +57,7 @@
     "prettier-plugin-tailwindcss": "^0.5.11",
     "prisma": "^5.12.1",
     "sharp": "0.33.1",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "vercel": "^34.1.7"
   }
 }
