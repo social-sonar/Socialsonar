@@ -24,13 +24,10 @@ Next, create a `.env.local` file in the root of your project and set the followi
 4. **AUTH_SECRET**:
    - Example: **`abcd1234`**
    - Usage: Random auth secret, required for OAuth authentication
-5. **REDIRECT_URL**:
-   - Example: **`http://localhost:3000/google`**
-   - Usage: Specifies the URI to which users will be redirected after authorizing the usage of their data.
-6. **POSTGRES_PRISMA_URL**:
+5. **POSTGRES_PRISMA_URL**:
    - Example: **`postgresql://foo:bar@localhost:5432/mydb?schema=public`**
    - Usage: Specifies the connection pool that Prisma will use.
-7. **POSTGRES_URL_NON_POOLING**:
+6. **POSTGRES_URL_NON_POOLING**:
    - Example: **`postgresql://foo:bar@localhost:5432/mydb?schema=public`**
    - Usage: Specifies the connection URL that Prisma will use to run migrations
 
@@ -40,11 +37,13 @@ Next, run the migration command to initialize the database and ORM:
 npm run migrate
 ```
 
-Next, run the development server:
+Next, run the development server and replicate the Vercel deployment environment locally:
 
 ```bash
-npm run dev
+npm run dev:vercel
 ```
+When running the above command, please note that the environment variables from Vercel Development will take priority over your local ones
+
 
 Finally, open [http://localhost:3000](http://localhost:3000) in your browser to view the website.
 
