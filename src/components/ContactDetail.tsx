@@ -28,10 +28,6 @@ export default function ContactDetail(props: ContactDetailProps) {
   const { contact } = props
   const { updateContact } = useContacts()
 
-  const onUpdate = () => {
-    console.log(contact.addresses)
-  }
-
   return (
     <Transition.Root show={props.open} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={props.setOpen}>
@@ -63,34 +59,19 @@ export default function ContactDetail(props: ContactDetailProps) {
                   <form>
                     <div className="">
                       {/* <div className="border-b border-white/10 "> */}
-                      <div className="">
-                        <div className="flex">
-                          <div className="w-32 flex-none">
-                            <span>Contact detail: </span>
-                          </div>
-                          <div className="w-64 flex-auto"></div>
 
-                          <div className="w-32 flex-1">
-                            <span className="float-right inline-flex items-center rounded-md bg-yellow-400/10 px-2 py-1 text-xs font-medium text-yellow-500 ring-1 ring-inset ring-yellow-400/20">
-                              Google
-                            </span>
+                      <div className="pb-12">
+                        <div className=" grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                          <div className="sm:col-span-3">
+                            <h2 className="mt-2 text-base font-semibold leading-7 text-white">
+                              Contact Information
+                            </h2>
+                            <p className="mt-1 text-sm leading-6 text-gray-400">
+                              View all your contact information.
+                            </p>
                           </div>
-                        </div>
-                        {/* <div className="grid grid-cols-6 gap-4">
-                          <div className="col-span-4 col-start-1">
-                            <div className="w-full shrink">
-                              <input
-                                onChange={(e) => {}}
-                                className="text-xl mt-3 w-full border-0 border-none bg-black pl-0 focus:border-none focus:border-transparent focus:shadow-none focus:outline-none focus:outline-0 focus:ring-inset focus:ring-transparent"
-                                defaultValue={props.contact?.name}
-                                placeholder='Full name'
-                              ></input>
-                            </div>
-                          </div>
-                          <div className="col-span-1 col-start-7"></div>
-
-                          <div className="col-span-1 col-start-8">
-                            <div className="flex items-center">
+                          <div className="sm:col-span-3">
+                            <div className="float-right flex items-center">
                               {props.contact?.photos &&
                               props.contact.photos[0] ? (
                                 <img
@@ -106,98 +87,8 @@ export default function ContactDetail(props: ContactDetailProps) {
                               )}
                             </div>
                           </div>
-                          <div className="col-span-2 col-start-1">
-                            <label
-                              htmlFor="email"
-                              className="text-white-900 block text-sm font-medium leading-6"
-                            >
-                              Search candidates
-                            </label>
-                            <div className="mt-2 flex rounded-md shadow-sm">
-                              <div className="relative flex flex-grow items-stretch focus-within:z-10">
-                                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                  <UsersIcon
-                                    className="h-5 w-5 text-gray-400"
-                                    aria-hidden="true"
-                                  />
-                                </div>
-                                <input
-                                  type="email"
-                                  name="email"
-                                  id="email"
-                                  className="text-white-900 mr-10 block w-full rounded-none rounded-l-md rounded-r-md border-0 bg-black py-1.5 pl-10 placeholder:text-gray-400 focus:border-none focus:border-transparent focus:shadow-none focus:outline-none focus:outline-0 focus:ring-inset focus:ring-transparent sm:text-sm sm:leading-6"
-                                  placeholder="John Smith"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        </div> */}
-                        {/* <p className="mt-1 text-sm leading-6 text-gray-400">
-                          This information is everything that we have of this
-                          contact. You can edit every information just clicking
-                          the field and saving at the bottom of the form.
-                        </p> */}
 
-                        <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                          {/* <div className="col-span-full">
-                            <label
-                              htmlFor="about"
-                              className="block text-sm font-medium leading-6 text-white"
-                            >
-                              About
-                            </label>
-                            <div className="mt-2">
-                              <textarea
-                                id="about"
-                                name="about"
-                                rows={3}
-                                className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
-                                defaultValue={''}
-                              />
-                            </div>
-                            <p className="mt-3 text-sm leading-6 text-gray-400">
-                              Write a few sentences about yourself.
-                            </p>
-                          </div> */}
-
-                          {/* <div>
-                            <div className="sm:col-span-4">
-                              <label
-                                htmlFor="username"
-                                className="block text-sm font-medium leading-6 text-white"
-                              >
-                                Username
-                              </label>
-                              <div className="mt-2">
-                                <div className="flex rounded-md bg-white/5 ring-1 ring-inset ring-white/10 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500">
-                                  <span className="flex select-none items-center pl-3 text-gray-500 sm:text-sm">
-                                    workcation.com/
-                                  </span>
-                                  <input
-                                    type="text"
-                                    name="username"
-                                    id="username"
-                                    autoComplete="username"
-                                    className="flex-1 border-0 bg-transparent py-1.5 pl-1 text-white focus:ring-0 sm:text-sm sm:leading-6"
-                                    placeholder="janesmith"
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          </div> */}
-                        </div>
-                      </div>
-
-                      <div className="pb-12">
-                        <h2 className="text-base font-semibold leading-7 text-white">
-                          Contact Information
-                        </h2>
-                        <p className="mt-1 text-sm leading-6 text-gray-400">
-                          View all your contact information.
-                        </p>
-
-                        <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                          <div className="sm:col-span-3">
+                          <div className="sm:col-span-2">
                             <label
                               htmlFor="first-name"
                               className="block text-sm font-medium leading-6 text-white"
@@ -211,11 +102,17 @@ export default function ContactDetail(props: ContactDetailProps) {
                                 id="first-name"
                                 autoComplete="given-name"
                                 className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
+                                defaultValue={contact.name}
+                                onChange={(e) => {
+                                  updateContact(contact.id, {
+                                    name: e.target.value,
+                                  })
+                                }}
                               />
                             </div>
                           </div>
 
-                          <div className="sm:col-span-3">
+                          <div className="sm:col-span-2">
                             <label
                               htmlFor="mainphone"
                               className="block text-sm font-medium leading-6 text-white"
@@ -229,11 +126,27 @@ export default function ContactDetail(props: ContactDetailProps) {
                                 id="mainphone"
                                 autoComplete="family-name"
                                 className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
+                                defaultValue={contact.phoneNumbers[0]?.number}
+                                onChange={(e) => {
+                                  if (contact.phoneNumbers.length > 0) {
+                                    contact.phoneNumbers[0]!.number =
+                                      e.target.value
+                                  } else {
+                                    contact.phoneNumbers = [
+                                      {
+                                        number: e.target.value,
+                                      },
+                                    ]
+                                  }
+                                  updateContact(contact.id, {
+                                    phoneNumbers: contact.phoneNumbers,
+                                  })
+                                }}
                               />
                             </div>
                           </div>
 
-                          <div className="sm:col-span-4">
+                          <div className="sm:col-span-2">
                             <label
                               htmlFor="email"
                               className="block text-sm font-medium leading-6 text-white"
@@ -247,6 +160,172 @@ export default function ContactDetail(props: ContactDetailProps) {
                                 type="email"
                                 autoComplete="email"
                                 className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
+                                defaultValue={contact.emails[0]?.address ?? ""}
+                                onChange={(e) => {
+                                  if (contact.emails.length > 0) {
+                                    contact.emails[0].address = e.target.value
+                                  } else {
+                                    contact.emails = [
+                                      {
+                                        address: e.target.value,
+                                      },
+                                    ]
+                                  }
+                                  updateContact(contact.id, {
+                                    emails: contact.emails,
+                                  })
+                                }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="sm:col-span-2">
+                            <label
+                              htmlFor="mainphone"
+                              className="block text-sm font-medium leading-6 text-white"
+                            >
+                              Main role
+                            </label>
+                            <div className="mt-2">
+                              <input
+                                type="text"
+                                name="mainphone"
+                                id="mainphone"
+                                autoComplete="family-name"
+                                className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
+                                defaultValue={contact.occupations[0]?.name ?? ''}
+                                onChange={(e) => {
+                                  if (contact.occupations.length > 0) {
+                                    contact.occupations[0]!.name =
+                                      e.target.value
+                                  } else {
+                                    contact.occupations = [
+                                      {
+                                        id: Math.round((Math.random() * 100000)),
+                                        name: e.target.value,
+                                      },
+                                    ]
+                                  }
+                                  updateContact(contact.id, {
+                                    occupations: contact.occupations,
+                                  })
+                                }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="sm:col-span-2">
+                            <label
+                              htmlFor="email"
+                              className="block text-sm font-medium leading-6 text-white"
+                            >
+                              Main organization
+                            </label>
+                            <div className="mt-2">
+                              <input
+                                id="email"
+                                name="email"
+                                type="email"
+                                autoComplete="email"
+                                className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
+                                defaultValue={contact.organizations[0]?.name ?? ""}
+                                onChange={(e) => {
+                                  if (contact.organizations.length > 0) {
+                                    contact.organizations[0].name = e.target.value
+                                  } else {
+                                    contact.organizations = [
+                                      {
+                                        name: e.target.value,
+                                      },
+                                    ]
+                                  }
+                                  updateContact(contact.id, {
+                                    organizations: contact.organizations,
+                                  })
+                                }}
+                              />
+                            </div>
+                          </div>
+                          <div className="sm:col-span-2">
+                            <label
+                              htmlFor="bday"
+                              className="block text-sm font-medium leading-6 text-white"
+                            >
+                              Birthday
+                            </label>
+                            <div className="mt-2 grid grid-cols-3 gap-2">
+                              <input
+                                id="bday"
+                                name="bday"
+                                type="number"
+                                min={1}
+                                max={31}
+                                placeholder='day'
+                                className="w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
+                                defaultValue={contact.organizations[0]?.name ?? ""}
+                                onChange={(e) => {
+                                  if (contact.organizations.length > 0) {
+                                    contact.organizations[0].name = e.target.value
+                                  } else {
+                                    contact.organizations = [
+                                      {
+                                        name: e.target.value,
+                                      },
+                                    ]
+                                  }
+                                  updateContact(contact.id, {
+                                    organizations: contact.organizations,
+                                  })
+                                }}
+                              />
+                              <input
+                                id="bmonth"
+                                name="bmonth"
+                                type="number"
+                                min={1}
+                                max={12}
+                                placeholder='month'
+                                className="w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
+                                defaultValue={contact.organizations[0]?.name ?? ""}
+                                onChange={(e) => {
+                                  if (contact.organizations.length > 0) {
+                                    contact.organizations[0].name = e.target.value
+                                  } else {
+                                    contact.organizations = [
+                                      {
+                                        name: e.target.value,
+                                      },
+                                    ]
+                                  }
+                                  updateContact(contact.id, {
+                                    organizations: contact.organizations,
+                                  })
+                                }}
+                              />
+                              <input
+                                id="byear"
+                                name="byear"
+                                type="number"
+                                min={1900}
+                                max={2024}
+                                placeholder='year'
+                                autoComplete="email"
+                                className="w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
+                                defaultValue={contact.organizations[0]?.name ?? ""}
+                                onChange={(e) => {
+                                  if (contact.organizations.length > 0) {
+                                    contact.organizations[0].name = e.target.value
+                                  } else {
+                                    contact.organizations = [
+                                      {
+                                        name: e.target.value,
+                                      },
+                                    ]
+                                  }
+                                  updateContact(contact.id, {
+                                    organizations: contact.organizations,
+                                  })
+                                }}
                               />
                             </div>
                           </div>
@@ -318,7 +397,7 @@ export default function ContactDetail(props: ContactDetailProps) {
                           )
                         })}
 
-                      <div className="border-b border-white/10 pb-12">
+                      <div className="mt-8 border-b border-white/10 pb-12">
                         <h2 className="text-base font-semibold leading-7 text-white">
                           Notifications
                         </h2>
@@ -347,11 +426,10 @@ export default function ContactDetail(props: ContactDetailProps) {
                                     htmlFor="comments"
                                     className="font-medium text-white"
                                   >
-                                    Comments
+                                    Any update
                                   </label>
                                   <p className="text-gray-400">
-                                    Get notified when someones posts a comment
-                                    on a posting.
+                                    Get notified when we get any new update of this contact
                                   </p>
                                 </div>
                               </div>
@@ -372,8 +450,7 @@ export default function ContactDetail(props: ContactDetailProps) {
                                     Candidates
                                   </label>
                                   <p className="text-gray-400">
-                                    Get notified when a candidate applies for a
-                                    job.
+                                    Get notified when a social network profile candidate applies for this contact
                                   </p>
                                 </div>
                               </div>
@@ -391,65 +468,12 @@ export default function ContactDetail(props: ContactDetailProps) {
                                     htmlFor="offers"
                                     className="font-medium text-white"
                                   >
-                                    Offers
+                                    {"Don't notify me"}
                                   </label>
                                   <p className="text-gray-400">
-                                    Get notified when a candidate accepts or
-                                    rejects an offer.
+                                    We will not send you any notification from this contact
                                   </p>
                                 </div>
-                              </div>
-                            </div>
-                          </fieldset>
-                          <fieldset>
-                            <legend className="text-sm font-semibold leading-6 text-white">
-                              Push Notifications
-                            </legend>
-                            <p className="mt-1 text-sm leading-6 text-gray-400">
-                              These are delivered via SMS to your mobile phone.
-                            </p>
-                            <div className="mt-6 space-y-6">
-                              <div className="flex items-center gap-x-3">
-                                <input
-                                  id="push-everything"
-                                  name="push-notifications"
-                                  type="radio"
-                                  className="h-4 w-4 border-white/10 bg-white/5 text-indigo-600 focus:ring-indigo-600 focus:ring-offset-gray-900"
-                                />
-                                <label
-                                  htmlFor="push-everything"
-                                  className="block text-sm font-medium leading-6 text-white"
-                                >
-                                  Everything
-                                </label>
-                              </div>
-                              <div className="flex items-center gap-x-3">
-                                <input
-                                  id="push-email"
-                                  name="push-notifications"
-                                  type="radio"
-                                  className="h-4 w-4 border-white/10 bg-white/5 text-indigo-600 focus:ring-indigo-600 focus:ring-offset-gray-900"
-                                />
-                                <label
-                                  htmlFor="push-email"
-                                  className="block text-sm font-medium leading-6 text-white"
-                                >
-                                  Same as email
-                                </label>
-                              </div>
-                              <div className="flex items-center gap-x-3">
-                                <input
-                                  id="push-nothing"
-                                  name="push-notifications"
-                                  type="radio"
-                                  className="h-4 w-4 border-white/10 bg-white/5 text-indigo-600 focus:ring-indigo-600 focus:ring-offset-gray-900"
-                                />
-                                <label
-                                  htmlFor="push-nothing"
-                                  className="block text-sm font-medium leading-6 text-white"
-                                >
-                                  No push notifications
-                                </label>
                               </div>
                             </div>
                           </fieldset>

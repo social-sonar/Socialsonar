@@ -4,10 +4,16 @@ import { CheckIcon } from '@heroicons/react/24/outline'
 import { BarsArrowUpIcon, PlusIcon, UsersIcon } from '@heroicons/react/20/solid'
 import { FlattenContact, AddressInterface } from '@/lib/definitions'
 import { PhotoIcon, UserCircleIcon } from '@heroicons/react/24/solid'
+import { getNames } from 'i18n-iso-countries'
 
-export default function ContactDetailAddress(props: {address: AddressInterface, callUpdate: (a: AddressInterface) => void}) {
+export default function ContactDetailAddress(props: {
+  address: AddressInterface
+  callUpdate: (a: AddressInterface) => void
+}) {
   const [address, setAddress] = useState<AddressInterface>(props.address)
-  const {callUpdate } = props
+  const { callUpdate } = props
+
+  const countries = Object.entries(getNames('en'))
 
   return (
     <div className="border-b border-white/10 pb-12">
@@ -25,10 +31,23 @@ export default function ContactDetailAddress(props: {address: AddressInterface, 
               name="country"
               autoComplete="country-name"
               className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6 [&_*]:text-black"
+              value={address.countryCode ?? ''}
+              onChange={(e) => {
+                setAddress({
+                  ...address,
+                  countryCode: e.target.value,
+                })
+                callUpdate(address)
+              }}
             >
-              <option>United States</option>
-              <option>Canada</option>
-              <option>Mexico</option>
+                <option value={""}>No country</option>
+              {countries.map((a) => {
+                return (
+                  <option key={a[0]} value={a[0]}>
+                    {a[1]}
+                  </option>
+                )
+              })}
             </select>
           </div>
         </div>
@@ -54,7 +73,6 @@ export default function ContactDetailAddress(props: {address: AddressInterface, 
                 })
                 callUpdate(address)
               }}
-              value={address.streetAddress ?? ''}
               className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
             />
           </div>
@@ -81,7 +99,6 @@ export default function ContactDetailAddress(props: {address: AddressInterface, 
                 })
                 callUpdate(address)
               }}
-              value={address.city ?? ''}
               className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
             />
           </div>
@@ -108,7 +125,6 @@ export default function ContactDetailAddress(props: {address: AddressInterface, 
                 })
                 callUpdate(address)
               }}
-              value={address.region ?? ''}
               className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
             />
           </div>
@@ -135,7 +151,6 @@ export default function ContactDetailAddress(props: {address: AddressInterface, 
                 })
                 callUpdate(address)
               }}
-              value={address.postalCode ?? ''}
               className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
             />
           </div>

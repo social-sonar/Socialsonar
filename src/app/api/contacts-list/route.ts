@@ -1,6 +1,5 @@
 import { findContacts } from '@/lib/data'
-import { CleanPhoneData } from '@/lib/definitions'
-import { FlattenContact } from '@/lib/FlattenContact'
+import { CleanPhoneData,FlattenContact } from '@/lib/definitions'
 import { NextRequest, NextResponse } from 'next/server'
 import { phone } from 'phone'
 

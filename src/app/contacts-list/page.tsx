@@ -25,7 +25,7 @@ import {
 import { APP_NAME } from '@/lib/constants'
 import clsx from 'clsx'
 import Link from 'next/link'
-import { FlattenContact } from '@/lib/FlattenContact'
+import { FlattenContact } from '@/lib/definitions'
 import { useSession } from 'next-auth/react'
 
 import { useContacts } from '@/app/ContactsProvider'
@@ -72,6 +72,7 @@ interface Option {
 
 export default function Example({}) {
   registerLocale(require('i18n-iso-countries/langs/en.json'))
+  
   // const [contacts, setContacts] = useState([
   //   {
   //     id: 1,
@@ -354,11 +355,11 @@ export default function Example({}) {
 
   return (
     <>
-      <ContactDetail
+      {detailedContact && <ContactDetail
         open={showContactDetail}
         setOpen={setShowContactDetail}
         contact={detailedContact}
-      />
+      />}
 
       {/* Mobile filter dialog */}
       <Transition.Root show={mobileFiltersOpen} as={Fragment}>
