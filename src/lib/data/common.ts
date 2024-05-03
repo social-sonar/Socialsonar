@@ -272,7 +272,7 @@ const findDuplicates = async (userId: string) => {
     contacts.forEach((innerContact) => {
       const currentCombination = [contact.id, innerContact.id].sort().toString()
       if (contact.id !== innerContact.id && !combinations.has(currentCombination)) {
-        const posibleDuplicate = fuzzy(contact.name, innerContact.name) > 0.95
+        const posibleDuplicate = fuzzy(contact.name, innerContact.name) > 0.90
         if (posibleDuplicate) {
           duplicates.push({
             firstContactId: contact.id,
