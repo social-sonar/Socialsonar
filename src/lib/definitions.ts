@@ -37,6 +37,12 @@ export interface AddressInterface {
     streetAddress: string | null
 }
 
+export type BirthDay = {
+    year: number,
+    month: number,
+    day: number
+}
+
 export type FlattenContact = {
     category?: string[],
     favorite?: boolean
@@ -44,6 +50,7 @@ export type FlattenContact = {
     userId: string,
     name: string,
     nickName: string | null,
+    birthday: BirthDay | null
     organizations: {
         name: string;
     }[],

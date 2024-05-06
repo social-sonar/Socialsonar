@@ -1,4 +1,4 @@
-import { GoogleDate } from "./definitions"
+import { BirthDay, GoogleDate } from "./definitions"
 
 export function formatDate(dateString: string) {
   return new Date(`${dateString}T00:00:00Z`).toLocaleDateString('en-US', {
@@ -10,3 +10,12 @@ export function formatDate(dateString: string) {
 }
 
 export const dateString = ({ year, month, day }: GoogleDate): string => `${year}/${month}/${day}`
+
+export const dateObject = (dateString: string): BirthDay => {
+  const date = new Date(dateString)
+  return {
+    year: date.getFullYear(),
+    month: date.getMonth() + 1,
+    day: date.getDate()
+  }
+}
