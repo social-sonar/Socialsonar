@@ -18,6 +18,8 @@ export type GoogleEmail = people_v1.Schema$EmailAddress
 
 export type GooglePhoneNumber = people_v1.Schema$PhoneNumber
 
+export type GoogleDate = people_v1.Schema$Date
+
 export type ContactCreate = Prisma.ContactUncheckedCreateInput;
 
 export type { Contact }

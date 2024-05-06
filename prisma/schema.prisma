@@ -101,6 +101,7 @@ model Contact {
   user           User                  @relation(fields: [userId], references: [id])
   name           String                @db.VarChar()
   nickName       String?               @db.VarChar()
+  birthday       String?               @db.VarChar()
   organizations  ContactOrganization[]
   phoneNumbers   ContactPhoneNumber[]
   occupations    ContactOccupation[]

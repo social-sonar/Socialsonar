@@ -35,7 +35,7 @@ export async function fetchGoogleContacts(userId: string) {
         resourceName: 'people/me',
         sortOrder: 'LAST_MODIFIED_DESCENDING',
         pageSize: 1000,
-        personFields: 'names,emailAddresses,addresses,phoneNumbers,photos,organizations,occupations',
+        personFields: 'names,emailAddresses,addresses,phoneNumbers,photos,organizations,occupations,birthdays',
         requestSyncToken: true,
         syncToken: syncToken?.token,
     });

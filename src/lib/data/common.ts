@@ -12,6 +12,7 @@ import {
 } from '../definitions'
 import { syncExisting } from './google'
 import { fuzzy } from 'fast-fuzzy'
+import { dateString } from '../utils'
 
 export const getPhoneNumberType = (type: string): PhoneNumberType => {
   const typeMap: { [key: string]: PhoneNumberType } = {
@@ -323,6 +324,7 @@ export const syncGoogleContacts = async (people: GoogleResponse[], userId: strin
       data: {
         name: (person.names && person.names[0].displayName) || 'Contact',
         nickName: (person.nicknames && person.nicknames[0].value) || null,
+        birthday: (person.birthdays && dateString(person.birthdays[0].date!)) || null,
         userId: userId,
       },
     })
