@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "@/db"
+import { CustomSession } from '@/lib/definitions'
 
 
 export default NextAuth({
@@ -25,14 +26,13 @@ export default NextAuth({
   },
   callbacks: {
     async jwt({ token, user, account }) {
-
       if (account && user) {
         token.accessToken = account.access_token;
         token.user = user;
       }
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token }): Promise<CustomSession> {
 
       let feededSession = session as any;
 

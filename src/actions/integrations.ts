@@ -4,6 +4,8 @@ import { google } from 'googleapis';
 import prisma from '@/db';
 import { redirect } from 'next/navigation';
 import { syncGoogleContacts } from '@/lib/data/common';
+import nextauth from '@/auth'
+import { CustomSession } from '@/lib/definitions';
 
 export async function fetchGoogleContacts(userId: string) {
     // Create a new OAuth2 client with your app's credentials and set the access token
@@ -12,8 +14,9 @@ export async function fetchGoogleContacts(userId: string) {
         process.env.GOOGLE_CLIENT_SECRET,
         process.env.REDIRECT_URL,
     );
-    const account = await prisma.account.findFirst({ where: { userId: userId } })
-    oauth2Client.setCredentials({ access_token: account?.access_token });
+    const session = await nextauth.auth() as CustomSession
+
+    oauth2Client.setCredentials({ access_token: session.accessToken });
 
     // Initialize the Google People API client with the OAuth2 client
     const people = google.people({

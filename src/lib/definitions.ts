@@ -1,5 +1,6 @@
 import { Prisma, Contact, $Enums, Organization, PhoneNumber, Occupation, Photo, Address, Email } from '@prisma/client'
 import { people_v1 } from 'googleapis'
+import { Session } from 'next-auth/types'
 
 interface PhoneValidResult {
     isValid?: boolean;
@@ -7,7 +8,10 @@ interface PhoneValidResult {
     countryIso2?: string | null;
     countryIso3?: string | null;
     countryCode?: string | null;
-  }
+}
+export interface CustomSession extends Session {
+    accessToken: string
+}
 
 export type GoogleResponse = people_v1.Schema$Person
 
