@@ -27,6 +27,14 @@ export type CleanPhoneData = PhoneResult & {
     type: $Enums.PhoneNumberType;
 }
 
+export interface AddressInterface {
+    countryCode: string | null
+    city: string | null
+    region: string | null
+    postalCode: string | null
+    streetAddress: string | null
+}
+
 export type FlattenContact = {
     category?: string[],
     favorite?: boolean
@@ -45,13 +53,7 @@ export type FlattenContact = {
     photos: {
         url: string;
     }[],
-    addresses: {
-        countryCode: string | null,
-        city: string | null,
-        region: string | null,
-        postalCode: string | null,
-        streetAddress: string | null,
-    }[],
+    addresses: AddressInterface[],
     emails: {
         address: string,
     }[],

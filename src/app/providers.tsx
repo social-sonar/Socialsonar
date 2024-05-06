@@ -4,6 +4,7 @@ import { createContext, useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
 import { ThemeProvider, useTheme } from 'next-themes'
 import { SessionProvider } from 'next-auth/react'
+import { ContactProvider } from './ContactsProvider'
 
 function usePrevious<T>(value: T) {
   let ref = useRef<T>()
@@ -50,7 +51,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <ThemeProvider attribute="class" disableTransitionOnChange>
         <ThemeWatcher />
         <SessionProvider>
-          {children}
+          <ContactProvider>{children}</ContactProvider>
         </SessionProvider>
       </ThemeProvider>
     </AppContext.Provider>

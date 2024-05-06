@@ -1,6 +1,16 @@
 'use client'
 
-import { Fragment, useEffect, useState } from 'react'
+import {
+  Fragment,
+  useEffect,
+  useState,
+  useCallback,
+  AwaitedReactNode,
+  JSXElementConstructor,
+  ReactElement,
+  ReactNode,
+} from 'react'
+import { findContacts } from '@/lib/data'
 import { Dialog, Disclosure, Menu, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { getName, registerLocale } from 'i18n-iso-countries'
@@ -16,6 +26,10 @@ import clsx from 'clsx'
 import Link from 'next/link'
 import { FlattenContact } from '@/lib/definitions'
 import { useSession } from 'next-auth/react'
+
+import { useContacts } from '@/app/ContactsProvider'
+
+import ContactDetail from '@/components/ContactDetail'
 import DuplicatesScreen from '@/components/DuplicatesScreen'
 import LoadingSpinner from '@/components/common/spinner'
 import UserIcon from '@/images/icons/user.svg'
@@ -62,7 +76,9 @@ interface Option {
 
 export default function ContactList({ }) {
   registerLocale(require('i18n-iso-countries/langs/en.json'))
-  const [contacts, setContacts] = useState<FlattenContact[]>([])
+  
+
+  const { contacts, updateContact, setContacts } = useContacts()
   const [isLoading, setIsLoading] = useState(false)
   const [filters, setFilters] = useState(filtersTemplate)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
@@ -72,6 +88,11 @@ export default function ContactList({ }) {
   const [hideFilterAdvice, setHideFilterAdvice] = useState(true)
 
   const session = useSession()
+
+  const [showContactDetail, setShowContactDetail] = useState(false)
+  const [detailedContact, setDetailedContact] = useState<FlattenContact | null>(
+    null,
+  )
 
   const fetchContacts = () => {
     if (session.status == 'authenticated') {
@@ -244,6 +265,12 @@ export default function ContactList({ }) {
 
   return (
     <>
+      {detailedContact && <ContactDetail
+        open={showContactDetail}
+        setOpen={setShowContactDetail}
+        contact={detailedContact}
+      />}
+
       {/* Mobile filter dialog */}
       <Transition.Root show={mobileFiltersOpen} as={Fragment}>
         <Dialog
@@ -570,16 +597,16 @@ export default function ContactList({ }) {
                                         ? getName(option.label, 'en', {
                                           select: 'alias',
                                         }) ?? 'No assigned country'
-                                        : option.label}
-                                    </label>
-                                  </div>
-                                ))}
-                              </div>
-                            </Disclosure.Panel>
-                          </>
-                        )}
-                      </Disclosure>
-                    ))}
+                                      : (option.label ?? "No assigned country")}
+                                  </label>
+                                </div>
+                              ))}
+                            </div>
+                          </Disclosure.Panel>
+                        </>
+                      )}
+                    </Disclosure>
+                  ))}
 
                 {!hideFilterAdvice ? (
                   <p className="text-white-600 sm-text">
@@ -602,82 +629,89 @@ export default function ContactList({ }) {
                         <li
                           key={contact.id}
                           className="flex justify-between gap-x-6 py-5"
-                        >
+                          onClick={(e) => {
+                          setShowContactDetail(true)
+                          setDetailedContact(contact)
+                        }}
+                      >
                           <div className="flex min-w-0 gap-x-4">
                             <img
                               className="h-12 w-12 flex-none rounded-full bg-gray-800"
                               src={contact.photos && contact.photos[0] ? contact.photos[0].url : UserIcon.src}
                               alt=""
                             />
-                            <div className="min-w-0 flex-auto">
-                              <p className="text-sm font-semibold leading-6 text-white">
-                                {contact.name}
-                              </p>
-                              <p className="mt-1 truncate text-xs leading-5 text-gray-400">
-                                {contact.emails.length == 0
-                                  ? 'No email found'
-                                  : contact.emails[0].address}
+                          )}
+                          <div className="min-w-0 flex-auto">
+                            <p className="text-sm font-semibold leading-6 text-white">
+                              {contact.name}
+                            </p>
+                            <p className="mt-1 truncate text-xs leading-5 text-gray-400">
+                              {contact.emails.length == 0
+                                ? 'No email found'
+                                : contact.emails[0].address}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
+                          <p className="text-sm leading-6 text-white">
+                            {contact.occupations.length == 0
+                              ? 'No role found'
+                              : contact.occupations
+                                  .map((a: { name: any }) => a.name)
+                                  .join(' | ')}
+                          </p>
+                          {contact.phoneNumbers.length > 0 ? (
+                            <p className="mt-1 text-xs leading-5 text-gray-400">
+                              {contact.phoneNumbers
+                                .map((a, index) => {
+                                  return (
+                                    <a
+                                      key={contact.id + 'index:' + index}
+                                      href={'tel://' + a.phoneNumber}
+                                    >
+                                      {a.phoneNumber}
+                                    </a>
+                                  )
+                                })
+                                .reduce(
+                                  (acc, x) =>
+                                    acc === null ? (
+                                      x
+                                    ) : (
+                                      <>
+                                        {acc} | {x}
+                                      </>
+                                    ),
+                                  null as React.ReactNode | null,
+                                )}
+                            </p>
+                          ) : (
+                            <div className="mt-1 flex items-center gap-x-1.5">
+                              {/* <div className="flex-none rounded-full bg-emerald-500/20 p-1">
+                              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                            </div> */}
+                              <p className="text-xs leading-5 text-gray-400">
+                                No phone
                               </p>
                             </div>
-                          </div>
-                          <div className="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
-                            <p className="text-sm leading-6 text-white">
-                              {contact.occupations.length == 0
-                                ? 'No role found'
-                                : contact.occupations
-                                  .map((a) => a.name)
-                                  .join(' | ')}
-                            </p>
-                            {contact.phoneNumbers.length > 0 ? (
-                              <p className="mt-1 text-xs leading-5 text-gray-400">
-                                {contact.phoneNumbers
-                                  .map((a, index) => {
-                                    return (
-                                      <a
-                                        key={contact.id + 'index:' + index}
-                                        href={'tel://' + a.number}
-                                      >
-                                        {a.number}
-                                      </a>
-                                    )
-                                  })
-                                  .reduce(
-                                    (acc, x) =>
-                                      acc === null ? (
-                                        x
-                                      ) : (
-                                        <>
-                                          {acc} | {x}
-                                        </>
-                                      ),
-                                    null as React.ReactNode | null,
-                                  )}
-                              </p>
-                            ) : (
-                              <div className="mt-1 flex items-center gap-x-1.5">
-                                <p className="text-xs leading-5 text-gray-400">
-                                  No phone
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        </li>
-                      ))
-                    ) : (
-                      <p>
-                        No contacts yet. Sync your contacts{' '}
-                        <Link href={'/sync'} className="text-teal-500">
-                          here
-                        </Link>
-                      </p>
-                    )}
-                  </ul>
-                }
-              </div>
+                          )}
+                        </div>
+                      </li>
+                    ))
+                  ) : (
+                    <p>
+                      No contacts yet. Sync your contacts{' '}
+                      <Link href={'/sync'} className="text-teal-500">
+                        here
+                      </Link>
+                    </p>
+                  )}
+                </ul>
+              }
             </div>
-          </section>
-        </main>
-      }
+          </div>
+        </section>
+      </main>
     </>
   )
 }
