@@ -1,8 +1,13 @@
 import { Prisma, Contact, $Enums, Organization, PhoneNumber, Occupation, Photo, Address, Email } from '@prisma/client'
 import { people_v1 } from 'googleapis'
-import { PhoneResult } from 'phone'
 
-
+interface PhoneValidResult {
+    isValid?: boolean;
+    phoneNumber?: string | null;
+    countryIso2?: string | null;
+    countryIso3?: string | null;
+    countryCode?: string | null;
+  }
 
 export type GoogleResponse = people_v1.Schema$Person
 
@@ -24,7 +29,7 @@ export type ContactCreate = Prisma.ContactUncheckedCreateInput;
 
 export type { Contact }
 
-export type CleanPhoneData = PhoneResult & {
+export type CleanPhoneData = Partial<PhoneValidResult> & {
     number: string;
     type: $Enums.PhoneNumberType;
 }

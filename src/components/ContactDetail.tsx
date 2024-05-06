@@ -12,6 +12,7 @@ import ContactDetailAddress from './ContactDetailAddress'
 import { FlattenContact } from '@/lib/definitions'
 import { useContacts } from '@/app/ContactsProvider'
 import ContactDetailPhone from './ContactDetailPhone'
+import phone from 'phone'
 
 interface ContactDetailProps {
   children?: React.ReactNode
@@ -128,7 +129,10 @@ export default function ContactDetail(props: ContactDetailProps) {
                                 id="mainphone"
                                 autoComplete="family-name"
                                 className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
-                                value={contact.phoneNumbers[0]?.phoneNumber || ''}
+                                value={
+                                  contact.phoneNumbers[0]?.phoneNumber ||
+                                  undefined
+                                }
                                 onChange={(e) => {
                                   if (contact.phoneNumbers.length > 0) {
                                     contact.phoneNumbers[0]!.phoneNumber =
@@ -136,7 +140,9 @@ export default function ContactDetail(props: ContactDetailProps) {
                                   } else {
                                     contact.phoneNumbers = [
                                       {
-                                        phoneNumber: e.target.value,
+                                        ...phone(e.target.value),
+                                        number: e.target.value,
+                                        type: 'CELL',
                                       },
                                     ]
                                   }
@@ -312,7 +318,9 @@ export default function ContactDetail(props: ContactDetailProps) {
                               if ((contact.phoneNumbers?.length || 0) == 0) {
                                 contact.phoneNumbers = [
                                   {
-                                    phoneNumber: '',
+                                    ...phone(""),
+                                    number: "",
+                                    type: 'CELL',
                                   },
                                 ]
                               }
