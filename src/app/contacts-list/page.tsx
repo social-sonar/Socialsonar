@@ -1,39 +1,31 @@
 'use client'
 
-import {
-  Fragment,
-  useEffect,
-  useState,
-  useCallback,
-  AwaitedReactNode,
-  JSXElementConstructor,
-  ReactElement,
-  ReactNode,
-} from 'react'
-import { findContacts } from '@/lib/data'
 import { Dialog, Disclosure, Menu, Transition } from '@headlessui/react'
-import { XMarkIcon } from '@heroicons/react/24/outline'
-import { getName, registerLocale } from 'i18n-iso-countries'
 import {
   ChevronDownIcon,
   FunnelIcon,
   MinusIcon,
   PlusIcon,
 } from '@heroicons/react/20/solid'
-
-import { APP_NAME } from '@/lib/constants'
-import clsx from 'clsx'
-import Link from 'next/link'
-import { FlattenContact } from '@/lib/definitions'
-import { useSession } from 'next-auth/react'
+import { XMarkIcon } from '@heroicons/react/24/outline'
+import { getName, registerLocale } from 'i18n-iso-countries'
+import {
+  Fragment,
+  useEffect,
+  useState
+} from 'react'
 
 import { useContacts } from '@/app/ContactsProvider'
-
 import ContactDetail from '@/components/ContactDetail'
 import DuplicatesScreen from '@/components/DuplicatesScreen'
 import LoadingSpinner from '@/components/common/spinner'
-import UserIcon from '@/images/icons/user.svg'
 import RefreshIcon from '@/images/icons/refresh.svg'
+import UserIcon from '@/images/icons/user.svg'
+import { APP_NAME } from '@/lib/constants'
+import { FlattenContact } from '@/lib/definitions'
+import clsx from 'clsx'
+import { useSession } from 'next-auth/react'
+import Link from 'next/link'
 
 
 const sortOptions = [
@@ -76,7 +68,7 @@ interface Option {
 
 export default function ContactList({ }) {
   registerLocale(require('i18n-iso-countries/langs/en.json'))
-  
+
 
   const { contacts, updateContact, setContacts } = useContacts()
   const [isLoading, setIsLoading] = useState(false)
@@ -597,16 +589,16 @@ export default function ContactList({ }) {
                                         ? getName(option.label, 'en', {
                                           select: 'alias',
                                         }) ?? 'No assigned country'
-                                      : (option.label ?? "No assigned country")}
-                                  </label>
-                                </div>
-                              ))}
-                            </div>
-                          </Disclosure.Panel>
-                        </>
-                      )}
-                    </Disclosure>
-                  ))}
+                                        : (option.label ?? "No assigned country")}
+                                    </label>
+                                  </div>
+                                ))}
+                              </div>
+                            </Disclosure.Panel>
+                          </>
+                        )}
+                      </Disclosure>
+                    ))}
 
                 {!hideFilterAdvice ? (
                   <p className="text-white-600 sm-text">
@@ -630,88 +622,90 @@ export default function ContactList({ }) {
                           key={contact.id}
                           className="flex justify-between gap-x-6 py-5"
                           onClick={(e) => {
-                          setShowContactDetail(true)
-                          setDetailedContact(contact)
-                        }}
-                      >
+                            setShowContactDetail(true)
+                            setDetailedContact(contact)
+                          }}
+                        >
                           <div className="flex min-w-0 gap-x-4">
                             <img
                               className="h-12 w-12 flex-none rounded-full bg-gray-800"
                               src={contact.photos && contact.photos[0] ? contact.photos[0].url : UserIcon.src}
                               alt=""
                             />
-                          )}
-                          <div className="min-w-0 flex-auto">
-                            <p className="text-sm font-semibold leading-6 text-white">
-                              {contact.name}
-                            </p>
-                            <p className="mt-1 truncate text-xs leading-5 text-gray-400">
-                              {contact.emails.length == 0
-                                ? 'No email found'
-                                : contact.emails[0].address}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
-                          <p className="text-sm leading-6 text-white">
-                            {contact.occupations.length == 0
-                              ? 'No role found'
-                              : contact.occupations
-                                  .map((a: { name: any }) => a.name)
-                                  .join(' | ')}
-                          </p>
-                          {contact.phoneNumbers.length > 0 ? (
-                            <p className="mt-1 text-xs leading-5 text-gray-400">
-                              {contact.phoneNumbers
-                                .map((a, index) => {
-                                  return (
-                                    <a
-                                      key={contact.id + 'index:' + index}
-                                      href={'tel://' + a.phoneNumber}
-                                    >
-                                      {a.phoneNumber}
-                                    </a>
-                                  )
-                                })
-                                .reduce(
-                                  (acc, x) =>
-                                    acc === null ? (
-                                      x
-                                    ) : (
-                                      <>
-                                        {acc} | {x}
-                                      </>
-                                    ),
-                                  null as React.ReactNode | null,
-                                )}
-                            </p>
-                          ) : (
-                            <div className="mt-1 flex items-center gap-x-1.5">
-                              {/* <div className="flex-none rounded-full bg-emerald-500/20 p-1">
-                              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                            </div> */}
-                              <p className="text-xs leading-5 text-gray-400">
-                                No phone
+                            <div className="min-w-0 flex-auto">
+                              <p className="text-sm font-semibold leading-6 text-white">
+                                {contact.name}
+                              </p>
+                              <p className="mt-1 truncate text-xs leading-5 text-gray-400">
+                                {contact.emails.length == 0
+                                  ? 'No email found'
+                                  : contact.emails[0].address}
                               </p>
                             </div>
-                          )}
-                        </div>
-                      </li>
-                    ))
-                  ) : (
-                    <p>
-                      No contacts yet. Sync your contacts{' '}
-                      <Link href={'/sync'} className="text-teal-500">
-                        here
-                      </Link>
-                    </p>
-                  )}
-                </ul>
-              }
+                          </div>
+                          <div className="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
+                            <p className="text-sm leading-6 text-white">
+                              {contact.occupations.length == 0
+                                ? 'No role found'
+                                : contact.occupations
+                                  .map((a: { name: any }) => a.name)
+                                  .join(' | ')}
+                            </p>
+                            {contact.phoneNumbers.length > 0 ? (
+                              <p className="mt-1 text-xs leading-5 text-gray-400">
+                                {contact.phoneNumbers
+                                  .map((a, index) => {
+                                    return (
+                                      <a
+                                        key={contact.id + 'index:' + index}
+                                        href={'tel://' + (a.phoneNumber || a.number)}
+                                      >
+                                        {a.phoneNumber || a.number}
+                                      </a>
+                                    )
+                                  })
+                                  .reduce(
+                                    (acc, x) =>
+                                      acc === null ? (
+                                        x
+                                      ) : (
+                                        <>
+                                          {acc}
+                                          <span className='mx-2'>|</span>
+                                          {x}
+                                        </>
+                                      ),
+                                    null as React.ReactNode | null,
+                                  )}
+                              </p>
+                            ) : (
+                              <div className="mt-1 flex items-center gap-x-1.5">
+                                {/* <div className="flex-none rounded-full bg-emerald-500/20 p-1">
+                              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                            </div> */}
+                                <p className="text-xs leading-5 text-gray-400">
+                                  No phone
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </li>
+                      ))
+                    ) : (
+                      <p>
+                        No contacts yet. Sync your contacts{' '}
+                        <Link href={'/sync'} className="text-teal-500">
+                          here
+                        </Link>
+                      </p>
+                    )}
+                  </ul>
+                }
+              </div>
             </div>
-          </div>
-        </section>
-      </main>
+          </section>
+        </main>
+      }
     </>
   )
 }

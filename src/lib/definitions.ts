@@ -128,3 +128,5 @@ export type DuplicateContactResolutionPayload = {
     contactB?: number,
     mergeName?: string
 }
+
+export type { PhoneNumber }
