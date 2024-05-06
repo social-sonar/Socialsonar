@@ -14,7 +14,7 @@ import PhoneVerification from 'phone'
 
 export default function ContactDetailAddress(props: {
   phone: CleanPhoneData
-  callUpdate: (a: PhoneNumber) => void
+  callUpdate: (a: CleanPhoneData) => void
 }) {
   const [phone, setPhone] = useState<CleanPhoneData>(props.phone)
   const { callUpdate } = props
@@ -22,13 +22,15 @@ export default function ContactDetailAddress(props: {
   const countries = Object.entries(getNames('en'))
 
   useEffect(() => {
-    const verifiedPhone = PhoneVerification(phone.phoneNumber)
+    const verifiedPhone = PhoneVerification(phone.phoneNumber ?? '')
 
     setPhone({
       ...phone,
-      ...verifiedPhone,
-      countryCode: verifiedPhone.countryIso2,
-      phoneNumber: phone.phoneNumber,
+      isValid: true,
+      countryIso2: verifiedPhone.countryIso2 ?? '',
+      countryIso3: verifiedPhone.countryIso3 ?? '',
+      countryCode: verifiedPhone.countryIso2 ?? '',
+      phoneNumber: phone.phoneNumber ?? '',
     })
 
     console.log(verifiedPhone)
@@ -54,13 +56,6 @@ export default function ContactDetailAddress(props: {
               autoComplete="country-name"
               className="mr-8 w-1/4 rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6 [&_*]:text-black"
               value={phone.countryCode ?? ''}
-              onChange={(e) => {
-                setPhone({
-                  ...phone,
-                  countryCode: e.target.value,
-                })
-                callUpdate(phone)
-              }}
             >
               <option value={''}>No country</option>
               {countries.map((a) => {
@@ -77,10 +72,11 @@ export default function ContactDetailAddress(props: {
               id="phonenumber"
               value={phone.phoneNumber ?? ''}
               onChange={(e) => {
-                setPhone({
-                  ...phone,
+                setPhone((prevPhone) => ({
+                  ...prevPhone,
                   phoneNumber: e.target.value,
-                })
+                  isValid: true,
+                }))
               }}
               className="w-1/3 rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
             />
