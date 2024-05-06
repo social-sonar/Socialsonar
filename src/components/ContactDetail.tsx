@@ -76,7 +76,7 @@ export default function ContactDetail(props: ContactDetailProps) {
                           <div className="sm:col-span-3">
                             <div className="float-right flex items-center">
                               {props.contact?.photos &&
-                              props.contact.photos[0] ? (
+                                props.contact.photos[0] ? (
                                 <img
                                   className="h-20 w-20 flex-none rounded-full bg-gray-800"
                                   src={props.contact?.photos[0].url}
@@ -271,6 +271,7 @@ export default function ContactDetail(props: ContactDetailProps) {
                                 id="bday"
                                 name="bday"
                                 type="number"
+                                value={contact.birthday?.day}
                                 min={1}
                                 max={31}
                                 placeholder="day"
@@ -280,6 +281,7 @@ export default function ContactDetail(props: ContactDetailProps) {
                                 id="bmonth"
                                 name="bmonth"
                                 type="number"
+                                value={contact.birthday?.month}
                                 min={1}
                                 max={12}
                                 placeholder="month"
@@ -289,6 +291,7 @@ export default function ContactDetail(props: ContactDetailProps) {
                                 id="byear"
                                 name="byear"
                                 type="number"
+                                value={contact.birthday?.year}
                                 min={1900}
                                 max={2024}
                                 placeholder="year"

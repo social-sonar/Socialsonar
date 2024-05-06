@@ -1,4 +1,4 @@
-import { Prisma, Contact, $Enums } from '@prisma/client'
+import { Prisma, Contact, $Enums, Organization, PhoneNumber, Occupation, Photo, Address, Email } from '@prisma/client'
 import { people_v1 } from 'googleapis'
 
 interface PhoneValidResult {
@@ -11,17 +11,19 @@ interface PhoneValidResult {
 
 export type GoogleResponse = people_v1.Schema$Person
 
-export type Organization = people_v1.Schema$Organization
+export type GoogleOrganization = people_v1.Schema$Organization
 
-export type Occupation = people_v1.Schema$Occupation
+export type GoogleOccupation = people_v1.Schema$Occupation
 
-export type Photo = people_v1.Schema$Photo
+export type GooglePhoto = people_v1.Schema$Photo
 
-export type Address = people_v1.Schema$Address
+export type GoogleAddress = people_v1.Schema$Address
 
-export type Email = people_v1.Schema$EmailAddress
+export type GoogleEmail = people_v1.Schema$EmailAddress
 
-export type PhoneNumber = people_v1.Schema$PhoneNumber
+export type GooglePhoneNumber = people_v1.Schema$PhoneNumber
+
+export type GoogleDate = people_v1.Schema$Date
 
 export type ContactCreate = Prisma.ContactUncheckedCreateInput;
 
@@ -40,13 +42,20 @@ export interface AddressInterface {
     streetAddress: string | null
 }
 
+export type BirthDay = {
+    year: number,
+    month: number,
+    day: number
+}
+
 export type FlattenContact = {
     category?: string[],
     favorite?: boolean
-    id: string,
+    id: number,
     userId: string,
     name: string,
     nickName: string | null,
+    birthday: BirthDay | null
     organizations: {
         name: string;
     }[],
@@ -64,4 +73,74 @@ export type FlattenContact = {
     }[],
     location: string | null,
     source: string
+    duplicates?: FlattenContact[]
 }
+
+
+export type GoogleContactRelation = {
+    contactId: number,
+    googleContactId: string,
+    contact: {
+        name: string,
+        nickname?: string,
+        organizations: {
+            organization: Organization
+        }[],
+        phoneNumbers: {
+            phoneNumber: PhoneNumber
+        }[],
+        occupations: {
+            ocuppation: Occupation
+        }[],
+        photos: {
+            photo: Photo
+        }[],
+        addresses: {
+            address: Address
+        }[],
+        emails: {
+            email: Email
+        }[]
+    }
+}
+
+export type ContactNames = {
+    name?: string
+    nickName?: string
+}
+
+export type MetaParams = {
+    dbField: {
+        obj: string
+        property: string
+    }
+    googleField: string
+}
+
+export type MetaParamsMultiProperty = {
+    dbField: {
+        obj: string
+        properties: string[]
+    }
+    googleFields: string[],
+    transformers?: Record<string, (value?: any) => any>
+}
+
+export type PrismaHandlerSingle = (addedItems: (string | null | undefined)[], removedItems: string[]) => Promise<void>
+
+export type PrismaHandlerMultiple = (addedItems: Record<string, any>[], removedItems: Record<string, any>[]) => Promise<void>
+
+export enum ResolutionStrategy {
+    KEEP_ONE = "KEEP_ONE",
+    KEEP_BOTH = "KEEP_BOTH",
+    MERGE = "MERGE",
+}
+
+export type DuplicateContactResolutionPayload = {
+    strategy: ResolutionStrategy,
+    contactA?: number,
+    contactB?: number,
+    mergeName?: string
+}
+
+export type { PhoneNumber }

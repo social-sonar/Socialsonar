@@ -1,9 +1,7 @@
-
-
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter"
-import { prisma } from "@/db/index"
+import { prisma } from "@/db"
 
 
 export default NextAuth({
@@ -11,6 +9,13 @@ export default NextAuth({
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          scope: "openid profile https://www.googleapis.com/auth/contacts",
+          prompt: "select_account",
+          access_type: "offline"
+        }
+      }
     }),
   ],
   secret: process.env.AUTH_SECRET,
@@ -20,10 +25,10 @@ export default NextAuth({
   },
   callbacks: {
     async jwt({ token, user, account }) {
-      
+
       if (account && user) {
         token.accessToken = account.access_token;
-        token.user = user;        
+        token.user = user;
       }
       return token;
     },
@@ -33,16 +38,8 @@ export default NextAuth({
 
       feededSession.user = token.user as any;
       feededSession.accessToken = token.accessToken
-      
+
       return feededSession;
     }
   }
 });
-
-import {
-  signIn as nextSignIn,
-  signOut as nextSignOut
-} from 'next-auth/react'
-
-export const signIn = nextSignIn
-export const signOut = nextSignOut

@@ -1,13 +1,14 @@
-'use client'
+import googleContactsLogo from '@/images/logos/google-contacts.svg'
 
-import { StaticImport } from 'next/dist/shared/lib/get-img-props'
-import Image from 'next/image'
+import { fetchGoogleContacts } from '@/actions'
+import SyncButton from './common/form-button'
 
 
-export default function SyncButton({ authUrl, logo, title }: { authUrl: string, logo: StaticImport, title: string }) {
+export function GoogleSyncButton({ userId }: { userId: string }) {
+    const action = fetchGoogleContacts.bind(null, userId)
     return (
-        <button className='flex py-2 px-3 text-sm rounded-full border-teal-500' onClick={() => location.href = authUrl}>
-            <Image src={logo} width={25} height={25} alt='GC' />
-            <span className='ml-2'>{title}</span>
-        </button>)
+        <form action={action}>
+            <SyncButton title='Google contacts' logo={googleContactsLogo} />
+        </form>
+    )
 }

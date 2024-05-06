@@ -1,36 +1,32 @@
 'use client'
 
-import {
-  Fragment,
-  useEffect,
-  useState,
-  useCallback,
-  AwaitedReactNode,
-  JSXElementConstructor,
-  ReactElement,
-  ReactNode,
-} from 'react'
-import { findContacts } from '@/lib/data'
 import { Dialog, Disclosure, Menu, Transition } from '@headlessui/react'
-import { XMarkIcon } from '@heroicons/react/24/outline'
-import { getName, registerLocale } from 'i18n-iso-countries'
 import {
   ChevronDownIcon,
   FunnelIcon,
   MinusIcon,
   PlusIcon,
-  Squares2X2Icon,
 } from '@heroicons/react/20/solid'
-
-import { APP_NAME } from '@/lib/constants'
-import clsx from 'clsx'
-import Link from 'next/link'
-import { FlattenContact } from '@/lib/definitions'
-import { useSession } from 'next-auth/react'
+import { XMarkIcon } from '@heroicons/react/24/outline'
+import { getName, registerLocale } from 'i18n-iso-countries'
+import {
+  Fragment,
+  useEffect,
+  useState
+} from 'react'
 
 import { useContacts } from '@/app/ContactsProvider'
-
 import ContactDetail from '@/components/ContactDetail'
+import DuplicatesScreen from '@/components/DuplicatesScreen'
+import LoadingSpinner from '@/components/common/spinner'
+import RefreshIcon from '@/images/icons/refresh.svg'
+import UserIcon from '@/images/icons/user.svg'
+import { APP_NAME } from '@/lib/constants'
+import { FlattenContact } from '@/lib/definitions'
+import clsx from 'clsx'
+import { useSession } from 'next-auth/react'
+import Link from 'next/link'
+
 
 const sortOptions = [
   { name: 'A - Z', href: '#', current: true },
@@ -70,111 +66,9 @@ interface Option {
   checked: boolean
 }
 
-export default function Example({}) {
+export default function ContactList({ }) {
   registerLocale(require('i18n-iso-countries/langs/en.json'))
-  
-  // const [contacts, setContacts] = useState([
-  //   {
-  //     id: 1,
-  //     name: 'Abuelita norma',
-  //     emails: ['norma@example.com'],
-  //     occupations: [{ id: 1, name: 'Grandma' }],
-  //     photos:
-  //       [{url:'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fmatthewkimberley.com%2Fwp-content%2Fuploads%2F2013%2F05%2Fgrandmother.jpg&f=1&nofb=1&ipt=d0f05fed654bb8a848720b607e0b3dca7086282bf8125bc62f4c3f2c129b571b&ipo=images'}],
-  //     lastSeen: '3h ago',
-  //     lastSeenDateTime: '2023-01-23T13:23Z',
-  //     favorite: true,
-  //     location: 'Argentina',
-  //     category: ['Personal'],
-  //     source: 'custom',
-  //     phoneNumbers: [],
-  //   },
-  //   {
-  //     id: 2,
-  //     name: 'Leslie Alexander',
-  //     emails: ['leslie.alexander@example.com'],
-  //     occupations: [{ id: 2, name: 'Co-Founder / CEO' }],
-  //     photos:
-  //       [{url:'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'}],
-  //     lastSeen: '3h ago',
-  //     lastSeenDateTime: '2023-01-23T13:23Z',
-  //     favorite: true,
-  //     location: 'United States',
-  //     category: ['Personal', 'School'],
-  //     source: 'google',
-  //     phoneNumbers: [],
-  //   },
-  //   {
-  //     id: 3,
-  //     name: 'Michael Foster',
-  //     emails: ['michael.foster@example.com'],
-  //     occupations: [{ id: 3, name: 'Co-Founder / CTO' }],
-  //     photos:
-  //       [{url:'https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'}],
-  //     lastSeen: '3h ago',
-  //     lastSeenDateTime: '2023-01-23T13:23Z',
-  //     favorite: true,
-  //     location: 'United States',
-  //     category: ['Personal', 'School'],
-  //     source: 'google',
-  //     phoneNumbers: [],
-  //   },
-  //   {
-  //     id: 4,
-  //     name: 'Dries Vincent',
-  //     emails: ['dries.vincent@example.com'],
-  //     occupations: [{ id: 4, name: 'Business Relations' }],
-  //     photos:
-  //       [{url:'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'}],
-  //     lastSeen: null,
-  //     favorite: false,
-  //     location: 'United States',
-  //     category: ['Apple'],
-  //     source: 'google',
-  //     phoneNumbers: [],
-  //   },
-  //   {
-  //     id: 5,
-  //     name: 'Juana Ladev',
-  //     emails: ['juana.ladev@example.com'],
-  //     occupations: [{ id: 5, name: 'Front-end Developer' }],
-  //     photos:
-  //       [{url:'https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'}],
-  //     lastSeen: '3h ago',
-  //     lastSeenDateTime: '2023-01-23T13:23Z',
-  //     favorite: false,
-  //     location: 'Argentina',
-  //     category: ['Personal', 'School'],
-  //     phoneNumbers: [],
-  //   },
-  //   {
-  //     id: 6,
-  //     name: 'Courtney Henry',
-  //     emails: ['courtney.henry@example.com'],
-  //     occupations: [{ id: 6, name: 'Designer' }],
-  //     photos:
-  //       [{url:'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'}],
-  //     lastSeen: '3h ago',
-  //     lastSeenDateTime: '2023-01-23T13:23Z',
-  //     favorite: false,
-  //     location: 'United States',
-  //     category: ['Tesla'],
-  //     phoneNumbers: [],
-  //   },
-  //   {
-  //     id: 7,
-  //     name: 'Tom Cook',
-  //     emails: ['tom.cook@example.com'],
-  //     occupations: [{ id: 7, name: 'Director of Product' }],
-  //     photos:
-  //       [{url:'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'}],
-  //     lastSeen: null,
-  //     favorite: false,
-  //     location: 'United States',
-  //     category: ['Apple'],
-  //     phoneNumbers: [],
-  //   },
-  // ])
+
 
   const { contacts, updateContact, setContacts } = useContacts()
   const [isLoading, setIsLoading] = useState(false)
@@ -192,19 +86,27 @@ export default function Example({}) {
     null,
   )
 
-  useEffect(() => {
+  const fetchContacts = () => {
     if (session.status == 'authenticated') {
+      setIsLoading(true)
       fetch(`/api/contacts-list?userId=${session?.data.user?.id}`)
         .then((response) => response.json())
         .then((data: FlattenContact[]) => {
           if (data.length) {
             setContacts(data)
-            // setHideFilterAdvice(false)
           }
+          setIsLoading(false)
         })
-        .catch((error) => console.error('Failed to load contacts', error))
+        .catch((error) => {
+          console.error('Failed to load contacts', error)
+          setIsLoading(false)
+        })
     }
-  }, [session.status])
+  }
+
+  useEffect(() => {
+    fetchContacts()
+  }, [])
 
   const handleSourceChange = (source: string) => {
     setSelectedSource(source)
@@ -493,312 +395,317 @@ export default function Example({}) {
           </div>
         </Dialog>
       </Transition.Root>
+      {isLoading ?
+        <LoadingSpinner size={100} className='mx-auto' /> :
+        <main className="mx-auto h-full px-4 sm:px-6 lg:px-8">
 
-      <main className="mx-auto h-full px-4 sm:px-6 lg:px-8">
-        <div className="flex items-baseline justify-between border-b border-gray-200 pb-6 pt-24">
-          <h1 className="text-white-900 text-4xl font-bold tracking-tight">
-            Contact book
-          </h1>
+          <DuplicatesScreen contacts={contacts.filter(contact => contact.duplicates?.length! > 0 || false)} />
 
-          <div className="flex items-center">
-            <Menu as="div" className="relative inline-block text-left">
-              <div>
-                <Menu.Button className="hover:text-white-900 text-white-700 group inline-flex justify-center pl-6 text-sm font-medium">
-                  Sort{' '}
-                  {sortApplied ? (sortApplied == 'AZ' ? 'A - Z' : 'Z - A') : ''}
-                  <ChevronDownIcon
-                    className="group-hover:text-white-500 -mr-1 ml-1 h-5 w-5 flex-shrink-0 text-gray-400"
-                    aria-hidden="true"
-                  />
-                </Menu.Button>
-              </div>
+          <div className="flex items-center gap-7 justify-between border-b border-gray-200 pb-6 pt-2 lg:mt-5 md:mt-10">
+            <h1 className="text-white-900 lg:text-4xl md:text-4xl text-xl font-bold tracking-tight">
+              Contact book
+            </h1>
 
-              <Transition
-                as={Fragment}
-                enter="transition ease-out duration-100"
-                enterFrom="transform opacity-0 scale-95"
-                enterTo="transform opacity-100 scale-100"
-                leave="transition ease-in duration-75"
-                leaveFrom="transform opacity-100 scale-100"
-                leaveTo="transform opacity-0 scale-95"
-              >
-                <Menu.Items className="w-18 absolute right-0 z-10 mt-2 origin-top-right rounded-md bg-white shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none">
-                  <div className="py-1">
-                    <Menu.Item>
-                      {({ active }) => (
-                        <a
-                          href="#"
-                          className={classNames(
-                            sortApplied == 'AZ'
-                              ? 'font-medium text-gray-900'
-                              : 'text-gray-500',
-                            active ? 'bg-gray-100' : '',
-                            'block px-4 py-2 text-sm',
-                          )}
-                          onClick={() => {
-                            setSortApplied('AZ')
-                          }}
-                        >
-                          A - Z
-                        </a>
-                      )}
-                    </Menu.Item>
-                    <Menu.Item>
-                      {({ active }) => (
-                        <a
-                          href="#"
-                          className={classNames(
-                            sortApplied == 'ZA'
-                              ? 'font-medium text-gray-900'
-                              : 'text-gray-500',
-                            active ? 'bg-gray-100' : '',
-                            'block px-4 py-2 text-sm',
-                          )}
-                          onClick={() => {
-                            setSortApplied('ZA')
-                          }}
-                        >
-                          Z - A
-                        </a>
-                      )}
-                    </Menu.Item>
-                  </div>
-                </Menu.Items>
-              </Transition>
-            </Menu>
+            <div className="flex gap-0">
+              <button
+                className='h-[25px] w-[25px]'>
+                <img
+                  src={RefreshIcon.src}
+                  alt="Refresh icon"
+                  title='Refresh contact list'
+                  onClick={fetchContacts}
+                />
+              </button>
+              <Menu as="div" className="relative inline-block text-left">
+                <div>
+                  <Menu.Button className="hover:text-white-900 text-white-700 group inline-flex justify-center pl-6 text-sm font-medium">
+                    Sort{' '}
+                    {sortApplied ? (sortApplied == 'AZ' ? 'A - Z' : 'Z - A') : ''}
+                    <ChevronDownIcon
+                      className="group-hover:text-white-500 -mr-1 ml-1 h-5 w-5 flex-shrink-0 text-gray-400"
+                      aria-hidden="true"
+                    />
+                  </Menu.Button>
+                </div>
 
-            {/* <button
-              type="button"
-              className="-m-2 ml-5 p-2 text-gray-400 hover:text-white-500 sm:ml-7"
-            >
-              <span className="sr-only">View grid</span>
-              <Squares2X2Icon className="h-5 w-5" aria-hidden="true" />
-            </button> */}
-            <button
-              type="button"
-              className="hover:text-white-500 -m-2 ml-4 p-2 text-gray-400 sm:ml-6 lg:hidden"
-              onClick={() => setMobileFiltersOpen(true)}
-            >
-              <span className="sr-only">Filters</span>
-              <FunnelIcon className="h-5 w-5" aria-hidden="true" />
-            </button>
-          </div>
-        </div>
-
-        <section aria-labelledby="products-heading" className="pb-24 pt-6">
-          <h2 id="products-heading" className="sr-only">
-            Products
-          </h2>
-
-          <div className="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4">
-            {/* Filters */}
-            <form className="hidden lg:block">
-              <h3 className="sr-only">Categories</h3>
-              <ul
-                role="list"
-                className="text-white-900 space-y-4 border-b border-gray-200 pb-6 text-sm font-medium"
-              >
-                {contactsSource.map((category) => (
-                  <li key={category.name}>
-                    <button
-                      type="button"
-                      onClick={() => handleSourceChange(category.value)}
-                      className={clsx(
-                        'text-white-600 ml-3 text-sm',
-                        selectedSource === category.value
-                          ? 'text-teal-500 dark:text-teal-400'
-                          : 'hover:text-teal-500 dark:hover:text-teal-400',
-                      )}
-                    >
-                      {category.name}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-
-              {hideFilterAdvice &&
-                filters
-                  .filter((a) => a.options.length > 0)
-                  .map((section) => (
-                    <Disclosure
-                      as="div"
-                      key={section.id}
-                      className="border-b border-gray-200 py-6"
-                    >
-                      {({ open }) => (
-                        <>
-                          <h3 className="-my-3 flow-root">
-                            <Disclosure.Button className="hover:text-white-500 flex w-full items-center justify-between bg-white py-3 pl-3 text-sm text-gray-400">
-                              <span className="text-white-900 font-medium">
-                                {section.name}
-                              </span>
-                              <span className="ml-6 mr-2 flex items-center">
-                                {open ? (
-                                  <MinusIcon
-                                    className="h-5 w-5"
-                                    aria-hidden="true"
-                                  />
-                                ) : (
-                                  <PlusIcon
-                                    className="h-5 w-5"
-                                    aria-hidden="true"
-                                  />
-                                )}
-                              </span>
-                            </Disclosure.Button>
-                          </h3>
-                          <Disclosure.Panel className="pt-8">
-                            <div className="space-y-4">
-                              {section.options.map((option, optionIdx) => (
-                                <div
-                                  key={option.value}
-                                  className="flex items-center"
-                                >
-                                  <input
-                                    id={`filter-${section.id}-${optionIdx}`}
-                                    name={`${section.id}[]`}
-                                    defaultValue={option.value || undefined}
-                                    type="checkbox"
-                                    defaultChecked={option.checked}
-                                    onChange={(e) =>
-                                      handleFilterChange(
-                                        section.id,
-                                        optionIdx.toString(),
-                                        e.target.checked,
-                                      )
-                                    }
-                                    className="h-4 w-4 rounded text-teal-600"
-                                  />
-                                  <label
-                                    htmlFor={`filter-${section.id}-${optionIdx}`}
-                                    className={clsx(
-                                      'text-white-600 ml-3 text-sm',
-                                      option.checked
-                                        ? 'text-teal-500 dark:text-teal-400'
-                                        : 'hover:text-teal-500 dark:hover:text-teal-400',
-                                    )}
-                                  >
-                                    {section.id == 'location' && option.label
-                                      ? getName(option.label, 'en', {
-                                          select: 'alias',
-                                        }) ?? 'No assigned country'
-                                      : (option.label ?? "No assigned country")}
-                                  </label>
-                                </div>
-                              ))}
-                            </div>
-                          </Disclosure.Panel>
-                        </>
-                      )}
-                    </Disclosure>
-                  ))}
-
-              {!hideFilterAdvice ? (
-                <p className="text-white-600 sm-text">
-                  There are no filters applicable <br></br> for the contacts
-                  list
-                </p>
-              ) : (
-                <></>
-              )}
-            </form>
-
-            {/* Product grid */}
-            <div className="lg:col-span-3">
-              {
-                <ul
-                  role="list"
-                  className="w-full max-w-7xl divide-y divide-gray-800"
+                <Transition
+                  as={Fragment}
+                  enter="transition ease-out duration-100"
+                  enterFrom="transform opacity-0 scale-95"
+                  enterTo="transform opacity-100 scale-100"
+                  leave="transition ease-in duration-75"
+                  leaveFrom="transform opacity-100 scale-100"
+                  leaveTo="transform opacity-0 scale-95"
                 >
-                  {filteredContacts.length > 0 ? (
-                    filteredContacts.map((contact) => (
-                      <li
-                        key={contact.id}
-                        className="flex justify-between gap-x-6 py-5"
-                        onClick={(e) => {
-                          setShowContactDetail(true)
-                          setDetailedContact(contact)
-                        }}
-                      >
-                        <div className="flex min-w-0 gap-x-4">
-                          {contact.photos && contact.photos[0] && (
-                            <img
-                              className="h-12 w-12 flex-none rounded-full bg-gray-800"
-                              src={contact.photos[0].url}
-                              alt=""
-                            />
-                          )}
-                          <div className="min-w-0 flex-auto">
-                            <p className="text-sm font-semibold leading-6 text-white">
-                              {contact.name}
-                            </p>
-                            <p className="mt-1 truncate text-xs leading-5 text-gray-400">
-                              {contact.emails.length == 0
-                                ? 'No email found'
-                                : contact.emails[0].address}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
-                          <p className="text-sm leading-6 text-white">
-                            {contact.occupations.length == 0
-                              ? 'No role found'
-                              : contact.occupations
-                                  .map((a: { name: any }) => a.name)
-                                  .join(' | ')}
-                          </p>
-                          {contact.phoneNumbers.length > 0 ? (
-                            <p className="mt-1 text-xs leading-5 text-gray-400">
-                              {contact.phoneNumbers
-                                .map((a, index) => {
-                                  return (
-                                    <a
-                                      key={contact.id + 'index:' + index}
-                                      href={'tel://' + a.phoneNumber}
-                                    >
-                                      {a.phoneNumber}
-                                    </a>
-                                  )
-                                })
-                                .reduce(
-                                  (acc, x) =>
-                                    acc === null ? (
-                                      x
-                                    ) : (
-                                      <>
-                                        {acc} | {x}
-                                      </>
-                                    ),
-                                  null as React.ReactNode | null,
-                                )}
-                            </p>
-                          ) : (
-                            <div className="mt-1 flex items-center gap-x-1.5">
-                              {/* <div className="flex-none rounded-full bg-emerald-500/20 p-1">
-                              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                            </div> */}
-                              <p className="text-xs leading-5 text-gray-400">
-                                No phone
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </li>
-                    ))
-                  ) : (
-                    <p>
-                      No contacts yet. Sync your contacts{' '}
-                      <Link href={'/sync'} className="text-teal-500">
-                        here
-                      </Link>
-                    </p>
-                  )}
-                </ul>
-              }
+                  <Menu.Items className="w-18 absolute right-0 z-10 mt-2 origin-top-right rounded-md bg-white shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none">
+                    <div className="py-1">
+                      <Menu.Item>
+                        {({ active }) => (
+                          <a
+                            href="#"
+                            className={classNames(
+                              sortApplied == 'AZ'
+                                ? 'font-medium text-gray-900'
+                                : 'text-gray-500',
+                              active ? 'bg-gray-100' : '',
+                              'block px-4 py-2 text-sm',
+                            )}
+                            onClick={() => {
+                              setSortApplied('AZ')
+                            }}
+                          >
+                            A - Z
+                          </a>
+                        )}
+                      </Menu.Item>
+                      <Menu.Item>
+                        {({ active }) => (
+                          <a
+                            href="#"
+                            className={classNames(
+                              sortApplied == 'ZA'
+                                ? 'font-medium text-gray-900'
+                                : 'text-gray-500',
+                              active ? 'bg-gray-100' : '',
+                              'block px-4 py-2 text-sm',
+                            )}
+                            onClick={() => {
+                              setSortApplied('ZA')
+                            }}
+                          >
+                            Z - A
+                          </a>
+                        )}
+                      </Menu.Item>
+                    </div>
+                  </Menu.Items>
+                </Transition>
+              </Menu>
+              <button
+                type="button"
+                className="hover:text-white-500 -m-2 ml-4 p-2 text-gray-400 sm:ml-6 lg:hidden"
+                onClick={() => setMobileFiltersOpen(true)}
+              >
+                <span className="sr-only">Filters</span>
+                <FunnelIcon className="h-5 w-5" aria-hidden="true" />
+              </button>
             </div>
           </div>
-        </section>
-      </main>
+
+          <section aria-labelledby="products-heading" className="pb-24 pt-6">
+            <h2 id="products-heading" className="sr-only">
+              Products
+            </h2>
+
+            <div className="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4">
+              {/* Filters */}
+              <form className="hidden lg:block">
+                <h3 className="sr-only">Categories</h3>
+                <ul
+                  role="list"
+                  className="text-white-900 space-y-4 border-b border-gray-200 pb-6 text-sm font-medium"
+                >
+                  {contactsSource.map((category) => (
+                    <li key={category.name}>
+                      <button
+                        type="button"
+                        onClick={() => handleSourceChange(category.value)}
+                        className={clsx(
+                          'text-white-600 ml-3 text-sm',
+                          selectedSource === category.value
+                            ? 'text-teal-500 dark:text-teal-400'
+                            : 'hover:text-teal-500 dark:hover:text-teal-400',
+                        )}
+                      >
+                        {category.name}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+
+                {hideFilterAdvice &&
+                  filters
+                    .filter((a) => a.options.length > 0)
+                    .map((section) => (
+                      <Disclosure
+                        as="div"
+                        key={section.id}
+                        className="border-b border-gray-200 py-6"
+                      >
+                        {({ open }) => (
+                          <>
+                            <h3 className="-my-3 flow-root">
+                              <Disclosure.Button className="hover:text-white-500 flex w-full items-center justify-between bg-white py-3 pl-3 text-sm text-gray-400">
+                                <span className="text-white-900 font-medium">
+                                  {section.name}
+                                </span>
+                                <span className="ml-6 mr-2 flex items-center">
+                                  {open ? (
+                                    <MinusIcon
+                                      className="h-5 w-5"
+                                      aria-hidden="true"
+                                    />
+                                  ) : (
+                                    <PlusIcon
+                                      className="h-5 w-5"
+                                      aria-hidden="true"
+                                    />
+                                  )}
+                                </span>
+                              </Disclosure.Button>
+                            </h3>
+                            <Disclosure.Panel className="pt-8">
+                              <div className="space-y-4">
+                                {section.options.map((option, optionIdx) => (
+                                  <div
+                                    key={option.value}
+                                    className="flex items-center"
+                                  >
+                                    <input
+                                      id={`filter-${section.id}-${optionIdx}`}
+                                      name={`${section.id}[]`}
+                                      defaultValue={option.value || undefined}
+                                      type="checkbox"
+                                      defaultChecked={option.checked}
+                                      onChange={(e) =>
+                                        handleFilterChange(
+                                          section.id,
+                                          optionIdx.toString(),
+                                          e.target.checked,
+                                        )
+                                      }
+                                      className="h-4 w-4 rounded text-teal-600"
+                                    />
+                                    <label
+                                      htmlFor={`filter-${section.id}-${optionIdx}`}
+                                      className={clsx(
+                                        'text-white-600 ml-3 text-sm',
+                                        option.checked
+                                          ? 'text-teal-500 dark:text-teal-400'
+                                          : 'hover:text-teal-500 dark:hover:text-teal-400',
+                                      )}
+                                    >
+                                      {section.id == 'location' && option.label
+                                        ? getName(option.label, 'en', {
+                                          select: 'alias',
+                                        }) ?? 'No assigned country'
+                                        : (option.label ?? "No assigned country")}
+                                    </label>
+                                  </div>
+                                ))}
+                              </div>
+                            </Disclosure.Panel>
+                          </>
+                        )}
+                      </Disclosure>
+                    ))}
+
+                {!hideFilterAdvice ? (
+                  <p className="text-white-600 sm-text">
+                    There are no filters applicable <br></br> for the contacts
+                    list
+                  </p>
+                ) : (
+                  <></>
+                )}
+              </form>
+              {/* Product grid */}
+              <div className="lg:col-span-3">
+                {
+                  <ul
+                    role="list"
+                    className="w-full max-w-7xl divide-y divide-gray-800"
+                  >
+                    {filteredContacts.length > 0 && !isLoading ? (
+                      filteredContacts.map((contact) => (
+                        <li
+                          key={contact.id}
+                          className="flex justify-between gap-x-6 py-5"
+                          onClick={(e) => {
+                            setShowContactDetail(true)
+                            setDetailedContact(contact)
+                          }}
+                        >
+                          <div className="flex min-w-0 gap-x-4">
+                            <img
+                              className="h-12 w-12 flex-none rounded-full bg-gray-800"
+                              src={contact.photos && contact.photos[0] ? contact.photos[0].url : UserIcon.src}
+                              alt=""
+                            />
+                            <div className="min-w-0 flex-auto">
+                              <p className="text-sm font-semibold leading-6 text-white">
+                                {contact.name}
+                              </p>
+                              <p className="mt-1 truncate text-xs leading-5 text-gray-400">
+                                {contact.emails.length == 0
+                                  ? 'No email found'
+                                  : contact.emails[0].address}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
+                            <p className="text-sm leading-6 text-white">
+                              {contact.occupations.length == 0
+                                ? 'No role found'
+                                : contact.occupations
+                                  .map((a: { name: any }) => a.name)
+                                  .join(' | ')}
+                            </p>
+                            {contact.phoneNumbers.length > 0 ? (
+                              <p className="mt-1 text-xs leading-5 text-gray-400">
+                                {contact.phoneNumbers
+                                  .map((a, index) => {
+                                    return (
+                                      <a
+                                        key={contact.id + 'index:' + index}
+                                        href={'tel://' + (a.phoneNumber || a.number)}
+                                      >
+                                        {a.phoneNumber || a.number}
+                                      </a>
+                                    )
+                                  })
+                                  .reduce(
+                                    (acc, x) =>
+                                      acc === null ? (
+                                        x
+                                      ) : (
+                                        <>
+                                          {acc}
+                                          <span className='mx-2'>|</span>
+                                          {x}
+                                        </>
+                                      ),
+                                    null as React.ReactNode | null,
+                                  )}
+                              </p>
+                            ) : (
+                              <div className="mt-1 flex items-center gap-x-1.5">
+                                {/* <div className="flex-none rounded-full bg-emerald-500/20 p-1">
+                              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                            </div> */}
+                                <p className="text-xs leading-5 text-gray-400">
+                                  No phone
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </li>
+                      ))
+                    ) : (
+                      <p>
+                        No contacts yet. Sync your contacts{' '}
+                        <Link href={'/sync'} className="text-teal-500">
+                          here
+                        </Link>
+                      </p>
+                    )}
+                  </ul>
+                }
+              </div>
+            </div>
+          </section>
+        </main>
+      }
     </>
   )
 }
