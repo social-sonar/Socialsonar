@@ -2,7 +2,7 @@ import prisma from '@/db'
 import { Address, Email, Occupation, Organization, PhoneNumber, PhoneNumberType, Photo } from '@prisma/client'
 
 import {
-    ContactNames,
+    PlainFields,
     GoogleAddress,
     GoogleContactRelation,
     GoogleEmail,
@@ -26,6 +26,7 @@ import {
     getPhoneNumberType,
     getPhotoIDs,
 } from '../data/common'
+import { dateString } from '../utils'
 
 
 const compareItems = (itemA: Record<string, any>, itemB: Record<string, any>, metaParams: MetaParamsMultiProperty) =>
@@ -439,15 +440,19 @@ const syncEmails = async (
     )
 }
 
-const syncNames = async (contactId: number, dbNames: ContactNames, googleNames: ContactNames) => {
-    let data: Partial<ContactNames> = {}
+const syncPlainFields = async (contactId: number, dbData: PlainFields, googleData: PlainFields) => {
+    let data: Partial<PlainFields> = {}
 
-    if (googleNames.name && dbNames.name !== googleNames.name) {
-        data.name = googleNames.name
+    if (googleData.name && dbData.name !== googleData.name) {
+        data.name = googleData.name
     }
 
-    if (googleNames.nickName && dbNames.nickName !== googleNames.nickName) {
-        data.nickName = googleNames.nickName
+    if (googleData.nickName && dbData.nickName !== googleData.nickName) {
+        data.nickName = googleData.nickName
+    }
+
+    if (googleData.birthday && dbData.birthday !== googleData.birthday) {
+        data.birthday = googleData.birthday
     }
 
     await prisma.contact.update({
@@ -470,9 +475,10 @@ export const syncExisting = async (
         const existingGoogleContact = existingGoogleContacts[index]
         const googlePayloadItem = googlePayload[index]
 
-        await syncNames(existingGoogleContact.contactId, existingGoogleContact.contact, {
+        await syncPlainFields(existingGoogleContact.contactId, existingGoogleContact.contact, {
             name: googlePayloadItem.names?.[0].displayName!,
             nickName: googlePayloadItem.nicknames?.[0].value!,
+            birthday: googlePayloadItem.birthdays && dateString(googlePayloadItem.birthdays[0].date!) || undefined
         })
 
         await syncOrganizations(

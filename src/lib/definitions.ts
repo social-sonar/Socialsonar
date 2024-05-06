@@ -108,9 +108,10 @@ export type GoogleContactRelation = {
     }
 }
 
-export type ContactNames = {
+export type PlainFields = {
     name?: string
     nickName?: string
+    birthday?: string
 }
 
 export type MetaParams = {
