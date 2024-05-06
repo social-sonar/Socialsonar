@@ -269,24 +269,6 @@ export default function ContactDetail(props: ContactDetailProps) {
                                 max={31}
                                 placeholder="day"
                                 className="w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
-                                defaultValue={
-                                  contact.organizations[0]?.name ?? ''
-                                }
-                                onChange={(e) => {
-                                  if (contact.organizations.length > 0) {
-                                    contact.organizations[0].name =
-                                      e.target.value
-                                  } else {
-                                    contact.organizations = [
-                                      {
-                                        name: e.target.value,
-                                      },
-                                    ]
-                                  }
-                                  updateContact(contact.id, {
-                                    organizations: contact.organizations,
-                                  })
-                                }}
                               />
                               <input
                                 id="bmonth"
@@ -296,24 +278,6 @@ export default function ContactDetail(props: ContactDetailProps) {
                                 max={12}
                                 placeholder="month"
                                 className="w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
-                                defaultValue={
-                                  contact.organizations[0]?.name ?? ''
-                                }
-                                onChange={(e) => {
-                                  if (contact.organizations.length > 0) {
-                                    contact.organizations[0].name =
-                                      e.target.value
-                                  } else {
-                                    contact.organizations = [
-                                      {
-                                        name: e.target.value,
-                                      },
-                                    ]
-                                  }
-                                  updateContact(contact.id, {
-                                    organizations: contact.organizations,
-                                  })
-                                }}
                               />
                               <input
                                 id="byear"
@@ -324,24 +288,6 @@ export default function ContactDetail(props: ContactDetailProps) {
                                 placeholder="year"
                                 autoComplete="email"
                                 className="w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
-                                defaultValue={
-                                  contact.organizations[0]?.name ?? ''
-                                }
-                                onChange={(e) => {
-                                  if (contact.organizations.length > 0) {
-                                    contact.organizations[0].name =
-                                      e.target.value
-                                  } else {
-                                    contact.organizations = [
-                                      {
-                                        name: e.target.value,
-                                      },
-                                    ]
-                                  }
-                                  updateContact(contact.id, {
-                                    organizations: contact.organizations,
-                                  })
-                                }}
                               />
                             </div>
                           </div>
@@ -540,6 +486,7 @@ export default function ContactDetail(props: ContactDetailProps) {
                                     name="offers"
                                     type="checkbox"
                                     className="h-4 w-4 rounded border-white/10 bg-white/5 text-indigo-600 focus:ring-indigo-600 focus:ring-offset-gray-900"
+                                    checked
                                   />
                                 </div>
                                 <div className="text-sm leading-6">

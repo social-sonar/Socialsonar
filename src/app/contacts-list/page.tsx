@@ -682,7 +682,7 @@ export default function Example({}) {
                                       ? getName(option.label, 'en', {
                                           select: 'alias',
                                         }) ?? 'No assigned country'
-                                      : option.label}
+                                      : (option.label ?? "No assigned country")}
                                   </label>
                                 </div>
                               ))}
