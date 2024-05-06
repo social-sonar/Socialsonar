@@ -129,6 +129,7 @@ model ContactStatus {
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
 
+  @@unique([firstContactId, secondContactId], name: "unique_contact_pair_status")
   @@map("contact_status")
 }
 

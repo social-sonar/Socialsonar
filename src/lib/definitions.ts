@@ -106,7 +106,8 @@ export type MetaParamsMultiProperty = {
         obj: string
         properties: string[]
     }
-    googleFields: string[]
+    googleFields: string[],
+    transformers?: Record<string, (value?: any) => any>
 }
 
 export type PrismaHandlerSingle = (addedItems: (string | null | undefined)[], removedItems: string[]) => Promise<void>

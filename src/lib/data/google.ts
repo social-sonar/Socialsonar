@@ -43,7 +43,12 @@ const syncEntitiesMultiLookup = async <E extends Record<string, any>, G extends 
         googleResponse?.map((googleItem) =>
             metaParams.googleFields.reduce(
                 (obj, googleField, index) => {
-                    obj[metaParams.dbField.properties[index]] = googleItem[googleField]
+                    let googleValue = googleItem[googleField]
+                    if (metaParams.transformers && metaParams.transformers.hasOwnProperty(googleField)) {
+                        const fieldTransformer = metaParams.transformers[googleField]
+                        googleValue = fieldTransformer(googleItem[googleField]) as any
+                    }
+                    obj[metaParams.dbField.properties[index]] = googleValue
                     return obj
                 },
                 {} as Record<string, any>,
@@ -178,6 +183,9 @@ const syncPhoneNumbers = async (
                 properties: ['number', 'type'],
             },
             googleFields: ['canonicalForm', 'type'],
+            transformers: {
+                type: (value?: string) => value ? value : 'MOBILE'
+            }
         },
         async (addedItems, removedItems) => {
             const numbers: string[] = []
@@ -205,7 +213,7 @@ const syncPhoneNumbers = async (
                 const phoneNumberIDs = await getPhoneNumberIDs(
                     googleResponsePhoneNumbers?.filter((phoneNumber) =>
                         addedItems.some(
-                            (item) => item['number'] === phoneNumber.canonicalForm && item['type'] === phoneNumber.type,
+                            (item) => item['number'] === phoneNumber.canonicalForm && item['type'] === (phoneNumber.type ?? 'MOBILE'),
                         ),
                     ) || [],
                 )
@@ -215,7 +223,8 @@ const syncPhoneNumbers = async (
                         contactId,
                         phoneNumberId,
                     })),
-                })
+                    skipDuplicates: true
+                },)
             }
         },
         googleResponsePhoneNumbers,
