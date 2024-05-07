@@ -37,10 +37,10 @@ const compareItems = (itemA: Record<string, any>, itemB: Record<string, any>, me
 const syncEntitiesMultiLookup = async <E extends Record<string, any>, G extends Record<string, any>>(
     existingEntities: E[],
     metaParams: MetaParamsMultiProperty,
-    prismaHandler: PrismaHandlerMultiple,
+    prismaHandler: PrismaHandlerMultiple<G>,
     googleResponse?: G[],
 ) => {
-    const googleResponseItems =
+    const googleResponseItems: G[] =
         googleResponse?.map((googleItem) =>
             metaParams.googleFields.reduce(
                 (obj, googleField, index) => {
@@ -49,10 +49,14 @@ const syncEntitiesMultiLookup = async <E extends Record<string, any>, G extends 
                         const fieldTransformer = metaParams.transformers[googleField]
                         googleValue = fieldTransformer(googleItem[googleField]) as any
                     }
-                    obj[metaParams.dbField.properties[index]] = googleValue
+                    else if (metaParams.transformers && metaParams.transformers.hasOwnProperty('globalTransformer')) {
+                        const fieldTransformer = metaParams.transformers['globalTransformer']
+                        googleValue = fieldTransformer(googleItem[googleField]) as any
+                    }
+                    obj[metaParams.dbField.properties[index] as keyof G] = googleValue
                     return obj
                 },
-                {} as Record<string, any>,
+                {} as G,
             ),
         ) || []
 
@@ -90,7 +94,7 @@ const syncEntitiesMultiLookup = async <E extends Record<string, any>, G extends 
         )
     }
     // this provided function must handle both disconnections and connections
-    await prismaHandler(addedItems, removedItems)
+    await prismaHandler(addedItems, removedItems, googleResponseItems)
 }
 
 const syncEntitiesSingleLookup = async <E extends Record<string, any>, G extends Record<string, any>>(
@@ -331,8 +335,12 @@ const syncAddresses = async (
                 properties: ['countryCode', 'city', 'region', 'postalCode', 'streetAddress'],
             },
             googleFields: ['countryCode', 'city', 'region', 'postalCode', 'streetAddress'],
+            transformers: {
+                globalTransformer: (value?: string) => value ?? null
+            }
         },
-        async (addedItems, removedItems) => {
+        async (addedItems, removedItems, mappedGoogleItems) => {
+
             const countryCodes: string[] = []
             const cities: string[] = []
             const regions: string[] = []
@@ -340,40 +348,66 @@ const syncAddresses = async (
             const streetAddresses: string[] = []
 
             removedItems.forEach((item) => {
-                countryCodes.push(item['countryCode'])
-                cities.push(item['city'])
-                regions.push(item['region'])
-                postalCodes.push(item['postalCode'])
-                streetAddresses.push(item['streetAddress'])
+                item['countryCode'] && countryCodes.push(item['countryCode'])
+                item['city'] && cities.push(item['city'])
+                item['region'] && regions.push(item['region'])
+                item['postalCode'] && postalCodes.push(item['postalCode'])
+                item['streetAddress'] && streetAddresses.push(item['streetAddress'])
             })
 
             if (removedItems) {
                 await prisma.contactAddress.deleteMany({
                     where: {
-                        address: {
-                            countryCode: {
-                                in: countryCodes,
+                        AND: [
+                            {
+                                address: {
+                                    OR: [
+                                        { countryCode: { in: countryCodes.length > 0 ? countryCodes : undefined } },
+                                        { countryCode: null }
+                                    ]
+                                }
                             },
-                            city: {
-                                in: cities,
+                            {
+                                address: {
+                                    OR: [
+                                        { city: { in: cities.length > 0 ? cities : undefined } },
+                                        { city: null }
+                                    ]
+                                }
                             },
-                            region: {
-                                in: regions,
+                            {
+                                address: {
+                                    OR: [
+                                        { region: { in: regions.length > 0 ? regions : undefined } },
+                                        { region: null }
+                                    ]
+                                }
                             },
-                            postalCode: {
-                                in: postalCodes,
+                            {
+                                address: {
+                                    OR: [
+                                        { postalCode: { in: postalCodes.length > 0 ? postalCodes : undefined } },
+                                        { postalCode: null }
+                                    ]
+                                }
                             },
-                            streetAddress: {
-                                in: streetAddresses,
-                            },
-                        },
-                        contactId,
+                            {
+                                address: {
+                                    OR: [
+                                        { streetAddress: { in: streetAddresses.length > 0 ? streetAddresses : undefined } },
+                                        { streetAddress: null }
+                                    ]
+                                }
+                            }
+                        ],
+                        contactId
                     },
-                })
+                });
+
             }
             if (addedItems) {
                 const addressesIDs = await getAddressIDs(
-                    googleResponseAddresses?.filter((address) =>
+                    mappedGoogleItems?.filter((address) =>
                         addedItems.some(
                             (item) =>
                                 item['countryCode'] === address.countryCode &&
@@ -384,12 +418,14 @@ const syncAddresses = async (
                         ),
                     ) || [],
                 )
+
                 const uniqueIDs = [...new Set([...addressesIDs])]
                 await prisma.contactAddress.createMany({
                     data: uniqueIDs.map((addressId) => ({
                         contactId,
-                        addressId,
+                        addressId
                     })),
+                    skipDuplicates: true
                 })
             }
         },

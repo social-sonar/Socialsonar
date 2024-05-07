@@ -133,7 +133,7 @@ export type MetaParamsMultiProperty = {
 
 export type PrismaHandlerSingle = (addedItems: (string | null | undefined)[], removedItems: string[]) => Promise<void>
 
-export type PrismaHandlerMultiple = (addedItems: Record<string, any>[], removedItems: Record<string, any>[]) => Promise<void>
+export type PrismaHandlerMultiple<T extends Record<string, any>> = (addedItems: Record<string, any>[], removedItems: Record<string, any>[], mappedGooglePayload: T[]) => Promise<void>
 
 export enum ResolutionStrategy {
     KEEP_ONE = "KEEP_ONE",
