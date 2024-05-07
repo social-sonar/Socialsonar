@@ -1,4 +1,4 @@
-export const maxDuration = 600
+export const maxDuration = 300
 
 import { GoogleSyncButton } from '@/components/Sync'
 import nextauth from '@/auth'
