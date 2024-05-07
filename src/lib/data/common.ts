@@ -251,6 +251,9 @@ type Duplicate = {
   secondContactId: number
 }
 
+const matches = (sentenceA: string, sentenceB: string): boolean =>
+  sentenceA.trim().split(/\s+/).length === sentenceB.trim().split(/\s+/).length
+
 const findDuplicates = async (userId: string) => {
   const combinations = new Set<string>()
   const duplicates: Duplicate[] = []
@@ -273,13 +276,15 @@ const findDuplicates = async (userId: string) => {
     contacts.forEach((innerContact) => {
       const currentCombination = [contact.id, innerContact.id].sort().toString()
       if (contact.id !== innerContact.id && !combinations.has(currentCombination)) {
-        const posibleDuplicate = fuzzy(contact.name, innerContact.name) > 0.90
-        if (posibleDuplicate) {
-          duplicates.push({
-            firstContactId: contact.id,
-            secondContactId: innerContact.id,
-          })
-          combinations.add([contact.id, innerContact.id].sort().toString())
+        if (matches(contact.name, innerContact.name)) {
+          const posibleDuplicate = fuzzy(contact.name, innerContact.name) > 0.90
+          if (posibleDuplicate) {
+            duplicates.push({
+              firstContactId: contact.id,
+              secondContactId: innerContact.id,
+            })
+            combinations.add([contact.id, innerContact.id].sort().toString())
+          }
         }
         const contactPhoneNumber = contact.phoneNumbers[0]?.phoneNumber
         const innerContactPhoneNumber = innerContact.phoneNumbers[0]?.phoneNumber
