@@ -660,7 +660,7 @@ export default function ContactList({ }) {
                                         key={contact.id + 'index:' + index}
                                         href={'tel://' + (a.phoneNumber || a.number)}
                                       >
-                                        {a.phoneNumber || a.number}
+                                        {(a.phoneNumber || a.number)}
                                       </a>
                                     )
                                   })
