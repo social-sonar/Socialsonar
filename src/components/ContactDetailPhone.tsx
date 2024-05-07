@@ -16,13 +16,15 @@ export default function ContactDetailAddress(props: {
   phone: CleanPhoneData
   callUpdate: (a: CleanPhoneData) => void
 }) {
+
   const [phone, setPhone] = useState<CleanPhoneData>(props.phone)
   const { callUpdate } = props
 
-  const countries = Object.entries(getNames('en'))
+  const countriesMap = getNames('en')
+  const countries = Object.entries(countriesMap)
 
   useEffect(() => {
-    const verifiedPhone = PhoneVerification(phone.phoneNumber ?? '')
+    const verifiedPhone = PhoneVerification((phone.phoneNumber || phone.number), { validateMobilePrefix: false })
 
     setPhone({
       ...phone,
@@ -32,8 +34,6 @@ export default function ContactDetailAddress(props: {
       countryCode: verifiedPhone.countryIso2 ?? '',
       phoneNumber: phone.phoneNumber ?? '',
     })
-
-    console.log(verifiedPhone)
 
     callUpdate(phone)
   }, [phone.phoneNumber])
@@ -50,14 +50,15 @@ export default function ContactDetailAddress(props: {
           </label>
           <div className="mt-2 flex">
             <select
-              disabled={true}
               id="country"
               name="country"
               autoComplete="country-name"
               className="mr-8 w-1/4 rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6 [&_*]:text-black"
-              value={phone.countryCode ?? ''}
+              value={(phone.countryIso2 || phone.countryIso3 || phone.countryCode || 'No country')}
             >
-              <option value={''}>No country</option>
+              <option value={(phone.countryIso2 || phone.countryIso3 || phone.countryCode || 'No country')} selected>
+                {countriesMap[(phone.countryIso2 || phone.countryIso3 || phone.countryCode || '')] ?? 'No country'}
+              </option>
               {countries.map((a) => {
                 return (
                   <option key={a[0]} value={a[0]}>
@@ -70,7 +71,7 @@ export default function ContactDetailAddress(props: {
               type="text"
               name="phonenumber"
               id="phonenumber"
-              value={phone.phoneNumber ?? ''}
+              value={(phone.phoneNumber || phone.number)}
               onChange={(e) => {
                 setPhone((prevPhone) => ({
                   ...prevPhone,

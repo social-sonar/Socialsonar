@@ -59,12 +59,12 @@ export const getOrganizationIDs = async (organizations: GoogleOrganization[]): P
 }
 
 export const getPhoneNumberIDs = async (phoneNumbers: GooglePhoneNumber[]): Promise<number[]> => {
-  const cleanItems = phoneNumbers.filter((phoneNumber) => phoneNumber.canonicalForm)
+  const cleanItems = phoneNumbers.filter((phoneNumber) => phoneNumber.canonicalForm || phoneNumber.value)
   const phoneNumbersIDs = await Promise.all(
     cleanItems.map(async (phoneNumber) => {
       let phoneNumberResult = await prisma.phoneNumber.findFirst({
         where: {
-          number: phoneNumber.canonicalForm!,
+          number: phoneNumber.canonicalForm ?? phoneNumber.value!,
           type: getPhoneNumberType(phoneNumber.type?.toLowerCase() || 'cell'),
         },
         select: {
@@ -76,7 +76,7 @@ export const getPhoneNumberIDs = async (phoneNumbers: GooglePhoneNumber[]): Prom
       }
       phoneNumberResult = await prisma.phoneNumber.create({
         data: {
-          number: phoneNumber.canonicalForm!,
+          number: phoneNumber.canonicalForm ?? phoneNumber.value!,
           type: getPhoneNumberType(phoneNumber.type?.toLowerCase() || 'cell'),
         },
       })

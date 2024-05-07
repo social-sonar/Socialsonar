@@ -16,12 +16,12 @@ export async function GET(req: NextRequest) {
     userId: contact.userId.toString(),
     name: contact.name,
     nickName: contact.nickName,
-    birthday: contact.birthday ? dateObject(contact.birthday): null,
+    birthday: contact.birthday ? dateObject(contact.birthday) : null,
     organizations: contact.organizations.map((item) => ({
-      ...item.organization, 
+      ...item.organization,
     })),
     phoneNumbers: contact.phoneNumbers.map((item): CleanPhoneData => {
-      let phoneProcesed = phone(item.phoneNumber.number)
+      let phoneProcesed = phone(item.phoneNumber.number, { validateMobilePrefix: false });
       return {
         ...phoneProcesed,
         ...item.phoneNumber,
@@ -33,8 +33,8 @@ export async function GET(req: NextRequest) {
     emails: contact.emails.map((item) => ({ ...item.email })),
     location:
       contact.phoneNumbers[0] &&
-      phone(contact.phoneNumbers[0].phoneNumber.number) &&
-      phone(contact.phoneNumbers[0].phoneNumber.number).countryIso2
+        phone(contact.phoneNumbers[0].phoneNumber.number) &&
+        phone(contact.phoneNumbers[0].phoneNumber.number).countryIso2
         ? phone(contact.phoneNumbers[0].phoneNumber.number).countryIso2
         : null,
     source: contact.googleContacts.length > 0 ? 'google' : 'custom',
