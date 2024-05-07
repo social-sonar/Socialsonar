@@ -47,7 +47,7 @@ export interface AddressInterface {
 }
 
 export type BirthDay = {
-    year: number,
+    year?: number,
     month: number,
     day: number
 }

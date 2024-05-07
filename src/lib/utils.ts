@@ -9,13 +9,20 @@ export function formatDate(dateString: string) {
   })
 }
 
-export const dateString = ({ year, month, day }: GoogleDate): string => `${year}/${month}/${day}`
+export const dateString = ({ year, month, day }: GoogleDate): string => `${year ? year + '/' : ''}${month}/${day}`
 
 export const dateObject = (dateString: string): BirthDay => {
-  const date = new Date(dateString)
+  let year, month, day;
+  const date = dateString.split('/')
+  if (date.length === 2) {
+    [month, day] = date
+  }
+  else {
+    [year, month, day] = date
+  }
   return {
-    year: date.getFullYear(),
-    month: date.getMonth() + 1,
-    day: date.getDate()
+    year: year && parseInt(year) || undefined,
+    month: parseInt(month),
+    day: parseInt(day)
   }
 }
