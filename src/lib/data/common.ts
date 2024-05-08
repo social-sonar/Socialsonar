@@ -370,15 +370,10 @@ export const findContacts = async (userId: string) =>
     where: {
       userId: userId,
       OR: [
-        // Contacts with finalContactId in ContactStatus
-        { finalContacts: { some: { finalContactId: { not: null } } } },
-        // Contacts with firstContacts or secondContacts in ContactStatus in PENDING status
-        {
-          OR: [
-            { firstContacts: { some: { OR: [{ mergeStatus: 'PENDING' }, { mergeStatus: 'MULTIPLE_CHOICE' }] } } },
-            { secondContacts: { some: { OR: [{ mergeStatus: 'PENDING' }, { mergeStatus: 'MULTIPLE_CHOICE' }] } } },
-          ]
-        },
+        // Contacts with firstContacts in ContactStatus with either PENDING or MULTIPLE_CHOICE status
+        { firstContacts: { some: { OR: [{ mergeStatus: 'PENDING' }, { mergeStatus: 'MULTIPLE_CHOICE' }] } } },
+        // Contacts with secondContacts in ContactStatus with either PENDING or MULTIPLE_CHOICE status
+        { secondContacts: { some: { OR: [{ mergeStatus: 'PENDING' }, { mergeStatus: 'MULTIPLE_CHOICE' }] } } },
         // Contacts without firstContacts or secondContacts in ContactStatus
         {
           NOT: {
@@ -478,26 +473,26 @@ export const mergeContacts = async (contactA: number, contactB: number, mergeNam
     data: {
       // both firstContact and secondContact have the same userId and name
       userId: firstContact.userId,
-      name: mergeName || firstContact.name,
-      phoneNumbers: {
-        connect: [
-          ...firstContact.phoneNumbers.map((phoneNumber) => ({ id: phoneNumber.phoneNumberId })),
-          ...secondContact.phoneNumbers.map((phoneNumber) => ({ id: phoneNumber.phoneNumberId })),
-        ],
-      },
-      addresses: {
-        connect: [
-          ...firstContact.addresses.map((address) => ({ id: address.addressId })),
-          ...secondContact.addresses.map((address) => ({ id: address.addressId })),
-        ],
-      },
-      emails: {
-        connect: [
-          ...firstContact.emails.map((email) => ({ id: email.emailId })),
-          ...secondContact.emails.map((email) => ({ id: email.emailId })),
-        ],
-      },
+      name: mergeName || firstContact.name
     },
+  })
+
+  await prisma.contactPhoneNumber.createMany({
+    data: [...firstContact.phoneNumbers, ...secondContact.phoneNumbers].map((phoneNumber) =>
+      ({ phoneNumberId: phoneNumber.phoneNumberId, contactId: newContact.id })),
+    skipDuplicates: true
+  })
+
+  await prisma.contactAddress.createMany({
+    data: [...firstContact.addresses, ...secondContact.addresses].map((address) =>
+      ({ addressId: address.addressId, contactId: newContact.id })),
+    skipDuplicates: true
+  })
+
+  await prisma.contactEmail.createMany({
+    data: [...firstContact.emails, ...secondContact.emails].map((email) =>
+      ({ emailId: email.emailId, contactId: newContact.id })),
+    skipDuplicates: true
   })
 
   await prisma.contactStatus.updateMany({
