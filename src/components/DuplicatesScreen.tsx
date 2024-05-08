@@ -10,7 +10,7 @@ type DuplicatedContacts = {
 type Options = {
     optionA: FlattenContact
     optionB: FlattenContact
-    localDeletionHandler: (id: number) => void
+    localDeletionHandler: (parentId: number, duplicatedId: number) => void
 }
 
 async function handleDuplication(payload: DuplicateContactResolutionPayload) {
@@ -52,7 +52,7 @@ function DuplicateContactCard({ optionA, optionB, localDeletionHandler }: Option
                                 contactA: optionA.id,
                                 contactB: optionB.id,
                             })
-                            localDeletionHandler(optionB.id)
+                            localDeletionHandler(optionA.id, optionB.id)
                         }}
                     >
                         Keep both
@@ -69,7 +69,7 @@ function DuplicateContactCard({ optionA, optionB, localDeletionHandler }: Option
                                     contactA: optionA.id,
                                     contactB: optionB.id,
                                 })
-                                localDeletionHandler(optionB.id)
+                                localDeletionHandler(optionA.id, optionB.id)
                             }
                         }}
                     >
@@ -84,7 +84,7 @@ function DuplicateContactCard({ optionA, optionB, localDeletionHandler }: Option
                                 contactA: contactId,
                                 contactB: contactId == optionA.id ? optionB.id : optionA.id,
                             })
-                            localDeletionHandler(optionB.id)
+                            localDeletionHandler(optionA.id, optionB.id)
                         }}
                     >
                         Keep selected contact
@@ -111,7 +111,7 @@ function DuplicateContactCard({ optionA, optionB, localDeletionHandler }: Option
                                     contactB: optionB.id,
                                     mergeName,
                                 })
-                                localDeletionHandler(optionB.id)
+                                localDeletionHandler(optionA.id, optionB.id)
                             }}
                         >
                             Done
@@ -155,15 +155,19 @@ function Contact({ contact, className }: { contact: FlattenContact; className: s
 export default function DuplicatesScreen({ contacts }: DuplicatedContacts) {
     const [updatedContacts, setUpdatedContacts] = useState<FlattenContact[]>([])
     useEffect(() => {
-        // Code to execute when 'contacts' array changes
         setUpdatedContacts(contacts)
     }, [contacts])
 
-    const deleteContact = (id: number) => {
-        let filteredContacts = updatedContacts.map((contact) => ({
-            ...contact,
-            duplicates: contact.duplicates?.filter((duplicate) => duplicate.id !== id),
-        }))
+    const deleteContact = (parentId: number, duplicatedId: number) => {
+        let filteredContacts = updatedContacts.map((contact) => {
+            if (contact.id !== parentId)
+                return contact;
+            return {
+                ...contact,
+                duplicates: contact.duplicates?.filter((duplicate) => duplicate.id !== duplicatedId),
+            }
+        }
+        )
         filteredContacts = filteredContacts.filter((contact) => contact.duplicates?.length! > 0)
         setUpdatedContacts(filteredContacts)
     }
