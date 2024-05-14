@@ -48,8 +48,8 @@ export interface AddressInterface {
 
 export type BirthDay = {
     year?: number,
-    month: number,
-    day: number
+    month?: number,
+    day?: number
 }
 
 export type FlattenContact = {
@@ -65,7 +65,7 @@ export type FlattenContact = {
     }[],
     phoneNumbers: CleanPhoneData[],
     occupations: {
-        id: number;
+        id?: number;
         name: string;
     }[],
     photos: {

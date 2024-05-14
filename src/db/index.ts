@@ -13,6 +13,8 @@ const globalForPrisma = global as unknown as { prisma: PrismaClient }
 const neon = new Pool({ connectionString: process.env.POSTGRES_PRISMA_URL })
 const adapter = new PrismaNeon(neon)
 
+// console.log(process.env.POSTGRES_PRISMA_URL)
+
 export const prisma = globalForPrisma.prisma || new PrismaClient({ adapter })
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma

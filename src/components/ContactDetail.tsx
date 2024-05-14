@@ -1,4 +1,4 @@
-import { Dispatch, Fragment, SetStateAction, useState } from 'react'
+import { Dispatch, Fragment, SetStateAction, useEffect, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { CheckIcon } from '@heroicons/react/24/outline'
 import {
@@ -13,6 +13,9 @@ import { FlattenContact } from '@/lib/definitions'
 import { useContacts } from '@/app/ContactsProvider'
 import ContactDetailPhone from './ContactDetailPhone'
 import phone from 'phone'
+import { useFormState } from 'react-dom'
+import { saveContact, State } from '@/actions/saveContact'
+import { number } from 'zod'
 
 interface ContactDetailProps {
   children?: React.ReactNode
@@ -23,13 +26,25 @@ interface ContactDetailProps {
 }
 
 export default function ContactDetail(props: ContactDetailProps) {
-  const [isEdited, setIsEdited] = useState(false)
+  const [isEdited, setIsEdited] = useState(true)
+  const initialState : State = {}
+  const [state, formAction] = useFormState(saveContact, initialState)
 
   const [showAdresses, setShowAdresses] = useState(false)
   const [showPhones, setShowPhones] = useState(false)
 
-  const { contact } = props
-  const { updateContact } = useContacts()
+  const [contact, setContact] = useState(props.contact)
+  const { getContactByID, updateContact } = useContacts()
+
+  const handleSubmit = async (event: { preventDefault: () => void }) => {
+    event.preventDefault()
+    let saveResponse = await saveContact(state, contact)
+    console.log("New contact:", saveResponse.contact);
+    
+    if (saveResponse.errors?.length == 0) {
+      updateContact(contact.id, saveResponse.contact!)
+    }
+  }
 
   return (
     <Transition.Root show={props.open} as={Fragment}>
@@ -59,7 +74,7 @@ export default function ContactDetail(props: ContactDetailProps) {
             >
               <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-black px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-1/2 sm:p-6">
                 <div>
-                  <form>
+                  <form onSubmit={handleSubmit}>
                     <div className="">
                       {/* <div className="border-b border-white/10 "> */}
 
@@ -75,11 +90,10 @@ export default function ContactDetail(props: ContactDetailProps) {
                           </div>
                           <div className="sm:col-span-3">
                             <div className="float-right flex items-center">
-                              {props.contact?.photos &&
-                                props.contact.photos[0] ? (
+                              {contact?.photos && contact.photos[0] ? (
                                 <img
                                   className="h-20 w-20 flex-none rounded-full bg-gray-800"
-                                  src={props.contact?.photos[0].url}
+                                  src={contact?.photos[0].url}
                                   alt=""
                                 />
                               ) : (
@@ -107,7 +121,8 @@ export default function ContactDetail(props: ContactDetailProps) {
                                 className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
                                 defaultValue={contact.name}
                                 onChange={(e) => {
-                                  updateContact(contact.id, {
+                                  setContact({
+                                    ...contact,
                                     name: e.target.value,
                                   })
                                 }}
@@ -129,24 +144,28 @@ export default function ContactDetail(props: ContactDetailProps) {
                                 id="mainphone"
                                 autoComplete="family-name"
                                 className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
-                                value={
+                                defaultValue={
                                   contact.phoneNumbers[0]?.phoneNumber ||
-                                  undefined
+                                  contact.phoneNumbers[0]?.number
                                 }
                                 onChange={(e) => {
                                   if (contact.phoneNumbers.length > 0) {
-                                    contact.phoneNumbers[0]!.phoneNumber =
-                                      e.target.value
+                                    contact.phoneNumbers[0] = {
+                                      number: e.target.value,
+                                      type: 'CELL',
+                                      ...phone(e.target.value),
+                                    }
                                   } else {
                                     contact.phoneNumbers = [
                                       {
-                                        ...phone(e.target.value),
                                         number: e.target.value,
                                         type: 'CELL',
+                                        ...phone(e.target.value),
                                       },
                                     ]
                                   }
-                                  updateContact(contact.id, {
+                                  setContact({
+                                    ...contact,
                                     phoneNumbers: contact.phoneNumbers,
                                   })
                                 }}
@@ -179,7 +198,8 @@ export default function ContactDetail(props: ContactDetailProps) {
                                       },
                                     ]
                                   }
-                                  updateContact(contact.id, {
+                                  setContact({
+                                    ...contact,
                                     emails: contact.emails,
                                   })
                                 }}
@@ -189,7 +209,7 @@ export default function ContactDetail(props: ContactDetailProps) {
 
                           <div className="sm:col-span-2">
                             <label
-                              htmlFor="mainphone"
+                              htmlFor="mainrole"
                               className="block text-sm font-medium leading-6 text-white"
                             >
                               Main role
@@ -197,8 +217,8 @@ export default function ContactDetail(props: ContactDetailProps) {
                             <div className="mt-2">
                               <input
                                 type="text"
-                                name="mainphone"
-                                id="mainphone"
+                                name="mainrole"
+                                id="mainrole"
                                 autoComplete="family-name"
                                 className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
                                 defaultValue={
@@ -211,12 +231,13 @@ export default function ContactDetail(props: ContactDetailProps) {
                                   } else {
                                     contact.occupations = [
                                       {
-                                        id: Math.round(Math.random() * 100000),
                                         name: e.target.value,
+                                        ocuppation: undefined
                                       },
                                     ]
                                   }
-                                  updateContact(contact.id, {
+                                  setContact({
+                                    ...contact,
                                     occupations: contact.occupations,
                                   })
                                 }}
@@ -226,17 +247,17 @@ export default function ContactDetail(props: ContactDetailProps) {
 
                           <div className="sm:col-span-2">
                             <label
-                              htmlFor="email"
+                              htmlFor="organization"
                               className="block text-sm font-medium leading-6 text-white"
                             >
                               Main organization
                             </label>
                             <div className="mt-2">
                               <input
-                                id="email"
-                                name="email"
-                                type="email"
-                                autoComplete="email"
+                                id="organization"
+                                name="organization"
+                                type="text"
+                                autoComplete="organization"
                                 className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
                                 defaultValue={
                                   contact.organizations[0]?.name ?? ''
@@ -252,7 +273,8 @@ export default function ContactDetail(props: ContactDetailProps) {
                                       },
                                     ]
                                   }
-                                  updateContact(contact.id, {
+                                  setContact({
+                                    ...contact,
                                     organizations: contact.organizations,
                                   })
                                 }}
@@ -271,32 +293,65 @@ export default function ContactDetail(props: ContactDetailProps) {
                                 id="bday"
                                 name="bday"
                                 type="number"
-                                value={contact.birthday?.day}
+                                defaultValue={contact.birthday?.day}
                                 min={1}
                                 max={31}
                                 placeholder="day"
                                 className="w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
+                                onChange={(e) => {
+                                  const newBirthDay = {
+                                    day: e.target.valueAsNumber,
+                                    year: contact.birthday?.year,
+                                    month: contact.birthday?.month,
+                                  }
+                                  setContact({
+                                    ...contact,
+                                    birthday: newBirthDay,
+                                  })
+                                }}
                               />
                               <input
                                 id="bmonth"
                                 name="bmonth"
                                 type="number"
-                                value={contact.birthday?.month}
+                                defaultValue={contact.birthday?.month}
                                 min={1}
                                 max={12}
                                 placeholder="month"
                                 className="w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
+                                onChange={(e) => {
+                                  const newBirthDay = {
+                                    day: contact.birthday?.day,
+                                    year: contact.birthday?.year,
+                                    month: e.target.valueAsNumber,
+                                  }
+                                  setContact({
+                                    ...contact,
+                                    birthday: newBirthDay,
+                                  })
+                                }}
                               />
                               <input
                                 id="byear"
                                 name="byear"
                                 type="number"
-                                value={contact.birthday?.year}
+                                defaultValue={contact.birthday?.year}
                                 min={1900}
                                 max={2024}
                                 placeholder="year"
                                 autoComplete="email"
                                 className="w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
+                                onChange={(e) => {
+                                  const newBirthDay = {
+                                    day: contact.birthday?.day,
+                                    year: e.target.valueAsNumber,
+                                    month: contact.birthday?.month,
+                                  }
+                                  setContact({
+                                    ...contact,
+                                    birthday: newBirthDay,
+                                  })
+                                }}
                               />
                             </div>
                           </div>
@@ -311,18 +366,16 @@ export default function ContactDetail(props: ContactDetailProps) {
                         </div>
                         <div className="relative flex items-center justify-between">
                           <span className="text-white-900 pr-3text-base bg-black font-semibold leading-6">
-                            Phones
+                            Extra phones
                           </span>
                           <button
                             onClick={(e) => {
-                              if ((contact.phoneNumbers?.length || 0) == 0) {
-                                contact.phoneNumbers = [
-                                  {
-                                    ...phone(""),
-                                    number: "",
-                                    type: 'CELL',
-                                  },
-                                ]
+                              if ((contact.phoneNumbers?.length || 0) <= 1) {
+                                contact.phoneNumbers.push({
+                                  ...phone(''),
+                                  number: '',
+                                  type: 'CELL',
+                                })
                               }
                               setShowPhones(!showPhones)
                             }}
@@ -343,7 +396,7 @@ export default function ContactDetail(props: ContactDetailProps) {
                             <span>
                               {showPhones
                                 ? 'Hide'
-                                : (props.contact?.phoneNumbers?.length || 0) > 0
+                                : (contact?.phoneNumbers?.length || 0) > 1
                                   ? 'Show'
                                   : 'Add'}
                             </span>
@@ -351,15 +404,27 @@ export default function ContactDetail(props: ContactDetailProps) {
                         </div>
                       </div>
                       {showPhones &&
-                        props.contact?.phoneNumbers.map((a, i) => {
+                        contact?.phoneNumbers.slice(1).map((a, i) => {
                           return (
                             <ContactDetailPhone
-                              key={contact.id + '_' + i}
-                              callUpdate={(updatedPhone) => {
-                                contact.phoneNumbers[i] = updatedPhone
-                                updateContact(contact.id, {
-                                  phoneNumbers: contact.phoneNumbers,
-                                })
+                              key={contact.id + '_' + (i + 1)}
+                              callUpdate={(newPhoneData) => {
+                                setContact((prev) => ({
+                                  ...prev,
+                                  phoneNumbers: prev.phoneNumbers.map(
+                                    (phone, index) =>
+                                      index === i + 1 ? newPhoneData : phone,
+                                  ),
+                                }))
+                              }}
+                              callDelete={() => {
+                                setContact((prev) => ({
+                                  ...prev,
+                                  phoneNumbers: prev.phoneNumbers.filter(
+                                    (_, idx) => idx !== i + 1,
+                                  ),
+                                }))
+                                setShowPhones(false)
                               }}
                               phone={a}
                             ></ContactDetailPhone>
@@ -408,7 +473,7 @@ export default function ContactDetail(props: ContactDetailProps) {
                             <span>
                               {showAdresses
                                 ? 'Hide'
-                                : props.contact?.addresses?.length || 0 > 0
+                                : contact?.addresses?.length || 0 > 0
                                   ? 'Show'
                                   : 'Add'}
                             </span>
@@ -416,13 +481,14 @@ export default function ContactDetail(props: ContactDetailProps) {
                         </div>
                       </div>
                       {showAdresses &&
-                        props.contact?.addresses.map((a, i) => {
+                        contact?.addresses.map((a, i) => {
                           return (
                             <ContactDetailAddress
                               key={contact.id + '_' + i}
                               callUpdate={(updatedAddress) => {
                                 contact.addresses[i] = updatedAddress
-                                updateContact(contact.id, {
+                                setContact({
+                                  ...contact,
                                   addresses: contact.addresses,
                                 })
                               }}

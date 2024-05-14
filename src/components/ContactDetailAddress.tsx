@@ -1,4 +1,4 @@
-import { Dispatch, Fragment, SetStateAction, useState } from 'react'
+import { Dispatch, Fragment, SetStateAction, useEffect, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { CheckIcon } from '@heroicons/react/24/outline'
 import { BarsArrowUpIcon, PlusIcon, UsersIcon } from '@heroicons/react/20/solid'
@@ -14,6 +14,10 @@ export default function ContactDetailAddress(props: {
   const { callUpdate } = props
 
   const countries = Object.entries(getNames('en'))
+
+  useEffect(() => {
+    callUpdate(address)
+  }, [address])
 
   return (
     <div className="border-b border-white/10 pb-12">
@@ -31,16 +35,15 @@ export default function ContactDetailAddress(props: {
               name="country"
               autoComplete="country-name"
               className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6 [&_*]:text-black"
-              value={address.countryCode ?? ''}
+              defaultValue={address.countryCode ?? ''}
               onChange={(e) => {
                 setAddress({
                   ...address,
                   countryCode: e.target.value,
                 })
-                callUpdate(address)
               }}
             >
-                <option value={""}>No country</option>
+              <option value={''}>No country</option>
               {countries.map((a) => {
                 return (
                   <option key={a[0]} value={a[0]}>
@@ -71,7 +74,6 @@ export default function ContactDetailAddress(props: {
                   ...address,
                   streetAddress: e.target.value,
                 })
-                callUpdate(address)
               }}
               className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
             />
@@ -97,7 +99,6 @@ export default function ContactDetailAddress(props: {
                   ...address,
                   city: e.target.value,
                 })
-                callUpdate(address)
               }}
               className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
             />
@@ -123,7 +124,6 @@ export default function ContactDetailAddress(props: {
                   ...address,
                   region: e.target.value,
                 })
-                callUpdate(address)
               }}
               className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
             />
@@ -149,7 +149,6 @@ export default function ContactDetailAddress(props: {
                   ...address,
                   postalCode: e.target.value,
                 })
-                callUpdate(address)
               }}
               className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
             />

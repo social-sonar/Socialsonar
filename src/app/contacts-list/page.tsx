@@ -9,11 +9,7 @@ import {
 } from '@heroicons/react/20/solid'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { getName, registerLocale } from 'i18n-iso-countries'
-import {
-  Fragment,
-  useEffect,
-  useState
-} from 'react'
+import { Fragment, useEffect, useState } from 'react'
 
 import { useContacts } from '@/app/ContactsProvider'
 import ContactDetail from '@/components/ContactDetail'
@@ -26,7 +22,6 @@ import { FlattenContact } from '@/lib/definitions'
 import clsx from 'clsx'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
-
 
 const sortOptions = [
   { name: 'A - Z', href: '#', current: true },
@@ -66,9 +61,8 @@ interface Option {
   checked: boolean
 }
 
-export default function ContactList({ }) {
+export default function ContactList({}) {
   registerLocale(require('i18n-iso-countries/langs/en.json'))
-
 
   const { contacts, updateContact, setContacts } = useContacts()
   const [isLoading, setIsLoading] = useState(false)
@@ -85,6 +79,12 @@ export default function ContactList({ }) {
   const [detailedContact, setDetailedContact] = useState<FlattenContact | null>(
     null,
   )
+
+  useEffect(() => {
+    if (!showContactDetail) {
+      setDetailedContact(null)
+    }
+  }, [showContactDetail])
 
   const fetchContacts = () => {
     if (session.status == 'authenticated') {
@@ -106,7 +106,7 @@ export default function ContactList({ }) {
 
   useEffect(() => {
     fetchContacts()
-  }, [])
+  }, [session.status])
 
   const handleSourceChange = (source: string) => {
     setSelectedSource(source)
@@ -120,7 +120,7 @@ export default function ContactList({ }) {
       occupationOptions.options = contacts
         .flatMap((a) => {
           return (a.occupations || []).map((b) => {
-            return { value: b.id.toString(), label: b.name, checked: false }
+            return { value: (b.id || "").toString(), label: b.name, checked: false }
           })
         })
         .filter((v, i, a) => a.findIndex((v2) => v2.value === v.value) === i)
@@ -211,7 +211,7 @@ export default function ContactList({ }) {
     if ((selectedRoles || []).length > 0) {
       newFilteredContacts = newFilteredContacts.filter((contact) =>
         contact.occupations.find((a) =>
-          selectedRoles!.find((b) => b == a.id.toString()),
+          selectedRoles!.find((b) => b == (a.id || "").toString()),
         ),
       )
     }
@@ -257,11 +257,13 @@ export default function ContactList({ }) {
 
   return (
     <>
-      {detailedContact && <ContactDetail
-        open={showContactDetail}
-        setOpen={setShowContactDetail}
-        contact={detailedContact}
-      />}
+      {detailedContact && (
+        <ContactDetail
+          open={showContactDetail}
+          setOpen={setShowContactDetail}
+          contact={detailedContact}
+        />
+      )}
 
       {/* Mobile filter dialog */}
       <Transition.Root show={mobileFiltersOpen} as={Fragment}>
@@ -395,24 +397,27 @@ export default function ContactList({ }) {
           </div>
         </Dialog>
       </Transition.Root>
-      {isLoading ?
-        <LoadingSpinner size={100} className='mx-auto' /> :
+      {isLoading ? (
+        <LoadingSpinner size={100} className="mx-auto" />
+      ) : (
         <main className="mx-auto h-full px-4 sm:px-6 lg:px-8">
+          <DuplicatesScreen
+            contacts={contacts.filter(
+              (contact) => contact.duplicates?.length! > 0 || false,
+            )}
+          />
 
-          <DuplicatesScreen contacts={contacts.filter(contact => contact.duplicates?.length! > 0 || false)} />
-
-          <div className="flex items-center gap-7 justify-between border-b border-gray-200 pb-6 pt-2 lg:mt-5 md:mt-10">
-            <h1 className="text-white-900 lg:text-4xl md:text-4xl text-xl font-bold tracking-tight">
+          <div className="flex items-center justify-between gap-7 border-b border-gray-200 pb-6 pt-2 md:mt-10 lg:mt-5">
+            <h1 className="text-white-900 text-xl font-bold tracking-tight md:text-4xl lg:text-4xl">
               Contact book
             </h1>
 
             <div className="flex gap-0">
-              <button
-                className='h-[25px] w-[25px]'>
+              <button className="h-[25px] w-[25px]">
                 <img
                   src={RefreshIcon.src}
                   alt="Refresh icon"
-                  title='Refresh contact list'
+                  title="Refresh contact list"
                   onClick={fetchContacts}
                 />
               </button>
@@ -420,7 +425,11 @@ export default function ContactList({ }) {
                 <div>
                   <Menu.Button className="hover:text-white-900 text-white-700 group inline-flex justify-center pl-6 text-sm font-medium">
                     Sort{' '}
-                    {sortApplied ? (sortApplied == 'AZ' ? 'A - Z' : 'Z - A') : ''}
+                    {sortApplied
+                      ? sortApplied == 'AZ'
+                        ? 'A - Z'
+                        : 'Z - A'
+                      : ''}
                     <ChevronDownIcon
                       className="group-hover:text-white-500 -mr-1 ml-1 h-5 w-5 flex-shrink-0 text-gray-400"
                       aria-hidden="true"
@@ -587,9 +596,9 @@ export default function ContactList({ }) {
                                     >
                                       {section.id == 'location' && option.label
                                         ? getName(option.label, 'en', {
-                                          select: 'alias',
-                                        }) ?? 'No assigned country'
-                                        : (option.label ?? "No assigned country")}
+                                            select: 'alias',
+                                          }) ?? 'No assigned country'
+                                        : option.label ?? 'No assigned country'}
                                     </label>
                                   </div>
                                 ))}
@@ -622,14 +631,18 @@ export default function ContactList({ }) {
                           key={contact.id}
                           className="flex justify-between gap-x-6 py-5"
                           onClick={(e) => {
-                            setShowContactDetail(true)
                             setDetailedContact(contact)
+                            setShowContactDetail(true)
                           }}
                         >
                           <div className="flex min-w-0 gap-x-4">
                             <img
                               className="h-12 w-12 flex-none rounded-full bg-gray-800"
-                              src={contact.photos && contact.photos[0] ? contact.photos[0].url : UserIcon.src}
+                              src={
+                                contact.photos && contact.photos[0]
+                                  ? contact.photos[0].url
+                                  : UserIcon.src
+                              }
                               alt=""
                             />
                             <div className="min-w-0 flex-auto">
@@ -648,8 +661,8 @@ export default function ContactList({ }) {
                               {contact.occupations.length == 0
                                 ? 'No role found'
                                 : contact.occupations
-                                  .map((a: { name: any }) => a.name)
-                                  .join(' | ')}
+                                    .map((a: { name: any }) => a.name)
+                                    .join(' | ')}
                             </p>
                             {contact.phoneNumbers.length > 0 ? (
                               <p className="mt-1 text-xs leading-5 text-gray-400">
@@ -658,9 +671,11 @@ export default function ContactList({ }) {
                                     return (
                                       <a
                                         key={contact.id + 'index:' + index}
-                                        href={'tel://' + (a.phoneNumber || a.number)}
+                                        href={
+                                          'tel://' + (a.phoneNumber || a.number)
+                                        }
                                       >
-                                        {(a.phoneNumber || a.number)}
+                                        {a.phoneNumber || a.number}
                                       </a>
                                     )
                                   })
@@ -671,7 +686,7 @@ export default function ContactList({ }) {
                                       ) : (
                                         <>
                                           {acc}
-                                          <span className='mx-2'>|</span>
+                                          <span className="mx-2">|</span>
                                           {x}
                                         </>
                                       ),
@@ -705,7 +720,7 @@ export default function ContactList({ }) {
             </div>
           </section>
         </main>
-      }
+      )}
     </>
   )
 }
