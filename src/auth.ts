@@ -28,6 +28,7 @@ export default NextAuth({
     async jwt({ token, user, account }) {
       if (account && user) {
         token.accessToken = account.access_token;
+        token.refreshToken = account.refresh_token;
         token.user = user;
       }
       return token;
@@ -38,6 +39,8 @@ export default NextAuth({
 
       feededSession.user = token.user as any;
       feededSession.accessToken = token.accessToken
+      feededSession.refreshToken = token.refreshToken
+      feededSession.expiresAt = token.exp
 
       return feededSession;
     }

@@ -11,7 +11,11 @@ interface PhoneValidResult {
 }
 export interface CustomSession extends Session {
     accessToken: string
+    refreshToken: string
+    expiresAt: number
 }
+
+export type GoogleContactMainResponse = people_v1.Schema$ListConnectionsResponse
 
 export type GoogleResponse = people_v1.Schema$Person
 
