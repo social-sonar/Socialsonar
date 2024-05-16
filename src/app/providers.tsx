@@ -6,6 +6,8 @@ import { ThemeProvider, useTheme } from 'next-themes'
 import { SessionProvider } from 'next-auth/react'
 import { ContactProvider } from './ContactsProvider'
 
+import { NotificationProvider } from '@/app/NotificationsProvider'
+import Notification from '@/components/common/notification'
 function usePrevious<T>(value: T) {
   let ref = useRef<T>()
 
@@ -49,10 +51,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <AppContext.Provider value={{ previousPathname }}>
       <ThemeProvider attribute="class" disableTransitionOnChange>
-        <ThemeWatcher />
-        <SessionProvider>
-          <ContactProvider>{children}</ContactProvider>
-        </SessionProvider>
+        <NotificationProvider>
+          <ThemeWatcher />
+          <SessionProvider>
+            <ContactProvider>{children}</ContactProvider>
+            <Notification></Notification>
+          </SessionProvider>
+        </NotificationProvider>
       </ThemeProvider>
     </AppContext.Provider>
   )

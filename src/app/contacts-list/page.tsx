@@ -120,7 +120,11 @@ export default function ContactList({}) {
       occupationOptions.options = contacts
         .flatMap((a) => {
           return (a.occupations || []).map((b) => {
-            return { value: (b.id || "").toString(), label: b.name, checked: false }
+            return {
+              value: (b.id || '').toString(),
+              label: b.name,
+              checked: false,
+            }
           })
         })
         .filter((v, i, a) => a.findIndex((v2) => v2.value === v.value) === i)
@@ -211,7 +215,7 @@ export default function ContactList({}) {
     if ((selectedRoles || []).length > 0) {
       newFilteredContacts = newFilteredContacts.filter((contact) =>
         contact.occupations.find((a) =>
-          selectedRoles!.find((b) => b == (a.id || "").toString()),
+          selectedRoles!.find((b) => b == (a.id || '').toString()),
         ),
       )
     }
@@ -631,6 +635,7 @@ export default function ContactList({}) {
                           key={contact.id}
                           className="flex justify-between gap-x-6 py-5"
                           onClick={(e) => {
+                            e.preventDefault()
                             setDetailedContact(contact)
                             setShowContactDetail(true)
                           }}
