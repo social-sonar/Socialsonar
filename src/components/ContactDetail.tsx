@@ -30,7 +30,6 @@ export default function ContactDetail(props: ContactDetailProps) {
   const [isEdited, setIsEdited] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const initialState: State = {}
-  const [state, formAction] = useFormState(saveContact, initialState)
   const [showAddresses, setShowAddresses] = useState(false)
   const [showPhones, setShowPhones] = useState(false)
   const [contact, setContact] = useState<Partial<FlattenContact>>(props.contact)
@@ -53,7 +52,7 @@ export default function ContactDetail(props: ContactDetailProps) {
         'Your data is being saved',
         LoadingSpinner({ size: 20 }),
       )
-      let saveResponse = await saveContact(state, contact, props.session!)
+      let saveResponse = await saveContact(contact, props.session!)
 
       if (
         saveResponse &&

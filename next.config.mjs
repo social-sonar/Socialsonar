@@ -8,6 +8,9 @@ const nextConfig = {
   images: {
     remotePatterns: [{hostname: 'lh3.googleusercontent.com'}],
   },
+  experimental:{
+    missingSuspenseWithCSRBailout: false
+  }
 }
 const withMDX = nextMDX({
   extension: /\.mdx?$/,

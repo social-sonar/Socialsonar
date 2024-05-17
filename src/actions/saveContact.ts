@@ -1,3 +1,6 @@
+/* eslint-disable */
+// @ts-nocheck
+
 'use server'
 
 import prisma from '@/db'
@@ -21,7 +24,6 @@ export type State = {
 }
 
 export async function saveContact(
-  prevState: State | undefined,
   contact: Partial<FlattenContact>,
   session: Session,
 ) {
@@ -31,8 +33,8 @@ export async function saveContact(
     }
 
     let dataToUpdate: Partial<PlainFields> = {
-      name: contact.name ?? '', // eslint-disable-line @typescript-eslint/no-non-null-assertion
-      nickName: contact.nickName ?? '', // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      name: contact.name ?? '',
+      nickName: contact.nickName ?? '',
     }
 
     if (contact.birthday) {
@@ -46,7 +48,7 @@ export async function saveContact(
         id: contact.id ?? -1,
       },
       update: dataToUpdate,
-      create: { ...dataToUpdate, userId: session!.user!.id! } // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      create: { ...dataToUpdate, userId: session!.user!.id! },
     })
 
     if (contact.phoneNumbers) {

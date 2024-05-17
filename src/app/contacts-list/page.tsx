@@ -9,7 +9,7 @@ import {
   XMarkIcon,
 } from '@heroicons/react/20/solid'
 import { getName, registerLocale } from 'i18n-iso-countries'
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useEffect, useState, Suspense } from 'react'
 
 import { useContacts } from '@/app/ContactsProvider'
 import ContactDetail from '@/components/ContactDetail'
@@ -255,7 +255,7 @@ export default function ContactList() {
   }, [sortApplied, contacts, filteredContacts])
 
   return (
-    <>
+    <Suspense fallback={<LoadingSpinner size={100} className="mx-auto" />}>
       {detailedContact && (
         <ContactDetail
           open={showContactDetail}
@@ -719,6 +719,6 @@ export default function ContactList() {
           </section>
         </main>
       )}
-    </>
+    </Suspense>
   )
 }
