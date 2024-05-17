@@ -12,13 +12,6 @@ import { dateString } from '@/lib/utils'
 import { Address, Email, Occupation, Organization } from '@prisma/client'
 import { useSession } from 'next-auth/react'
 import { Session } from 'next-auth/types'
-import { z } from 'zod'
-
-const NameFormSchema = z.object({
-  name: z
-    .string()
-    .min(2, { message: 'You must enter at least two characters' }),
-})
 
 export type State = {
   errors?: []
@@ -38,8 +31,8 @@ export async function saveContact(
     }
 
     let dataToUpdate: Partial<PlainFields> = {
-      name: contact.name ?? '',
-      nickName: contact.nickName ?? '',
+      name: contact.name ?? '', // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      nickName: contact.nickName ?? '', // eslint-disable-line @typescript-eslint/no-non-null-assertion
     }
 
     if (contact.birthday) {
@@ -53,7 +46,7 @@ export async function saveContact(
         id: contact.id ?? -1,
       },
       update: dataToUpdate,
-      create: { ...dataToUpdate, userId: session!.user!.id! }, // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      create: { ...dataToUpdate, userId: session!.user!.id! } // eslint-disable-line @typescript-eslint/no-non-null-assertion
     })
 
     if (contact.phoneNumbers) {
