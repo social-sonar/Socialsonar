@@ -1,13 +1,10 @@
 import { Dispatch, Fragment, SetStateAction, useEffect, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
-import { CheckIcon } from '@heroicons/react/24/outline'
 import {
-  BarsArrowUpIcon,
-  MinusIcon,
-  PlusIcon,
-  UsersIcon,
-} from '@heroicons/react/20/solid'
-import { PhotoIcon, UserCircleIcon } from '@heroicons/react/24/solid'
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+} from '@heroicons/react/24/outline'
+import { MinusIcon, PlusIcon, UserCircleIcon } from '@heroicons/react/24/solid'
 import ContactDetailAddress from './ContactDetailAddress'
 import { FlattenContact } from '@/lib/definitions'
 import { useContacts } from '@/app/ContactsProvider'
@@ -15,52 +12,81 @@ import ContactDetailPhone from './ContactDetailPhone'
 import phone from 'phone'
 import { useFormState } from 'react-dom'
 import { saveContact, State } from '@/actions/saveContact'
-import { number } from 'zod'
 import LoadingSpinner from './common/spinner'
 import { useNotification } from '@/app/NotificationsProvider'
+import { Session } from 'next-auth/types'
+import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 
 interface ContactDetailProps {
   children?: React.ReactNode
-
   open: boolean
   setOpen: Dispatch<SetStateAction<boolean>>
-  contact: FlattenContact
+  contact: Partial<FlattenContact>
+  session: Session | null
 }
 
 export default function ContactDetail(props: ContactDetailProps) {
   const { showNotification, hideNotification } = useNotification()
   const [isEdited, setIsEdited] = useState(true)
-  const [isSaving, setIsSaveing] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const initialState: State = {}
   const [state, formAction] = useFormState(saveContact, initialState)
-
-  const [showAdresses, setShowAdresses] = useState(false)
+  const [showAddresses, setShowAddresses] = useState(false)
   const [showPhones, setShowPhones] = useState(false)
+  const [contact, setContact] = useState<Partial<FlattenContact>>(props.contact)
+  const { getContactByID, updateContact, contacts, setContacts } = useContacts()
+  const router = useRouter()
+  const pathname = usePathname();
 
-  const [contact, setContact] = useState(props.contact)
-  const { getContactByID, updateContact } = useContacts()
+  useEffect(() => {
+    if (!props.open) {
+      router.push(pathname, {scroll: false})
+    }
+  }, [props.open])
 
-  const handleSubmit = async (event: { preventDefault: () => void }) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
-    if (!isSaving) {
-      setIsSaveing(true)
-      let saveResponse = await saveContact(state, contact)
+    if (!isSaving && props.session) {
+      setIsSaving(true)
+      showNotification(
+        'Saving',
+        'Your data is being saved',
+        LoadingSpinner({ size: 20 }),
+      )
+      let saveResponse = await saveContact(state, contact, props.session!)
 
-      
-      if (saveResponse.errors?.length == 0) {
-        showNotification('Success!', 'Your data has been saved successfully.')
-        setTimeout(()=>{
-          hideNotification()
-        }, 5000)
-        updateContact(contact.id, saveResponse.contact!)
+      if (
+        saveResponse &&
+        saveResponse.errors?.length === 0 &&
+        saveResponse.contact
+      ) {
+        setContact(saveResponse.contact!)
+        showNotification(
+          'Success!',
+          'Your data has been saved successfully.',
+          <CheckCircleIcon
+            className="h-6 w-6 text-green-400"
+            aria-hidden="true"
+          />,
+        )
+        if (contact.id) {
+          updateContact(contact.id, saveResponse.contact!)
+        } else {
+          setContacts([saveResponse.contact!, ...contacts])
+        }
+      } else {
+        showNotification(
+          'Error!',
+          'It was an error saving the contact. Please try again.',
+          <ExclamationTriangleIcon
+            className="h-6 w-6 text-red-400"
+            aria-hidden="true"
+          ></ExclamationTriangleIcon>,
+        )
       }
-      setIsSaveing(false)
+      setIsSaving(false)
     }
   }
-
-  // useEffect(() => {
-  //   console.log('birthday', contact.birthday)
-  // }, [contact.birthday])
 
   return (
     <>
@@ -68,8 +94,13 @@ export default function ContactDetail(props: ContactDetailProps) {
         <Dialog
           as="div"
           className="relative z-10"
-          onClose={(a) => {
-            props.setOpen(!(props.open && !isSaving))
+          onClose={() => {
+            if (!isSaving) {
+              props.setOpen(false)
+              setTimeout(() => {
+                hideNotification()
+              }, 1000)
+            }
           }}
         >
           <Transition.Child
@@ -99,10 +130,8 @@ export default function ContactDetail(props: ContactDetailProps) {
                   <div>
                     <form onSubmit={handleSubmit}>
                       <div className="">
-                        {/* <div className="border-b border-white/10 "> */}
-
                         <div className="pb-12">
-                          <div className=" grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                          <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                             <div className="sm:col-span-3">
                               <h2 className="mt-2 text-base font-semibold leading-7 text-white">
                                 Contact Information
@@ -142,7 +171,7 @@ export default function ContactDetail(props: ContactDetailProps) {
                                   id="first-name"
                                   autoComplete="given-name"
                                   className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
-                                  defaultValue={contact.name}
+                                  defaultValue={contact.name ?? ''}
                                   onChange={(e) => {
                                     setContact({
                                       ...contact,
@@ -168,28 +197,30 @@ export default function ContactDetail(props: ContactDetailProps) {
                                   autoComplete="family-name"
                                   className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
                                   defaultValue={
-                                    contact.phoneNumbers[0]?.phoneNumber ||
-                                    contact.phoneNumbers[0]?.number
+                                    contact.phoneNumbers?.[0]?.phoneNumber ??
+                                    contact.phoneNumbers?.[0]?.number ??
+                                    ''
                                   }
                                   onChange={(e) => {
-                                    if (contact.phoneNumbers.length > 0) {
-                                      contact.phoneNumbers[0] = {
+                                    const phoneNumbers = contact.phoneNumbers
+                                      ? [...contact.phoneNumbers]
+                                      : []
+                                    if (phoneNumbers.length > 0) {
+                                      phoneNumbers[0] = {
+                                        ...phoneNumbers[0],
                                         number: e.target.value,
-                                        type: 'CELL',
                                         ...phone(e.target.value),
                                       }
                                     } else {
-                                      contact.phoneNumbers = [
-                                        {
-                                          number: e.target.value,
-                                          type: 'CELL',
-                                          ...phone(e.target.value),
-                                        },
-                                      ]
+                                      phoneNumbers.push({
+                                        number: e.target.value,
+                                        type: 'CELL',
+                                        ...phone(e.target.value),
+                                      })
                                     }
                                     setContact({
                                       ...contact,
-                                      phoneNumbers: contact.phoneNumbers,
+                                      phoneNumbers,
                                     })
                                   }}
                                 />
@@ -211,21 +242,22 @@ export default function ContactDetail(props: ContactDetailProps) {
                                   autoComplete="email"
                                   className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
                                   defaultValue={
-                                    contact.emails[0]?.address ?? ''
+                                    contact.emails?.[0]?.address ?? ''
                                   }
                                   onChange={(e) => {
-                                    if (contact.emails.length > 0) {
-                                      contact.emails[0].address = e.target.value
+                                    const emails = contact.emails
+                                      ? [...contact.emails]
+                                      : []
+                                    if (emails.length > 0) {
+                                      emails[0].address = e.target.value
                                     } else {
-                                      contact.emails = [
-                                        {
-                                          address: e.target.value,
-                                        },
-                                      ]
+                                      emails.push({
+                                        address: e.target.value,
+                                      })
                                     }
                                     setContact({
                                       ...contact,
-                                      emails: contact.emails,
+                                      emails,
                                     })
                                   }}
                                 />
@@ -247,22 +279,25 @@ export default function ContactDetail(props: ContactDetailProps) {
                                   autoComplete="family-name"
                                   className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
                                   defaultValue={
-                                    contact.occupations[0]?.name ?? ''
+                                    contact.occupations?.[0]?.name ?? ''
                                   }
                                   onChange={(e) => {
-                                    if (contact.occupations.length > 0) {
-                                      contact.occupations[0]!.name =
-                                        e.target.value
+                                    const occupations = contact.occupations
+                                      ? [...contact.occupations]
+                                      : []
+                                    if (occupations.length > 0) {
+                                      occupations[0] = {
+                                        ...occupations[0],
+                                        name: e.target.value,
+                                      }
                                     } else {
-                                      contact.occupations = [
-                                        {
-                                          name: e.target.value,
-                                        },
-                                      ]
+                                      occupations.push({
+                                        name: e.target.value,
+                                      })
                                     }
                                     setContact({
                                       ...contact,
-                                      occupations: contact.occupations,
+                                      occupations,
                                     })
                                   }}
                                 />
@@ -284,22 +319,25 @@ export default function ContactDetail(props: ContactDetailProps) {
                                   autoComplete="organization"
                                   className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
                                   defaultValue={
-                                    contact.organizations[0]?.name ?? ''
+                                    contact.organizations?.[0]?.name ?? ''
                                   }
                                   onChange={(e) => {
-                                    if (contact.organizations.length > 0) {
-                                      contact.organizations[0].name =
-                                        e.target.value
+                                    const organizations = contact.organizations
+                                      ? [...contact.organizations]
+                                      : []
+                                    if (organizations.length > 0) {
+                                      organizations[0] = {
+                                        ...organizations[0],
+                                        name: e.target.value,
+                                      }
                                     } else {
-                                      contact.organizations = [
-                                        {
-                                          name: e.target.value,
-                                        },
-                                      ]
+                                      organizations.push({
+                                        name: e.target.value,
+                                      })
                                     }
                                     setContact({
                                       ...contact,
-                                      organizations: contact.organizations,
+                                      organizations,
                                     })
                                   }}
                                 />
@@ -317,16 +355,17 @@ export default function ContactDetail(props: ContactDetailProps) {
                                   id="bday"
                                   name="bday"
                                   type="number"
-                                  defaultValue={contact.birthday?.day}
+                                  defaultValue={
+                                    contact.birthday?.day ?? undefined
+                                  }
                                   min={1}
                                   max={31}
                                   placeholder="day"
                                   className="w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
                                   onChange={(e) => {
                                     const newBirthDay = {
+                                      ...contact.birthday,
                                       day: e.target.valueAsNumber,
-                                      year: contact.birthday?.year,
-                                      month: contact.birthday?.month,
                                     }
                                     setContact({
                                       ...contact,
@@ -338,15 +377,16 @@ export default function ContactDetail(props: ContactDetailProps) {
                                   id="bmonth"
                                   name="bmonth"
                                   type="number"
-                                  defaultValue={contact.birthday?.month}
+                                  defaultValue={
+                                    contact.birthday?.month ?? undefined
+                                  }
                                   min={1}
                                   max={12}
                                   placeholder="month"
                                   className="w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
                                   onChange={(e) => {
                                     const newBirthDay = {
-                                      day: contact.birthday?.day,
-                                      year: contact.birthday?.year,
+                                      ...contact.birthday,
                                       month: e.target.valueAsNumber,
                                     }
                                     setContact({
@@ -359,7 +399,9 @@ export default function ContactDetail(props: ContactDetailProps) {
                                   id="byear"
                                   name="byear"
                                   type="number"
-                                  defaultValue={contact.birthday?.year}
+                                  defaultValue={
+                                    contact.birthday?.year ?? undefined
+                                  }
                                   min={1900}
                                   max={2024}
                                   placeholder="year"
@@ -367,9 +409,8 @@ export default function ContactDetail(props: ContactDetailProps) {
                                   className="w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
                                   onChange={(e) => {
                                     const newBirthDay = {
-                                      day: contact.birthday?.day,
+                                      ...contact.birthday,
                                       year: e.target.valueAsNumber,
-                                      month: contact.birthday?.month,
                                     }
                                     setContact({
                                       ...contact,
@@ -389,18 +430,25 @@ export default function ContactDetail(props: ContactDetailProps) {
                             <div className="w-full border-t border-gray-300" />
                           </div>
                           <div className="relative flex items-center justify-between">
-                            <span className="text-white-900 pr-3text-base bg-black font-semibold leading-6">
+                            <span className="text-white-900 bg-black pr-3 text-base font-semibold leading-6">
                               Extra phones
                             </span>
                             <button
                               onClick={(e) => {
-                                if ((contact.phoneNumbers?.length || 0) <= 1) {
-                                  contact.phoneNumbers.push({
+                                const phoneNumbers = contact.phoneNumbers
+                                  ? [...contact.phoneNumbers]
+                                  : []
+                                if (phoneNumbers.length <= 1) {
+                                  phoneNumbers.push({
                                     ...phone(''),
                                     number: '',
                                     type: 'CELL',
                                   })
                                 }
+                                setContact({
+                                  ...contact,
+                                  phoneNumbers,
+                                })
                                 setShowPhones(!showPhones)
                               }}
                               type="button"
@@ -410,7 +458,7 @@ export default function ContactDetail(props: ContactDetailProps) {
                                 <MinusIcon
                                   className="-ml-1 -mr-0.5 h-5 w-5 text-gray-400"
                                   aria-hidden="true"
-                                ></MinusIcon>
+                                />
                               ) : (
                                 <PlusIcon
                                   className="-ml-1 -mr-0.5 h-5 w-5 text-gray-400"
@@ -420,7 +468,7 @@ export default function ContactDetail(props: ContactDetailProps) {
                               <span>
                                 {showPhones
                                   ? 'Hide'
-                                  : (contact?.phoneNumbers?.length || 0) > 1
+                                  : (contact.phoneNumbers?.length || 0) > 1
                                     ? 'Show'
                                     : 'Add'}
                               </span>
@@ -428,14 +476,14 @@ export default function ContactDetail(props: ContactDetailProps) {
                           </div>
                         </div>
                         {showPhones &&
-                          contact?.phoneNumbers.slice(1).map((a, i) => {
+                          (contact.phoneNumbers ?? []).slice(1).map((a, i) => {
                             return (
                               <ContactDetailPhone
-                                key={contact.id + '_' + (i + 1)}
+                                key={`${contact.id}_${i + 1}`}
                                 callUpdate={(newPhoneData) => {
                                   setContact((prev) => ({
                                     ...prev,
-                                    phoneNumbers: prev.phoneNumbers.map(
+                                    phoneNumbers: (prev.phoneNumbers ?? []).map(
                                       (phone, index) =>
                                         index === i + 1 ? newPhoneData : phone,
                                     ),
@@ -444,14 +492,14 @@ export default function ContactDetail(props: ContactDetailProps) {
                                 callDelete={() => {
                                   setContact((prev) => ({
                                     ...prev,
-                                    phoneNumbers: prev.phoneNumbers.filter(
-                                      (_, idx) => idx !== i + 1,
-                                    ),
+                                    phoneNumbers: (
+                                      prev.phoneNumbers ?? []
+                                    ).filter((_, idx) => idx !== i + 1),
                                   }))
                                   setShowPhones(false)
                                 }}
                                 phone={a}
-                              ></ContactDetailPhone>
+                              />
                             )
                           })}
                         <div className="relative mt-8">
@@ -462,32 +510,37 @@ export default function ContactDetail(props: ContactDetailProps) {
                             <div className="w-full border-t border-gray-300" />
                           </div>
                           <div className="relative flex items-center justify-between">
-                            <span className="text-white-900 pr-3text-base bg-black font-semibold leading-6">
+                            <span className="text-white-900 bg-black pr-3 text-base font-semibold leading-6">
                               Address
                             </span>
                             <button
                               onClick={(e) => {
-                                if ((contact.addresses?.length || 0) == 0) {
-                                  contact.addresses = [
-                                    {
-                                      countryCode: null,
-                                      city: null,
-                                      region: null,
-                                      postalCode: null,
-                                      streetAddress: null,
-                                    },
-                                  ]
+                                const addresses = contact.addresses
+                                  ? [...contact.addresses]
+                                  : []
+                                if (addresses.length === 0) {
+                                  addresses.push({
+                                    countryCode: null,
+                                    city: null,
+                                    region: null,
+                                    postalCode: null,
+                                    streetAddress: null,
+                                  })
                                 }
-                                setShowAdresses(!showAdresses)
+                                setContact({
+                                  ...contact,
+                                  addresses,
+                                })
+                                setShowAddresses(!showAddresses)
                               }}
                               type="button"
                               className="text-white-900 inline-flex items-center gap-x-1.5 rounded-full bg-black px-3 py-1.5 text-sm font-semibold shadow-sm ring-1 ring-inset ring-gray-300"
                             >
-                              {showAdresses ? (
+                              {showAddresses ? (
                                 <MinusIcon
                                   className="-ml-1 -mr-0.5 h-5 w-5 text-gray-400"
                                   aria-hidden="true"
-                                ></MinusIcon>
+                                />
                               ) : (
                                 <PlusIcon
                                   className="-ml-1 -mr-0.5 h-5 w-5 text-gray-400"
@@ -495,29 +548,32 @@ export default function ContactDetail(props: ContactDetailProps) {
                                 />
                               )}
                               <span>
-                                {showAdresses
+                                {showAddresses
                                   ? 'Hide'
-                                  : contact?.addresses?.length || 0 > 0
+                                  : (contact.addresses?.length || 0) > 0
                                     ? 'Show'
                                     : 'Add'}
                               </span>
                             </button>
                           </div>
                         </div>
-                        {showAdresses &&
-                          contact?.addresses.map((a, i) => {
+                        {showAddresses &&
+                          (contact?.addresses || []).map((a, i) => {
                             return (
                               <ContactDetailAddress
-                                key={contact.id + '_' + i}
+                                key={`${contact.id}_${i}`}
                                 callUpdate={(updatedAddress) => {
-                                  contact.addresses[i] = updatedAddress
+                                  const addresses = [
+                                    ...(contact.addresses ?? []),
+                                  ]
+                                  addresses[i] = updatedAddress
                                   setContact({
                                     ...contact,
-                                    addresses: contact.addresses,
+                                    addresses,
                                   })
                                 }}
                                 address={a}
-                              ></ContactDetailAddress>
+                              />
                             )
                           })}
 
@@ -526,8 +582,9 @@ export default function ContactDetail(props: ContactDetailProps) {
                             Notifications
                           </h2>
                           <p className="mt-1 text-sm leading-6 text-gray-400">
-                            Well always let you know about important changes,
-                            but you pick what else you want to hear about.
+                            We&apos;ll always let you know about important
+                            changes, but you pick what else you want to hear
+                            about.
                           </p>
 
                           <div className="mt-10 space-y-10">
@@ -589,7 +646,7 @@ export default function ContactDetail(props: ContactDetailProps) {
                                       name="offers"
                                       type="checkbox"
                                       className="h-4 w-4 rounded border-white/10 bg-white/5 text-indigo-600 focus:ring-indigo-600 focus:ring-offset-gray-900"
-                                      checked
+                                      defaultChecked
                                     />
                                   </div>
                                   <div className="text-sm leading-6">
@@ -612,24 +669,23 @@ export default function ContactDetail(props: ContactDetailProps) {
                       </div>
 
                       <div className="mt-6 flex items-center justify-end gap-x-6">
-                        {!isSaving && <button
-                          type="button"
-                          className="text-sm font-semibold leading-6 text-white"
-                          onClick={() => {
-                            props.setOpen(false)
-                          }}
-                        >
-                          Cancel
-                        </button>}
+                        {!isSaving && (
+                          <button
+                            type="button"
+                            className="text-sm font-semibold leading-6 text-white"
+                            onClick={() => {
+                              props.setOpen(false)
+                            }}
+                          >
+                            Cancel
+                          </button>
+                        )}
                         <button
                           type="submit"
                           className="rounded-md bg-indigo-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
                         >
                           {isSaving ? (
-                            <LoadingSpinner
-                              size={20}
-                              className="center"
-                            ></LoadingSpinner>
+                            <LoadingSpinner size={20} className="center" />
                           ) : (
                             'Save'
                           )}

@@ -6,8 +6,8 @@ import {
   FunnelIcon,
   MinusIcon,
   PlusIcon,
+  XMarkIcon,
 } from '@heroicons/react/20/solid'
-import { XMarkIcon } from '@heroicons/react/24/outline'
 import { getName, registerLocale } from 'i18n-iso-countries'
 import { Fragment, useEffect, useState } from 'react'
 
@@ -22,6 +22,7 @@ import { FlattenContact } from '@/lib/definitions'
 import clsx from 'clsx'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 
 const sortOptions = [
   { name: 'A - Z', href: '#', current: true },
@@ -61,9 +62,7 @@ interface Option {
   checked: boolean
 }
 
-export default function ContactList({}) {
-  registerLocale(require('i18n-iso-countries/langs/en.json'))
-
+export default function ContactList() {
   const { contacts, updateContact, setContacts } = useContacts()
   const [isLoading, setIsLoading] = useState(false)
   const [filters, setFilters] = useState(filtersTemplate)
@@ -74,11 +73,21 @@ export default function ContactList({}) {
   const [hideFilterAdvice, setHideFilterAdvice] = useState(true)
 
   const session = useSession()
+  const searchParams = useSearchParams()
 
   const [showContactDetail, setShowContactDetail] = useState(false)
-  const [detailedContact, setDetailedContact] = useState<FlattenContact | null>(
-    null,
-  )
+  const [detailedContact, setDetailedContact] =
+    useState<Partial<FlattenContact> | null>(null)
+
+  useEffect(() => {
+    if (searchParams.has('add-new-contact')) {
+      setDetailedContact({
+        addresses: [],
+        name: '',
+      })
+      setShowContactDetail(true)
+    }
+  }, [searchParams])
 
   useEffect(() => {
     if (!showContactDetail) {
@@ -113,51 +122,39 @@ export default function ContactList({}) {
   }
 
   useEffect(() => {
-    let occupationOptions = filters.find((a) => {
-      return a.id == 'occupation'
-    })
+    let occupationOptions = filters.find((a) => a.id == 'occupation')
     if (occupationOptions) {
       occupationOptions.options = contacts
-        .flatMap((a) => {
-          return (a.occupations || []).map((b) => {
-            return {
-              value: (b.id || '').toString(),
-              label: b.name,
-              checked: false,
-            }
-          })
-        })
+        .flatMap((a) =>
+          (a.occupations || []).map((b) => ({
+            value: (b.id || '').toString(),
+            label: b.name,
+            checked: false,
+          })),
+        )
         .filter((v, i, a) => a.findIndex((v2) => v2.value === v.value) === i)
     } else {
       console.log('ERROR LOADING ROLEOPTIONS')
     }
-    let categoryOptions = filters.find((a) => {
-      return a.id == 'category'
-    })
+    let categoryOptions = filters.find((a) => a.id == 'category')
     if (categoryOptions) {
       categoryOptions.options = contacts
-        .flatMap((a) => {
-          return (a.category || []).map((b) => {
-            return { value: b, label: b, checked: false }
-          })
-        })
+        .flatMap((a) =>
+          (a.category || []).map((b) => ({
+            value: b,
+            label: b,
+            checked: false,
+          })),
+        )
         .filter((v, i, a) => a.findIndex((v2) => v2.value === v.value) === i)
     } else {
       console.log('ERROR LOADING CATEGORIES')
     }
-    let locationOptions = filters.find((a) => {
-      return a.id == 'location'
-    })
+    let locationOptions = filters.find((a) => a.id == 'location')
     if (locationOptions) {
       locationOptions.options = [
-        ...new Set(
-          contacts.map((a) => {
-            return a.location
-          }),
-        ),
-      ].map((a) => {
-        return { value: a, label: a, checked: false }
-      })
+        ...new Set(contacts.map((a) => a.location)),
+      ].map((a) => ({ value: a, label: a, checked: false }))
     } else {
       console.log('ERROR LOADING CATEGORIES')
     }
@@ -186,8 +183,6 @@ export default function ContactList({}) {
     optionIdx: string,
     checked: boolean,
   ) => {
-    console.log('handleFilterChange', sectionId, optionIdx, checked)
-
     const newFilters = filters.map((section) => {
       if (section.id === sectionId) {
         const newOptions = section.options.map((option, idx) => {
@@ -266,6 +261,7 @@ export default function ContactList({}) {
           open={showContactDetail}
           setOpen={setShowContactDetail}
           contact={detailedContact}
+          session={session.data}
         />
       )}
 
@@ -700,9 +696,6 @@ export default function ContactList({}) {
                               </p>
                             ) : (
                               <div className="mt-1 flex items-center gap-x-1.5">
-                                {/* <div className="flex-none rounded-full bg-emerald-500/20 p-1">
-                              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                            </div> */}
                                 <p className="text-xs leading-5 text-gray-400">
                                   No phone
                                 </p>

@@ -4,10 +4,11 @@ interface Notification {
   show: boolean;
   message: string;
   description: string;
+  icon: ReactNode;
 }
 
 interface NotificationContextType extends Notification {
-  showNotification: (message: string, description: string) => void;
+  showNotification: (message: string, description: string, icon: ReactNode) => void;
   hideNotification: () => void;
 }
 
@@ -16,7 +17,8 @@ const NotificationContext = createContext<NotificationContextType>({
   message: "",
   description: "",
   showNotification: () => {},
-  hideNotification: () => {}
+  hideNotification: () => {},
+  icon: <></>
 });
 
 export const useNotification = (): NotificationContextType => {
@@ -29,14 +31,14 @@ interface NotificationProviderProps {
 }
 
 export const NotificationProvider: React.FC<NotificationProviderProps> = ({ children }) => {
-  const [notification, setNotification] = useState<Notification>({ show: false, message: '', description: '' });
+  const [notification, setNotification] = useState<Notification>({ show: false, message: '', description: '', icon:<></> });
 
-  const showNotification = useCallback((message: string, description: string) => {
-    setNotification({ show: true, message, description });
+  const showNotification = useCallback((message: string, description: string, icon: ReactNode) => {
+    setNotification({ show: true, message, description, icon: icon });
   }, []);
 
   const hideNotification = useCallback(() => {
-    setNotification({ show: false, message: '', description: '' });
+    setNotification({ show: false, message: '', description: '', icon: <></> });
   }, []);
 
   return (

@@ -2,9 +2,16 @@
 
 import prisma from '@/db'
 import { getPhoneNumberType, normalizeContact } from '@/lib/data/common'
-import { CleanPhoneData, FlattenContact, PlainFields } from '@/lib/definitions'
+import {
+  CleanPhoneData,
+  CustomSession,
+  FlattenContact,
+  PlainFields,
+} from '@/lib/definitions'
 import { dateString } from '@/lib/utils'
 import { Address, Email, Occupation, Organization } from '@prisma/client'
+import { useSession } from 'next-auth/react'
+import { Session } from 'next-auth/types'
 import { z } from 'zod'
 
 const NameFormSchema = z.object({
@@ -17,138 +24,165 @@ export type State = {
   errors?: []
   message?: string | null
   contact?: FlattenContact
+  isNew?: boolean
 }
 
 export async function saveContact(
   prevState: State | undefined,
-  contact: FlattenContact,
+  contact: Partial<FlattenContact>,
+  session: Session,
 ) {
-  let dataToUpdate: Partial<PlainFields> = {
-    name: contact.name,
+  try {
+    if (!session || !session.user) {
+      throw new Error('User not authenticated')
+    }
+
+    let dataToUpdate: Partial<PlainFields> = {
+      name: contact.name ?? '',
+      nickName: contact.nickName ?? '',
+    }
+
+    if (contact.birthday) {
+      dataToUpdate.birthday = dateString({ ...contact.birthday! })
+    } else {
+      dataToUpdate.birthday = ''
+    }
+
+    const upsertedContact = await prisma.contact.upsert({
+      where: {
+        id: contact.id ?? -1,
+      },
+      update: dataToUpdate,
+      create: { ...dataToUpdate, userId: session!.user!.id! }, // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    })
+
+    if (contact.phoneNumbers) {
+      const phoneNumbersIDs = await getPhoneNumberIDs(contact.phoneNumbers)
+      await prisma.contactPhoneNumber.deleteMany({
+        where: {
+          contactId: upsertedContact.id,
+          phoneNumberId: {
+            notIn: phoneNumbersIDs,
+          },
+        },
+      })
+      await prisma.contactPhoneNumber.createMany({
+        data: phoneNumbersIDs.map((phoneNumberId) => ({
+          contactId: upsertedContact.id,
+          phoneNumberId: phoneNumberId,
+        })),
+        skipDuplicates: true,
+      })
+    }
+
+    if (contact.occupations) {
+      const occupationsIDs = await getOccupationIDs(contact.occupations)
+      await prisma.contactOccupation.deleteMany({
+        where: {
+          contactId: upsertedContact.id,
+          occupationId: {
+            notIn: occupationsIDs,
+          },
+        },
+      })
+      await prisma.contactOccupation.createMany({
+        data: occupationsIDs.map((occupationId) => ({
+          contactId: upsertedContact.id,
+          occupationId,
+        })),
+        skipDuplicates: true,
+      })
+    }
+
+    if (contact.organizations) {
+      const organizationIDs = await getOrganizationIDs(contact.organizations)
+      await prisma.contactOrganization.deleteMany({
+        where: {
+          contactId: upsertedContact.id,
+          organizationId: {
+            notIn: organizationIDs,
+          },
+        },
+      })
+      await prisma.contactOrganization.createMany({
+        data: organizationIDs.map((organizationId) => ({
+          contactId: upsertedContact.id,
+          organizationId: organizationId,
+        })),
+        skipDuplicates: true,
+      })
+    }
+
+    if (contact.emails) {
+      const emailsIDs = await getEmailsIDs(contact.emails)
+      await prisma.contactEmail.deleteMany({
+        where: {
+          contactId: upsertedContact.id,
+          emailId: {
+            notIn: emailsIDs,
+          },
+        },
+      })
+      await prisma.contactEmail.createMany({
+        data: emailsIDs.map((emailId) => ({
+          contactId: upsertedContact.id,
+          emailId,
+        })),
+        skipDuplicates: true,
+      })
+    }
+    if (contact.addresses) {
+      const addressesIDs = await getAddressIDs(contact.addresses)
+      await prisma.contactAddress.deleteMany({
+        where: {
+          contactId: upsertedContact.id,
+          addressId: {
+            notIn: addressesIDs,
+          },
+        },
+      })
+      await prisma.contactAddress.createMany({
+        data: addressesIDs.map((addressId) => ({
+          contactId: upsertedContact.id,
+          addressId,
+        })),
+        skipDuplicates: true,
+      })
+    }
+    const contactUpdatedRaw = await prisma.contact.findFirst({
+      where: { id: upsertedContact.id },
+      include: {
+        organizations: { select: { organization: { select: { name: true } } } },
+        phoneNumbers: {
+          select: { phoneNumber: { select: { number: true, type: true } } },
+        },
+        occupations: {
+          select: { ocuppation: { select: { name: true, id: true } } },
+        },
+        photos: { select: { photo: { select: { url: true } } } },
+        addresses: { select: { address: true } },
+        emails: { select: { email: { select: { address: true } } } },
+        googleContacts: { select: { googleContactId: true } },
+      },
+    })
+
+    const actualContact = normalizeContact(contactUpdatedRaw!)
+
+    const state: State = {
+      errors: [],
+      message: 'Contact saved',
+      contact: actualContact!,
+      isNew: !contact.id,
+    }
+    return state
+  } catch (error) {
+    const state: State = {
+      errors: [],
+      message: 'Error',
+    }
+    console.error(error)
+    return state
   }
-
-  if (contact.birthday) {
-    dataToUpdate.birthday = dateString({ ...contact.birthday! })
-  }
-
-  await prisma.contact.update({
-    where: {
-      id: contact.id,
-    },
-    data: dataToUpdate,
-  })
-
-  const phoneNumbersIDs = await getPhoneNumberIDs(contact.phoneNumbers)
-  await prisma.contactPhoneNumber.deleteMany({
-    where: {
-      contactId: contact.id,
-      phoneNumberId: {
-        notIn: phoneNumbersIDs,
-      },
-    },
-  })
-  await prisma.contactPhoneNumber.createMany({
-    data: phoneNumbersIDs.map((phoneNumberId) => ({
-      contactId: contact.id,
-      phoneNumberId: phoneNumberId,
-    })),
-    skipDuplicates: true,
-  })
-
-  const occupationsIDs = await getOccupationIDs(contact.occupations)
-  await prisma.contactOccupation.deleteMany({
-    where: {
-      contactId: contact.id,
-      occupationId: {
-        notIn: occupationsIDs,
-      },
-    },
-  })
-  await prisma.contactOccupation.createMany({
-    data: occupationsIDs.map((occupationId) => ({
-      contactId: contact.id,
-      occupationId,
-    })),
-    skipDuplicates: true,
-  })
-
-  const organizationIDs = await getOrganizationIDs(contact.organizations)
-  await prisma.contactOrganization.deleteMany({
-    where: {
-      contactId: contact.id,
-      organizationId: {
-        notIn: organizationIDs,
-      },
-    },
-  })
-  await prisma.contactOrganization.createMany({
-    data: organizationIDs.map((organizationId) => ({
-      contactId: contact.id,
-      organizationId: organizationId,
-    })),
-    skipDuplicates: true,
-  })
-
-  const emailsIDs = await getEmailsIDs(contact.emails)
-  await prisma.contactEmail.deleteMany({
-    where: {
-      contactId: contact.id,
-      emailId: {
-        notIn: emailsIDs,
-      },
-    },
-  })
-  await prisma.contactEmail.createMany({
-    data: emailsIDs.map((emailId) => ({
-      contactId: contact.id,
-      emailId,
-    })),
-    skipDuplicates: true,
-  })
-
-  const addressesIDs = await getAddressIDs(contact.addresses)
-  await prisma.contactAddress.deleteMany({
-    where: {
-      contactId: contact.id,
-      addressId: {
-        notIn: addressesIDs,
-      },
-    },
-  })
-  await prisma.contactAddress.createMany({
-    data: addressesIDs.map((addressId) => ({
-      contactId: contact.id,
-      addressId,
-    })),
-    skipDuplicates: true
-  })
-
-  const contactUpdatedRaw = await prisma.contact.findFirst({
-    where: { id: contact.id },
-    include: {
-      organizations: { select: { organization: { select: { name: true } } } },
-      phoneNumbers: {
-        select: { phoneNumber: { select: { number: true, type: true } } },
-      },
-      occupations: {
-        select: { ocuppation: { select: { name: true, id: true } } },
-      },
-      photos: { select: { photo: { select: { url: true } } } },
-      addresses: { select: { address: true } },
-      emails: { select: { email: { select: { address: true } } } },
-      googleContacts: { select: { googleContactId: true } },
-    },
-  })
-
-  const asd = normalizeContact(contactUpdatedRaw!)
-
-  const state: State = {
-    errors: [],
-    message: 'Contact saved',
-    contact: asd!,
-  }
-
-  return state
 }
 
 export const getPhoneNumberIDs = async (

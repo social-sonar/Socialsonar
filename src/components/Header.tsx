@@ -3,7 +3,7 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import { Popover, Transition } from '@headlessui/react'
 import clsx from 'clsx'
@@ -14,7 +14,6 @@ import { APP_NAME } from '@/lib/constants'
 import { Button } from './Button'
 import { signIn, signOut } from '@/actions'
 import { useSession } from 'next-auth/react'
-
 
 function CloseIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (
@@ -164,11 +163,11 @@ function MobileNavigation(
             </div>
             <nav className="mt-6">
               <ul className="-my-2 divide-y divide-zinc-100 text-base text-zinc-800 dark:divide-zinc-100/5 dark:text-zinc-300">
-                <MobileNavItem href="/contacts-list">Contacts list</MobileNavItem>
-                <MobileNavItem href="/about">Add new contact</MobileNavItem>
-                <MobileNavItem href="/sync">
-                  Sync contacts
+                <MobileNavItem href="/contacts-list">
+                  Contacts list
                 </MobileNavItem>
+                <MobileNavItem href="/contacts-list?add-new-contact">Add new contact</MobileNavItem>
+                <MobileNavItem href="/sync">Sync contacts</MobileNavItem>
                 <MobileNavItem href="/projects">My profile info</MobileNavItem>
                 <MobileNavItem href="/speaking">
                   Request someone&apos;s contact info
@@ -196,8 +195,8 @@ function NavItem({
       <Link
         href={href}
         className={clsx(
-          'relative block py-2 transition w-auto text-center',
-          isActive
+          'relative block w-auto py-2 text-center transition',
+          (isActive)
             ? 'text-teal-500 dark:text-teal-400'
             : 'hover:text-teal-500 dark:hover:text-teal-400',
         )}
@@ -211,15 +210,25 @@ function NavItem({
   )
 }
 
-
-export function ProfilePopUp({ userImageUrl, logOutButton }: { userImageUrl: string, logOutButton: React.ReactNode }) {
+export function ProfilePopUp({
+  userImageUrl,
+  logOutButton,
+}: {
+  userImageUrl: string
+  logOutButton: React.ReactNode
+}) {
   return (
-    <Popover className="relative h-full block w-auto">
+    <Popover className="relative block h-full w-auto">
       {({ open }) => (
         <>
-          <Popover.Button className='focus:outline-none focus:ring-0 focus:border-none h-full' >
-            <div className='lg:w-[40px] sm:w-[70px] h-full'>
-              <Image alt='user image' src={userImageUrl} layout="fill" className='rounded-full' />
+          <Popover.Button className="h-full focus:border-none focus:outline-none focus:ring-0">
+            <div className="h-full sm:w-[70px] lg:w-[40px]">
+              <Image
+                alt="user image"
+                src={userImageUrl}
+                layout="fill"
+                className="rounded-full"
+              />
             </div>
           </Popover.Button>
           <Transition
@@ -233,7 +242,7 @@ export function ProfilePopUp({ userImageUrl, logOutButton }: { userImageUrl: str
           >
             <Popover.Panel className="absolute z-10 w-32 max-w-sm -translate-x-1/2  sm:px-0 lg:max-w-3xl">
               <div className="overflow-hidden rounded-lg shadow-lg ring-1 ring-black/5">
-                <div className="bg-gray-50 p-4 flex flex-col items-center">
+                <div className="flex flex-col items-center bg-gray-50 p-4">
                   {logOutButton}
                 </div>
               </div>
@@ -245,37 +254,24 @@ export function ProfilePopUp({ userImageUrl, logOutButton }: { userImageUrl: str
   )
 }
 
-
-
-
-
-
-
-
-
-
-
 /////////////////////
 
-
 type NavProps = React.ComponentPropsWithoutRef<'nav'> & {
-  className?: string;
-  profileItem: React.ReactNode;
-};
+  className?: string
+  profileItem: React.ReactNode
+}
 
 function DesktopNavigation({ profileItem, ...props }: NavProps) {
   return (
     <nav {...props}>
-      <ul className="flex justify-between lg:gap-4 sm:gap-2 rounded-full bg-white/90 px-3 text-sm font-medium text-zinc-800 shadow-lg shadow-zinc-800/5 ring-1 ring-zinc-900/5 backdrop-blur dark:bg-zinc-800/90 dark:text-zinc-200 dark:ring-white/10 py-1">
+      <ul className="flex justify-between rounded-full bg-white/90 px-3 py-1 text-sm font-medium text-zinc-800 shadow-lg shadow-zinc-800/5 ring-1 ring-zinc-900/5 backdrop-blur sm:gap-2 lg:gap-4 dark:bg-zinc-800/90 dark:text-zinc-200 dark:ring-white/10">
         <NavItem href="/">Home</NavItem>
         <NavItem href="/contacts-list">Contacts list</NavItem>
-        <NavItem href="/about">Add new contact</NavItem>
+        <NavItem href="/contacts-list?add-new-contact">Add new contact</NavItem>
         <NavItem href="/sync">Sync contacts</NavItem>
         <NavItem href="/projects">My profile info</NavItem>
         <NavItem href="/uses">Request someone&apos;s contact info</NavItem>
-        <li>
-          {profileItem}
-        </li>
+        <li>{profileItem}</li>
       </ul>
     </nav>
   )
@@ -460,33 +456,47 @@ export default function Header() {
     }
   }, [isHomePage])
 
-
   if (session?.status === 'loading') {
     navContent = null
-  }
-  else if (session?.data?.user) {
-    navContent = <div className="relative flex gap-4">
-      <div className="flex flex-1 justify-end md:justify-center">
-        <MobileNavigation className="pointer-events-auto md:hidden" />
-        <DesktopNavigation className="pointer-events-auto hidden md:block" profileItem={
-          <ProfilePopUp userImageUrl={session.data.user.image || ''} key={session.data.user.id} logOutButton={
-            <form action={signOut}>
-              <Button variant='primary' className='p-2 relative'>Sign Out</Button>
-            </form>
-          } />
-        } />
+  } else if (session?.data?.user) {
+    navContent = (
+      <div className="relative flex gap-4">
+        <div className="flex flex-1 justify-end md:justify-center">
+          <MobileNavigation className="pointer-events-auto md:hidden" />
+          <DesktopNavigation
+            className="pointer-events-auto hidden md:block"
+            profileItem={
+              <ProfilePopUp
+                userImageUrl={session.data.user.image || ''}
+                key={session.data.user.id}
+                logOutButton={
+                  <form action={signOut}>
+                    <Button variant="primary" className="relative p-2">
+                      Sign Out
+                    </Button>
+                  </form>
+                }
+              />
+            }
+          />
+        </div>
       </div>
-    </div>
-  }
-  else {
-    navContent = <div className='flex gap-2 m-2 items-end justify-end'>
-      <form action={signIn}>
-        <Button variant='secondary' className='p-2 relative'>Sign In</Button>
-      </form>
-      <form action={signIn}>
-        <Button variant='primary' className='p-2'>Sign Up</Button>
-      </form>
-    </div>
+    )
+  } else {
+    navContent = (
+      <div className="m-2 flex items-end justify-end gap-2">
+        <form action={signIn}>
+          <Button variant="secondary" className="relative p-2">
+            Sign In
+          </Button>
+        </form>
+        <form action={signIn}>
+          <Button variant="primary" className="p-2">
+            Sign Up
+          </Button>
+        </form>
+      </div>
+    )
   }
 
   return (
