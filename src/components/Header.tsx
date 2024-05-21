@@ -11,7 +11,7 @@ import clsx from 'clsx'
 import { Container } from '@/components/Container'
 import avatarImage from '@/images/avatar.png'
 import { APP_NAME } from '@/lib/constants'
-import { Button } from './Button'
+import Button from './Button'
 import { signIn, signOut } from '@/actions'
 import { useSession } from 'next-auth/react'
 
