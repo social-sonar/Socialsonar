@@ -1,4 +1,4 @@
-import { Button } from '@/components/Button'
+import  Button from '@/components/Button'
 import { APP_NAME, REPO_URL } from '@/lib/constants'
 import {
   ArrowPathIcon,

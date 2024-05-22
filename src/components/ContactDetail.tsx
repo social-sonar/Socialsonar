@@ -35,11 +35,11 @@ export default function ContactDetail(props: ContactDetailProps) {
   const [contact, setContact] = useState<Partial<FlattenContact>>(props.contact)
   const { getContactByID, updateContact, contacts, setContacts } = useContacts()
   const router = useRouter()
-  const pathname = usePathname();
+  const pathname = usePathname()
 
   useEffect(() => {
     if (!props.open) {
-      router.push(pathname, {scroll: false})
+      router.push(pathname, { scroll: false })
     }
   }, [props.open])
 

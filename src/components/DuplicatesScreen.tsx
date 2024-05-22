@@ -1,7 +1,7 @@
 import { DuplicateContactResolutionPayload, FlattenContact, ResolutionStrategy } from '@/lib/definitions'
 import { Popover, RadioGroup, Transition } from '@headlessui/react'
 import { Fragment, useEffect, useState } from 'react'
-import { Button } from './Button'
+import Button from './Button'
 
 type DuplicatedContacts = {
     contacts: FlattenContact[]

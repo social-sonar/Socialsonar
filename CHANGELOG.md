@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.0] 2024-05-21
+
+- Jest implementation
+- Unit tests for some components done: Button, Card and ContactDetailAddress
+
 ## [0.1.0] - 2024-05-20
 
 ### Added
