@@ -1,6 +1,6 @@
 import { Prisma, Contact, $Enums, Organization, PhoneNumber, Occupation, Photo, Address, Email } from '@prisma/client'
 import { people_v1 } from 'googleapis'
-import { Session } from 'next-auth/types'
+import { Session } from 'next-auth'
 
 interface PhoneValidResult {
     isValid?: boolean;

@@ -14,7 +14,7 @@ import { useFormState } from 'react-dom'
 import { saveContact, State } from '@/actions/saveContact'
 import LoadingSpinner from './common/spinner'
 import { useNotification } from '@/app/NotificationsProvider'
-import { Session } from 'next-auth/types'
+import { Session } from 'next-auth'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 
 interface ContactDetailProps {
