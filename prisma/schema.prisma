@@ -1,9 +1,3 @@
-// This is your Prisma schema file
-// learn more about it in the docs https//pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate https//pris.ly/cli/accelerate-init
-
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
@@ -98,7 +92,7 @@ model VerificationToken {
 model Contact {
   id             Int                   @id @default(autoincrement())
   userId         String
-  user           User                  @relation(fields: [userId], references: [id])
+  user           User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   name           String                @db.VarChar()
   nickName       String?               @db.VarChar()
   birthday       String?               @db.VarChar()
@@ -123,9 +117,9 @@ model ContactStatus {
   firstContactId  Int
   secondContactId Int
   finalContactId  Int?
-  firstContact    Contact            @relation("firstContact", fields: [firstContactId], references: [id])
-  secondContact   Contact            @relation("secondContact", fields: [secondContactId], references: [id])
-  finalContact    Contact?           @relation("finalContact", fields: [finalContactId], references: [id])
+  firstContact    Contact            @relation("firstContact", fields: [firstContactId], references: [id], onDelete: Cascade)
+  secondContact   Contact            @relation("secondContact", fields: [secondContactId], references: [id], onDelete: Cascade)
+  finalContact    Contact?           @relation("finalContact", fields: [finalContactId], references: [id], onDelete: Cascade)
   mergeStatus     ContactMergeStatus @default(PENDING)
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
@@ -215,7 +209,8 @@ model ContactOrganization {
   contactId      Int
   organizationId Int
   contact        Contact      @relation(fields: [contactId], references: [id], onDelete: Cascade)
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
@@ -228,7 +223,8 @@ model ContactPhoneNumber {
   contactId     Int
   phoneNumberId Int
   contact       Contact     @relation(fields: [contactId], references: [id], onDelete: Cascade)
-  phoneNumber   PhoneNumber @relation(fields: [phoneNumberId], references: [id], onDelete: Cascade)
+  phoneNumber   PhoneNumber @relation(fields: [phoneNumberId], references: [id])
+
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
@@ -241,7 +237,8 @@ model ContactOccupation {
   contactId    Int
   occupationId Int
   contact      Contact    @relation(fields: [contactId], references: [id], onDelete: Cascade)
-  ocuppation   Occupation @relation(fields: [occupationId], references: [id], onDelete: Cascade)
+  occupation   Occupation @relation(fields: [occupationId], references: [id])
+
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
@@ -254,7 +251,8 @@ model ContactPhoto {
   contactId Int
   photoId   Int
   contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
-  photo     Photo    @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  photo     Photo    @relation(fields: [photoId], references: [id])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -267,7 +265,8 @@ model ContactAddress {
   contactId Int
   addressId Int
   contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
-  address   Address  @relation(fields: [addressId], references: [id], onDelete: Cascade)
+  address   Address  @relation(fields: [addressId], references: [id])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -280,7 +279,8 @@ model ContactEmail {
   contactId Int
   emailId   Int
   contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
-  email     Email    @relation(fields: [emailId], references: [id], onDelete: Cascade)
+  email     Email    @relation(fields: [emailId], references: [id])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
