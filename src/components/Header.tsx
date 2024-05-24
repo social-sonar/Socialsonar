@@ -168,7 +168,7 @@ function MobileNavigation(
                 </MobileNavItem>
                 <MobileNavItem href="/contacts-list?add-new-contact">Add new contact</MobileNavItem>
                 <MobileNavItem href="/sync">Sync contacts</MobileNavItem>
-                <MobileNavItem href="/projects">My profile info</MobileNavItem>
+                <MobileNavItem href="/my-profile">My profile info</MobileNavItem>
                 <MobileNavItem href="/speaking">
                   Request someone&apos;s contact info
                 </MobileNavItem>
@@ -212,10 +212,10 @@ function NavItem({
 
 export function ProfilePopUp({
   userImageUrl,
-  logOutButton,
+  profileButtons
 }: {
   userImageUrl: string
-  logOutButton: React.ReactNode
+  profileButtons: React.ReactNode
 }) {
   return (
     <Popover className="relative block h-full w-auto">
@@ -243,7 +243,7 @@ export function ProfilePopUp({
             <Popover.Panel className="absolute z-10 w-32 max-w-sm -translate-x-1/2  sm:px-0 lg:max-w-3xl">
               <div className="overflow-hidden rounded-lg shadow-lg ring-1 ring-black/5">
                 <div className="flex flex-col items-center bg-gray-50 p-4">
-                  {logOutButton}
+                  {profileButtons}
                 </div>
               </div>
             </Popover.Panel>
@@ -269,7 +269,7 @@ function DesktopNavigation({ profileItem, ...props }: NavProps) {
         <NavItem href="/contacts-list">Contacts list</NavItem>
         <NavItem href="/contacts-list?add-new-contact">Add new contact</NavItem>
         <NavItem href="/sync">Sync contacts</NavItem>
-        <NavItem href="/projects">My profile info</NavItem>
+        <NavItem href="/my-profile">My profile info</NavItem>
         <NavItem href="/uses">Request someone&apos;s contact info</NavItem>
         <li>{profileItem}</li>
       </ul>
@@ -469,12 +469,14 @@ export default function Header() {
               <ProfilePopUp
                 userImageUrl={session.data.user.image || ''}
                 key={session.data.user.id}
-                logOutButton={
+                profileButtons={
+                  <>
                   <form action={signOut}>
-                    <Button variant="primary" className="relative p-2">
+                    <Button variant="primary" className="p-2 flex-auto w-full">
                       Sign Out
                     </Button>
                   </form>
+                  </>
                 }
               />
             }
