@@ -1,6 +1,6 @@
-# Blackbookcleaner
+# Social sonar
 
-Blackbookcleaner allows you to sync your contacts with your phone. This means that when you add a contact on your computer, it will automatically be added to your phone and vice versa.
+Social sonar allows you to sync your contacts with your phone. This means that when you add a contact on your computer, it will automatically be added to your phone and vice versa.
 
 ## Getting started
 
@@ -13,7 +13,7 @@ npm install
 Next, create a `.env.local` file in the root of your project and set the following variables:
 
 1. **NEXT_PUBLIC_SITE_URL**:
-   - Example: **`https://blackbookcleaner.vercel.app`**
+   - Example: **`https://socialsonar.vercel.app`**
    - Usage: Specifies the public BASE URL.
 2. **GOOGLE_CLIENT_ID**:
    - Example: **`abcdefg.apps.googleusercontent.com`**
@@ -42,8 +42,8 @@ Next, run the development server and replicate the Vercel deployment environment
 ```bash
 npm run dev:vercel
 ```
-When running the above command, please note that the environment variables from Vercel Development will take priority over your local ones
 
+When running the above command, please note that the environment variables from Vercel Development will take priority over your local ones
 
 Finally, open [http://localhost:3000](http://localhost:3000) in your browser to view the website.
 

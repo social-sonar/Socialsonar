@@ -1,6 +1,7 @@
 import Link from 'next/link'
 
 import { ContainerInner, ContainerOuter } from '@/components/Container'
+import { APP_NAME, REPO_URL } from '@/lib/constants'
 
 function NavLink({
   href,
@@ -27,9 +28,9 @@ export function Footer() {
           <ContainerInner>
             <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
               <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 text-sm font-medium text-zinc-800 dark:text-zinc-200">
-                <NavLink href="/about">About Blackbook cleaner</NavLink>
-                <NavLink href="/about">Report a bug</NavLink>
-                <NavLink href="/about">Suggest improvement</NavLink>
+                <NavLink href="/about">{`About ${APP_NAME}`}</NavLink>
+                <NavLink href={`${REPO_URL}/issues/new`}>Report a bug</NavLink>
+                <NavLink href={`${REPO_URL}/issues/new`}>Suggest improvement</NavLink>
                 <NavLink href="/about">Ask a question</NavLink>
               </div>
               <p className="text-sm text-zinc-400 dark:text-zinc-500">
