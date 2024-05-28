@@ -8,11 +8,11 @@ import { APP_NAME } from '@/lib/constants'
 
 export const metadata: Metadata = {
   title: {
-    template: '%s - Blackbook cleaner',
+    template: '%s - Social sonar',
     default: APP_NAME,
   },
   description:
-    'Blackbook cleaner keeps your contacts organized by eliminating duplicates, updating all your contact details, and identifying missing information.',
+    'Social sonar keeps your contacts organized by eliminating duplicates, updating all your contact details, and identifying missing information.',
   alternates: {
     types: {
       'application/rss+xml': `${process.env.NEXT_PUBLIC_SITE_URL}/feed.xml`,
