@@ -21,9 +21,7 @@ export type State = {
   message?: string | null
 }
 
-export async function deleteAccount(
-  session: Session,
-) : State {
+export async function deleteAccount(session: Session): State {
   try {
     if (!session || !session.user) {
       throw new Error('User not authenticated')
@@ -35,23 +33,26 @@ export async function deleteAccount(
         include: {
           accounts: true,
           sessions: true,
-          googleSyncTokens: true,
-          contact: true,
+          googleAccounts: {
+            include: {
+              googleAccount: true,
+            },
+          },
         },
-      });
-      return {message: "Success", errors: []}
+      })
+      return { message: 'Success', errors: [] }
     } catch (error) {
-      console.log(error);      
+      console.log(error)
       return {
-        message: "there was an error",
-        errors : [error]
+        message: 'there was an error',
+        errors: [error],
       }
     }
-  } catch (error){
-    console.log(error);      
+  } catch (error) {
+    console.log(error)
     return {
-      message: "there was an error",
-      errors: [error]
+      message: 'there was an error',
+      errors: [error],
     }
   }
 }

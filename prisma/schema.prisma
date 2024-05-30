@@ -53,31 +53,48 @@ model Session {
   @@map("session")
 }
 
-model GoogleSyncToken {
-  id        String   @id @default(cuid())
-  token     String
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("google_sync_token")
-}
-
 model User {
-  id               String            @id @default(cuid())
-  name             String?
-  email            String?           @unique
-  emailVerified    DateTime?
-  image            String?
-  accounts         Account[]
-  sessions         Session[]
-  contact          Contact[]
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  googleSyncTokens GoogleSyncToken[]
+  id             String              @id @default(cuid())
+  name           String?
+  email          String?             @unique
+  emailVerified  DateTime?
+  image          String?
+  accounts       Account[]
+  sessions       Session[]
+  googleAccounts UserGoogleAccount[]
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  Contact        Contact[]
 
   @@map("user")
+}
+
+model GoogleAccount {
+  id           String              @id @default(cuid())
+  googleId     String              @unique
+  email        String              @unique
+  accessToken  String?
+  refreshToken String?
+  users        UserGoogleAccount[]
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  token   String?
+  Contact Contact[]
+
+  @@map("google_account")
+}
+
+model UserGoogleAccount {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  googleAccountId String
+  googleAccount   GoogleAccount @relation(fields: [googleAccountId], references: [id], onDelete: Cascade)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@unique([userId, googleAccountId])
+  @@map("user_google_account")
 }
 
 model VerificationToken {
@@ -90,24 +107,26 @@ model VerificationToken {
 }
 
 model Contact {
-  id             Int                   @id @default(autoincrement())
-  userId         String
-  user           User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name           String                @db.VarChar()
-  nickName       String?               @db.VarChar()
-  birthday       String?               @db.VarChar()
-  organizations  ContactOrganization[]
-  phoneNumbers   ContactPhoneNumber[]
-  occupations    ContactOccupation[]
-  photos         ContactPhoto[]
-  addresses      ContactAddress[]
-  emails         ContactEmail[]
-  googleContacts ContactGoogle[]
-  createdAt      DateTime              @default(now())
-  updatedAt      DateTime              @updatedAt
-  firstContacts  ContactStatus[]       @relation("firstContact")
-  secondContacts ContactStatus[]       @relation("secondContact")
-  finalContacts  ContactStatus[]       @relation("finalContact")
+  id              Int                   @id @default(autoincrement())
+  userId          String
+  googleAccountId String?
+  googleAccount   GoogleAccount?        @relation(fields: [googleAccountId], references: [id])
+  user            User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String                @db.VarChar()
+  nickName        String?               @db.VarChar()
+  birthday        String?               @db.VarChar()
+  organizations   ContactOrganization[]
+  phoneNumbers    ContactPhoneNumber[]
+  occupations     ContactOccupation[]
+  photos          ContactPhoto[]
+  addresses       ContactAddress[]
+  emails          ContactEmail[]
+  googleContacts  ContactGoogle[]
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  firstContacts   ContactStatus[]       @relation("firstContact")
+  secondContacts  ContactStatus[]       @relation("secondContact")
+  finalContacts   ContactStatus[]       @relation("finalContact")
 
   @@map("contacts")
 }

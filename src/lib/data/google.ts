@@ -507,6 +507,7 @@ export const syncExisting = async (
     googlePayload = googlePayload.sort((a, b) => a.resourceName!.slice(7).localeCompare(b.resourceName!.slice(7)))
     const length = existingGoogleContacts.length
     for (let index = 0; index < length; index++) {
+        console.log("Processing sync contact: ", index, length)
         // both existingGoogleContacts and googlePayload will have the same size
         const existingGoogleContact = existingGoogleContacts[index]
         const googlePayloadItem = googlePayload[index]

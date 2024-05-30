@@ -336,6 +336,7 @@ const findDuplicates = async (userId: string) => {
 export const syncGoogleContacts = async (
   people: GoogleResponse[],
   userId: string,
+  googleAccountId: string,
 ): Promise<void> => {
   const googleIds = people.map((person) => person.resourceName!.slice(7))
   const existingGoogleContacts = await findExistingGoogleIds(googleIds, userId)
@@ -353,10 +354,12 @@ export const syncGoogleContacts = async (
     existingGoogleContacts,
     people.filter((person) => !googleIdsSet.has(person.resourceName!.slice(7))),
   )
+  let index = 0
   // creation of non existing google contacts
   for (const person of people.filter((person) =>
     googleIdsSet.has(person.resourceName!.slice(7)),
   )) {
+    console.log('Processing new contact: ', ++index, people.length)
     const organizationsIDs = await getOrganizationIDs(
       person.organizations ?? [],
     )
@@ -373,6 +376,7 @@ export const syncGoogleContacts = async (
         birthday:
           (person.birthdays && dateString(person.birthdays[0].date!)) || null,
         userId: userId,
+        googleAccountId,
       },
     })
     await prisma.contactGoogle.create({
@@ -431,8 +435,17 @@ export const syncGoogleContacts = async (
 export const findContacts = async (userId: string) =>
   await prisma.contact.findMany({
     where: {
-      userId: userId,
       OR: [
+        { userId },
+        {
+          googleAccount: {
+            users:{
+              every: {
+                userId
+              }
+            }
+          },
+        },
         // Contacts with firstContacts in ContactStatus with either PENDING or MULTIPLE_CHOICE status
         {
           firstContacts: {

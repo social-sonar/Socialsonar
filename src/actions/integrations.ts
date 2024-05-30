@@ -3,7 +3,12 @@
 import nextauth from '@/auth'
 import prisma from '@/db'
 import { syncGoogleContacts } from '@/lib/data/common'
-import { CustomSession, GoogleContactMainResponse, GoogleResponse } from '@/lib/definitions'
+import {
+  CustomSession,
+  GoogleContactMainResponse,
+  GoogleResponse,
+} from '@/lib/definitions'
+import { GoogleAccount } from '@prisma/client'
 import { GaxiosResponse } from 'gaxios'
 import { OAuth2Client } from 'google-auth-library'
 import { google } from 'googleapis'
@@ -14,15 +19,33 @@ type PeopleRequestResult = {
   data: GoogleResponse[]
 }
 
-const refreshToken = async (session: CustomSession, oauth2Client: OAuth2Client) => {
-  oauth2Client.setCredentials({ refresh_token: session.refreshToken })
+const refreshToken = async (
+  googleAccountSession: GoogleAccount,
+  oauth2Client: OAuth2Client,
+) => {
+  oauth2Client.setCredentials({
+    refresh_token: googleAccountSession.refreshToken,
+  })
   const { credentials } = await oauth2Client.refreshAccessToken()
-  session.accessToken = credentials.access_token!
-  session.expiresAt = Date.now() + credentials.expiry_date!
-  oauth2Client.setCredentials({ access_token: session.accessToken })
+  googleAccountSession.accessToken = credentials.access_token!
+  oauth2Client.setCredentials({
+    access_token: googleAccountSession.accessToken,
+  })
+  prisma.googleAccount.update({
+    data: {
+      accessToken: googleAccountSession.accessToken,
+      refreshToken: googleAccountSession.refreshToken,
+    },
+    where: {
+      id: googleAccountSession.id,
+    },
+  })
 }
 
-const requestPeopleAPI = async (oauth2Client: OAuth2Client, syncToken?: string): Promise<PeopleRequestResult> => {
+const requestPeopleAPI = async (
+  oauth2Client: OAuth2Client,
+  syncToken?: string | null,
+): Promise<PeopleRequestResult> => {
   let data: GoogleResponse[] = []
   let nextPageToken: string | undefined | null = ''
   let response: GaxiosResponse<GoogleContactMainResponse>
@@ -37,9 +60,10 @@ const requestPeopleAPI = async (oauth2Client: OAuth2Client, syncToken?: string):
       pageToken: nextPageToken,
       sortOrder: 'LAST_MODIFIED_DESCENDING',
       pageSize: 1000,
-      personFields: 'names,emailAddresses,addresses,phoneNumbers,photos,organizations,occupations,birthdays',
+      personFields:
+        'names,emailAddresses,addresses,phoneNumbers,photos,organizations,occupations,birthdays',
       requestSyncToken: true,
-      syncToken,
+      syncToken: syncToken ?? undefined,
     })
     data.push(...(response.data.connections! || []))
     nextPageToken = response.data.nextPageToken
@@ -48,8 +72,26 @@ const requestPeopleAPI = async (oauth2Client: OAuth2Client, syncToken?: string):
   return { syncToken: response.data.nextSyncToken!, data }
 }
 
-export async function fetchGoogleContacts(userId: string) {
+export async function fetchGoogleContacts(googleAccountId: string) {
   const session = (await nextauth.auth()) as CustomSession
+
+  const userId = session.user.id
+
+  const userGoogleAccount = await prisma.userGoogleAccount.findFirst({
+    where: {
+      googleAccountId,
+      userId: session.user.id,
+    },
+    include: {
+      googleAccount: true,
+    },
+  })
+
+  if (!userGoogleAccount) {
+    throw new Error('Google Account not found')
+  }
+
+  const googleAccount = userGoogleAccount.googleAccount
 
   const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
@@ -57,47 +99,32 @@ export async function fetchGoogleContacts(userId: string) {
     process.env.REDIRECT_URL,
   )
 
-  oauth2Client.setCredentials({ access_token: session.accessToken })
+  oauth2Client.setCredentials({ access_token: googleAccount.accessToken })
 
-  const existingSyncToken = await prisma.googleSyncToken.findFirst({
-    where: {
-      userId: userId,
-    },
-    select: {
-      token: true,
-    },
-  })
   // Fetch the user's Google Contacts
   let response: PeopleRequestResult
   try {
-    response = await requestPeopleAPI(oauth2Client, existingSyncToken?.token)
+    response = await requestPeopleAPI(oauth2Client, googleAccount.token)
   } catch (error: unknown) {
     try {
-      await refreshToken(session, oauth2Client)
-      response = await requestPeopleAPI(oauth2Client, existingSyncToken?.token)
+      await refreshToken(googleAccount, oauth2Client)
+      response = await requestPeopleAPI(oauth2Client, googleAccount.token)
     } catch (error: unknown) {
       throw error
     }
   }
+  await prisma.googleAccount.update({
+    where: {
+      id: googleAccountId,
+    },
+    data: {
+      token: response.syncToken,
+    },
+  })
 
-  if (existingSyncToken?.token) {
-    await prisma.googleSyncToken.update({
-      where: {
-        userId: userId,
-      },
-      data: {
-        token: response.syncToken,
-      },
-    })
-  } else {
-    await prisma.googleSyncToken.create({
-      data: {
-        userId: userId,
-        token: response.syncToken,
-      },
-    })
+  if (response.data) {
+    syncGoogleContacts(response.data, userId, googleAccountId)
+    return
   }
-
-  if (response.data) await syncGoogleContacts(response.data, userId)
-  redirect('/contacts-list')
+  // redirect('/contacts-list')
 }
