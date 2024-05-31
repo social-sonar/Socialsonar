@@ -9,9 +9,7 @@ const oauth2Client = new google.auth.OAuth2(
   `${process.env.DOMAIN}/api/oauth2callback`,
 )
 
-
 export async function GET() {
-  console.log(process.env)
   const session = await NextAuth.auth()
 
   if (!session) {
