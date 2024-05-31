@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { getGoogleAccounts } from '@/actions'
+import getGoogleAccounts from '@/lib/data/getGoogleAccounts'
 import { GoogleAccount, UserGoogleAccount } from '@prisma/client'
 import { GoogleSyncButton } from '@/components/Sync'
 import Button from '@/components/Button'

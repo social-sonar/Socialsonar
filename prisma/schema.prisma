@@ -72,14 +72,14 @@ model User {
 model GoogleAccount {
   id           String              @id @default(cuid())
   googleId     String              @unique
-  email        String              @unique
+  email        String?              @unique
   accessToken  String?
   refreshToken String?
   users        UserGoogleAccount[]
   createdAt    DateTime            @default(now())
   updatedAt    DateTime            @updatedAt
   token   String?
-  Contact Contact[]
+  contacts Contact[]
 
   @@map("google_account")
 }

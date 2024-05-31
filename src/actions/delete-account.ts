@@ -40,6 +40,30 @@ export async function deleteAccount(session: Session): State {
           },
         },
       })
+      if (deletedUser.googleAccounts.length > 0) {
+        deletedUser.googleAccounts.forEach(async (eachGoogleAccount) => {
+          const amountOfOtherAccountsConnected =
+            await prisma.userGoogleAccount.count({
+              where: {
+                googleAccountId: eachGoogleAccount.googleAccountId,
+                NOT: {
+                  userId: deletedUser.id,
+                },
+              },
+            })
+            //If no other account has this google account connect, delete it.
+          if (amountOfOtherAccountsConnected == 0) {
+            try {
+              await prisma.googleAccount.delete({
+                where: { id: eachGoogleAccount.googleAccountId },
+                include: { contacts: true },
+              })
+            } catch (error) {
+              console.log(error)
+            }
+          }
+        })
+      }
       return { message: 'Success', errors: [] }
     } catch (error) {
       console.log(error)

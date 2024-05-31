@@ -1,9 +1,9 @@
 "use server"
 
-import prisma from '../db'
-import NextAuth from '../auth'
+import prisma from '@/db'
+import NextAuth from '@/auth'
 
-export async function getGoogleAccounts() {
+export default async function getGoogleAccounts() {
   const session = await NextAuth.auth()
 
   return prisma.userGoogleAccount.findMany({
