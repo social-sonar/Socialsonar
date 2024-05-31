@@ -432,20 +432,23 @@ export const syncGoogleContacts = async (
   await findDuplicates(userId)
 }
 
-export const findContacts = async (userId: string) =>
-  await prisma.contact.findMany({
+export const findContacts = async (userId: string) => {
+  const userGoogleAccounts = (
+    await prisma.userGoogleAccount.findMany({
+      where: { userId },
+      select: {
+        googleAccountId: true,
+      },
+    })
+  ).map((a) => a.googleAccountId)
+
+  return prisma.contact.findMany({
     where: {
+      googleAccountId: {
+        in: userGoogleAccounts,
+      },
       OR: [
         { userId },
-        {
-          googleAccount: {
-            users:{
-              every: {
-                userId
-              }
-            }
-          },
-        },
         // Contacts with firstContacts in ContactStatus with either PENDING or MULTIPLE_CHOICE status
         {
           firstContacts: {
@@ -517,7 +520,7 @@ export const findContacts = async (userId: string) =>
       },
     },
   })
-
+}
 export const keepDuplicatedContacts = async (
   contactA: number,
   contactB: number,

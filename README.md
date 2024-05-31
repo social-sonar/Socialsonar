@@ -15,19 +15,22 @@ Next, create a `.env.local` file in the root of your project and set the followi
 1. **NEXT_PUBLIC_SITE_URL**:
    - Example: **`https://socialsonar.vercel.app`**
    - Usage: Specifies the public BASE URL.
-2. **GOOGLE_CLIENT_ID**:
+2. **DOMAIN**:
+   - Example: **`http://localhost:3000`**
+   - Usage: Specifies the public BASE URL.
+3. **GOOGLE_CLIENT_ID**:
    - Example: **`abcdefg.apps.googleusercontent.com`**
    - Usage: GCP client ID for syncing google data into the app
-3. **GOOGLE_CLIENT_SECRET**:
+4. **GOOGLE_CLIENT_SECRET**:
    - Example: **`GOCSPX-abcdefghi`**
    - Usage: GCP client secret for syncing google data into the app (auth and contacts)
-4. **AUTH_SECRET**:
+5. **AUTH_SECRET**:
    - Example: **`abcd1234`**
    - Usage: Random auth secret, required for OAuth authentication
-5. **POSTGRES_PRISMA_URL**:
+6. **POSTGRES_PRISMA_URL**:
    - Example: **`postgresql://foo:bar@localhost:5432/mydb?schema=public`**
    - Usage: Specifies the connection pool that Prisma will use.
-6. **POSTGRES_URL_NON_POOLING**:
+7. **POSTGRES_URL_NON_POOLING**:
    - Example: **`postgresql://foo:bar@localhost:5432/mydb?schema=public`**
    - Usage: Specifies the connection URL that Prisma will use to run migrations
 
