@@ -6,12 +6,12 @@ import { google } from 'googleapis'
 const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET,
-  `${process.env.NEXT_PUBLIC_SITE_URL}/api/oauth2callback`,
+  `${process.env.DOMAIN}/api/oauth2callback`,
 )
 
-console.log(process.env)
 
 export async function GET() {
+  console.log(process.env)
   const session = await NextAuth.auth()
 
   if (!session) {
