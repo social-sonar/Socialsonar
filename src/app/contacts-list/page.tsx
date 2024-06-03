@@ -101,9 +101,7 @@ export default function ContactList() {
       fetch(`/api/contacts-list?userId=${session?.data.user?.id}`)
         .then((response) => response.json())
         .then((data: FlattenContact[]) => {
-          if (data.length) {
-            setContacts(data)
-          }
+          setContacts(data)
           setIsLoading(false)
         })
         .catch((error) => {

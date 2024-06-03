@@ -444,41 +444,49 @@ export const findContacts = async (userId: string) => {
 
   return prisma.contact.findMany({
     where: {
-      googleAccountId: {
-        in: userGoogleAccounts,
-      },
-      OR: [
-        { userId },
-        // Contacts with firstContacts in ContactStatus with either PENDING or MULTIPLE_CHOICE status
+      AND: [
         {
-          firstContacts: {
-            some: {
-              OR: [
-                { mergeStatus: 'PENDING' },
-                { mergeStatus: 'MULTIPLE_CHOICE' },
-              ],
+          OR: [
+            { userId },
+            {
+              googleAccountId: { in: userGoogleAccounts },
             },
-          },
+          ],
         },
-        // Contacts with secondContacts in ContactStatus with either PENDING or MULTIPLE_CHOICE status
         {
-          secondContacts: {
-            some: {
-              OR: [
-                { mergeStatus: 'PENDING' },
-                { mergeStatus: 'MULTIPLE_CHOICE' },
-              ],
+          OR: [
+            // Contacts with firstContacts in ContactStatus with either PENDING or MULTIPLE_CHOICE status
+            {
+              firstContacts: {
+                some: {
+                  OR: [
+                    { mergeStatus: 'PENDING' },
+                    { mergeStatus: 'MULTIPLE_CHOICE' },
+                  ],
+                },
+              },
             },
-          },
-        },
-        // Contacts without firstContacts or secondContacts in ContactStatus
-        {
-          NOT: {
-            OR: [
-              { firstContacts: { some: {} } },
-              { secondContacts: { some: {} } },
-            ],
-          },
+            // Contacts with secondContacts in ContactStatus with either PENDING or MULTIPLE_CHOICE status
+            {
+              secondContacts: {
+                some: {
+                  OR: [
+                    { mergeStatus: 'PENDING' },
+                    { mergeStatus: 'MULTIPLE_CHOICE' },
+                  ],
+                },
+              },
+            },
+            // Contacts without firstContacts or secondContacts in ContactStatus
+            {
+              NOT: {
+                OR: [
+                  { firstContacts: { some: {} } },
+                  { secondContacts: { some: {} } },
+                ],
+              },
+            },
+          ],
         },
       ],
     },
