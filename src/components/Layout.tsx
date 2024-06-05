@@ -7,7 +7,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative flex w-full flex-col justify-between">
       <Header />
-      <main className="justify-items-center divide-y md:grid lg:grid">
+      <main className="justify-items-center divide-y md:grid lg:grid grow">
         {children}
       </main>
       <Footer />
