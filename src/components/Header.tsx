@@ -349,8 +349,8 @@ function Avatar({
 }
 
 export default function Header() {
-  let isHomePage = usePathname() === '/'
-  const session = useSession()
+  const path = usePathname()
+  let isHomePage = path === '/'
   let navContent: React.ReactNode
   let headerRef = useRef<React.ElementRef<'div'>>(null)
   let avatarRef = useRef<React.ElementRef<'div'>>(null)
@@ -456,6 +456,11 @@ export default function Header() {
     }
   }, [isHomePage])
 
+
+  const session = useSession()
+
+  if (path.startsWith('/u')) return null
+
   if (session?.status === 'loading') {
     navContent = null
   } else if (session?.data?.user) {
@@ -471,11 +476,11 @@ export default function Header() {
                 key={session.data.user.id}
                 profileButtons={
                   <>
-                  <form action={signOut}>
-                    <Button variant="primary" className="p-2 flex-auto w-full">
-                      Sign Out
-                    </Button>
-                  </form>
+                    <form action={signOut}>
+                      <Button variant="primary" className="p-2 flex-auto w-full">
+                        Sign Out
+                      </Button>
+                    </form>
                   </>
                 }
               />
