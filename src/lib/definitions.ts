@@ -153,3 +153,9 @@ export type DuplicateContactResolutionPayload = {
 }
 
 export type { PhoneNumber }
+
+export type TimeDuration = {
+    duration: number,
+    repr: string,
+    timedelta: number
+}
