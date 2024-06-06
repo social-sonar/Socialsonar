@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react';
+import Button from '@/components/Button';
 import EventDatePicker, { Value } from '@/components/EventDatePicker';
-import { ClockIcon, VideoCameraIcon, CalendarIcon } from '@heroicons/react/24/outline';
-import 'react-calendar/dist/Calendar.css';
 import { TimeDuration } from '@/lib/definitions';
-import { useRouter } from 'next/navigation';
-import { usePathname } from 'next/navigation';
 import { toLocalISOString } from '@/lib/utils';
+import { CalendarIcon, ClockIcon, VideoCameraIcon } from '@heroicons/react/24/outline';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import 'react-calendar/dist/Calendar.css';
 
 type EventsProps = {
     params: {
@@ -15,7 +15,8 @@ type EventsProps = {
         duration: string
     },
     searchParams: {
-        month: string
+        month: string,
+        date?: string
     }
 }
 
@@ -37,7 +38,7 @@ const maxDate = (date: string): Date => {
 const prettyDate = (date: Date, timedelta: number): string => {
     const newDate = new Date(date.getTime() + timedelta)
     const dateString = newDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-    const timeString = newDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    const timeString = newDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
     return `${timeString}, ${dateString}`
 }
 
@@ -48,8 +49,18 @@ export default function Events({ params, searchParams }: EventsProps) {
     const [value, onChange] = useState<Value>(new Date());
     const [date, setDate] = useState<Date | null>(null)
     const [time, setTime] = useState<string>('');
+    const [showForm, setShowForm] = useState<boolean>(false)
     const parsedDuration = parseTimeInput(params.duration)
     const maxCalendarDate = maxDate(searchParams.month)
+
+
+    useEffect(() => {
+        if (searchParams.date) {
+            const newDate = new Date(searchParams.date) 
+            setDate(newDate);
+            setTime(`${newDate.getHours().toString().padStart(2, '0')}:${newDate.getMinutes().toString().padStart(2, '0')}`)
+        }
+    }, [searchParams.date]);
 
     useEffect(() => {
         if (!time) return;
@@ -65,6 +76,7 @@ export default function Events({ params, searchParams }: EventsProps) {
     useEffect(() => {
         const params = new URLSearchParams(searchParams);
         if (date) {
+            setShowForm(true)
             params.set('date', toLocalISOString(date))
             replace(`${pathname}?${params}`)
         }
@@ -91,7 +103,26 @@ export default function Events({ params, searchParams }: EventsProps) {
                 }
             </div>
             <div className='bg-gray-800 w-[1px]' />
-            <EventDatePicker className='flex gap-8' value={value} onChange={onChange} maxDate={maxCalendarDate} onTimeSelect={setTime} />
+            {
+                showForm ?
+                    <div>
+                        <form className='flex flex-col gap-8'>
+                            <h1 className='text-xl font-semibold'>Scheduler details</h1>
+                            <div className='flex flex-col gap-4'>
+                                <label htmlFor="name">Name *</label>
+                                <input type="text" name='name' id='name' className='rounded-lg text-black' />
+                            </div>
+                            <div className='flex flex-col gap-4'>
+                                <label htmlFor="email">Email *</label>
+                                <input type="email" name='email' id='email' className='rounded-lg text-black' />
+                            </div>
+                            <Button className='w-fit'>Schedule</Button>
+                        </form>
+                    </div>
+                    :
+                    <EventDatePicker className='flex gap-8' value={value} onChange={onChange} maxDate={maxCalendarDate} onTimeSelect={setTime} />
+            }
+
         </div>
     )
 }

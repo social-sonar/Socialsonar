@@ -30,7 +30,7 @@ export default function EventDatePicker({ className, value, onChange, maxDate, o
                     showNeighboringMonth={false}
                     minDate={new Date()}
                     maxDate={maxDate}
-                    onClickDay={() => setShowTimeList(true)}/>
+                    onClickDay={() => setShowTimeList(true)} />
             </div>
             {
                 showTimeList &&
