@@ -5,6 +5,9 @@ import EventDatePicker, { Value } from '@/components/EventDatePicker';
 import { ClockIcon, VideoCameraIcon, CalendarIcon } from '@heroicons/react/24/outline';
 import 'react-calendar/dist/Calendar.css';
 import { TimeDuration } from '@/lib/definitions';
+import { useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
+import { toLocalISOString } from '@/lib/utils';
 
 type EventsProps = {
     params: {
@@ -31,14 +34,17 @@ const maxDate = (date: string): Date => {
     return new Date(year, month, 0)
 }
 
-const prettyDate = (date: Date): string => {
-    const dateString = date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-    const timeString = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+const prettyDate = (date: Date, timedelta: number): string => {
+    const newDate = new Date(date.getTime() + timedelta)
+    const dateString = newDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+    const timeString = newDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
     return `${timeString}, ${dateString}`
 }
 
 
 export default function Events({ params, searchParams }: EventsProps) {
+    const { replace } = useRouter()
+    const pathname = usePathname()
     const [value, onChange] = useState<Value>(new Date());
     const [date, setDate] = useState<Date | null>(null)
     const [time, setTime] = useState<string>('');
@@ -49,11 +55,20 @@ export default function Events({ params, searchParams }: EventsProps) {
         if (!time) return;
         const [hours, minutes] = time.split(':').map(Number)
         const eventDate = new Date((value as Date).getTime())
+
         eventDate.setHours(hours)
         eventDate.setMinutes(minutes)
         eventDate.setSeconds(0)
-        setDate(new Date(eventDate.getTime() + parsedDuration.timedelta))
-    }, [time, value, parsedDuration.timedelta])
+        setDate(new Date(eventDate.getTime()))
+    }, [time, value])
+
+    useEffect(() => {
+        const params = new URLSearchParams(searchParams);
+        if (date) {
+            params.set('date', toLocalISOString(date))
+            replace(`${pathname}?${params}`)
+        }
+    }, [date])
 
     return (
         <div className="flex gap-10 h-4/6 max-h-96 self-center">
@@ -71,7 +86,7 @@ export default function Events({ params, searchParams }: EventsProps) {
                 {
                     date &&
                     <div className='flex gap-3 font-bold'>
-                        <CalendarIcon className='w-[25px]' /> {`${time} - ${prettyDate(date)}`}
+                        <CalendarIcon className='w-[25px]' /> {`${time} - ${prettyDate(date, parsedDuration.timedelta)}`}
                     </div>
                 }
             </div>

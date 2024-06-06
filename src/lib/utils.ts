@@ -40,3 +40,10 @@ export const getContactIdFromResourceName = (
 ) => {
   return payload.resourceName!.slice(7)
 }
+
+export const toLocalISOString = (date: Date): string => {
+  const newDate = new Date(date)
+  newDate.setMinutes(newDate.getMinutes() - newDate.getTimezoneOffset())
+  const [dateSegment, time] = newDate.toISOString().split('T')
+  return `${dateSegment}T${time.slice(0, -5)}`
+}
