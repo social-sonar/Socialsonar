@@ -1,23 +1,19 @@
 'use client'
 
+import { DateRange, Value } from '@/lib/definitions';
 import { useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-
-
-type ValuePiece = Date | null;
-
-export type Value = ValuePiece | [ValuePiece, ValuePiece];
 
 type EventDatePickerProps = {
     className: string,
     value: Value,
     onChange: (value: Value) => void,
-    maxDate: Date,
+    dateRange: DateRange,
     onTimeSelect: (value: string) => void
 }
 
-export default function EventDatePicker({ className, value, onChange, maxDate, onTimeSelect }: EventDatePickerProps) {
+export default function EventDatePicker({ className, value, onChange, dateRange, onTimeSelect }: EventDatePickerProps) {
     const [showTimeList, setShowTimeList] = useState<boolean>(false)
     return (
         <div className={className}>
@@ -28,8 +24,8 @@ export default function EventDatePicker({ className, value, onChange, maxDate, o
                     value={value}
                     className="text-black rounded-2xl"
                     showNeighboringMonth={false}
-                    minDate={new Date()}
-                    maxDate={maxDate}
+                    minDate={dateRange.minDate}
+                    maxDate={dateRange.maxDate}
                     onClickDay={() => setShowTimeList(true)} />
             </div>
             {

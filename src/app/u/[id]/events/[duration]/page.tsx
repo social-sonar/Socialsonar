@@ -1,10 +1,10 @@
 'use client'
 
 import Button from '@/components/Button';
-import EventDatePicker, { Value } from '@/components/EventDatePicker';
-import { TimeDuration } from '@/lib/definitions';
+import EventDatePicker from '@/components/EventDatePicker';
+import { DateRange, TimeDuration, Value } from '@/lib/definitions';
 import { toLocalISOString } from '@/lib/utils';
-import { CalendarIcon, ClockIcon, VideoCameraIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, CalendarIcon, ClockIcon, VideoCameraIcon } from '@heroicons/react/24/outline';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import 'react-calendar/dist/Calendar.css';
@@ -30,9 +30,14 @@ const parseTimeInput = (input: string): TimeDuration => {
     }
 }
 
-const maxDate = (date: string): Date => {
+const getMinMaxDate = (date: string): DateRange => {
     const [year, month] = date.split('-').map(Number)
-    return new Date(year, month, 0)
+    const maxDate = new Date(year, month, 0)
+    const minDate = new Date(year, month - 1, 1)
+    return {
+        minDate,
+        maxDate
+    }
 }
 
 const prettyDate = (date: Date, timedelta: number): string => {
@@ -52,7 +57,7 @@ export default function Events({ params, searchParams }: EventsProps) {
     const [showForm, setShowForm] = useState<boolean>(false)
 
     const parsedDuration = parseTimeInput(params.duration)
-    const maxCalendarDate = maxDate(searchParams.month)
+    const minMaxDates = getMinMaxDate(searchParams.month)
 
     useEffect(() => {
         if (searchParams.date) {
@@ -135,7 +140,13 @@ export default function Events({ params, searchParams }: EventsProps) {
                             </form>
                         </div>
                         :
-                        <EventDatePicker className='flex gap-8' value={value} onChange={onChange} maxDate={maxCalendarDate} onTimeSelect={setTime} />
+                        <EventDatePicker
+                            className='flex gap-8'
+                            value={value}
+                            onChange={onChange}
+                            dateRange={minMaxDates}
+                            onTimeSelect={setTime}
+                        />
                 }
 
             </div>

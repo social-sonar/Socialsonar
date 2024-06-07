@@ -159,3 +159,12 @@ export type TimeDuration = {
     repr: string,
     timedelta: number
 }
+
+type ValuePiece = Date | null;
+
+export type Value = ValuePiece | [ValuePiece, ValuePiece];
+
+export type DateRange = {
+    minDate: Date,
+    maxDate: Date
+}
