@@ -24,6 +24,17 @@ const buildEventURL = (duration: string, monthStr: string, userId: string): stri
 }
 
 
+const timeData: { value: string, title: string }[] = [
+    { value: '5m', title: '5 minutes' },
+    { value: '10m', title: '10 minutes' },
+    { value: '20m', title: '20 minutes' },
+    { value: '30m', title: '30 minutes' },
+    { value: '45m', title: '45 minutes' },
+    { value: '1h', title: '1 hour' },
+    { value: '2h', title: '2 hours' }
+];
+
+
 export default function EventGenerator({ showNotification, userId }: EventGeneratorProps) {
     const [duration, setDuration] = useState<string>('')
     const [open, setOpen] = useState<boolean>(false)
@@ -45,6 +56,7 @@ export default function EventGenerator({ showNotification, userId }: EventGenera
         }
 
     }, [value, duration])
+
 
     return (
         <div className='flex flex-col items-center gap-10'>
@@ -72,55 +84,15 @@ export default function EventGenerator({ showNotification, userId }: EventGenera
                         <div className='flex flex-col gap-5'>
                             <h1 className='text-xl font-semibold'>Event duration</h1>
                             <div className='space-y-4 hover:cursor-pointer flex flex-col items-start'>
-                                <button
-                                    className='hover:text-teal-600'
-                                    value='5m'
-                                    onClick={(e) => setDuration(e.currentTarget.value)}
-                                >
-                                    5 minutes
-                                </button>
-                                <button
-                                    className='hover:text-teal-600'
-                                    value='10m'
-                                    onClick={(e) => setDuration(e.currentTarget.value)}
-                                >
-                                    10 minutes
-                                </button>
-                                <button
-                                    className='hover:text-teal-600'
-                                    value='20m'
-                                    onClick={(e) => setDuration(e.currentTarget.value)}
-                                >
-                                    20 minutes
-                                </button>
-                                <button
-                                    className='hover:text-teal-600'
-                                    value='30m'
-                                    onClick={(e) => setDuration(e.currentTarget.value)}
-                                >
-                                    30 minutes
-                                </button>
-                                <button
-                                    className='hover:text-teal-600'
-                                    value='45m'
-                                    onClick={(e) => setDuration(e.currentTarget.value)}
-                                >
-                                    45 minutes
-                                </button>
-                                <button
-                                    className='hover:text-teal-600'
-                                    value='1h'
-                                    onClick={(e) => setDuration(e.currentTarget.value)}
-                                >
-                                    1 hour
-                                </button>
-                                <button
-                                    className='hover:text-teal-600'
-                                    value='2h'
-                                    onClick={(e) => setDuration(e.currentTarget.value)}
-                                >
-                                    2 hours
-                                </button>
+                                {timeData.map(({ value, title }) => (
+                                    <button
+                                        key={value}
+                                        className={`hover:text-teal-600 ${value === duration ? 'text-teal-600':''}`}
+                                        onClick={() => setDuration(value)}
+                                    >
+                                        {title}
+                                    </button>
+                                ))}
                             </div>
                         </div>
                     }
