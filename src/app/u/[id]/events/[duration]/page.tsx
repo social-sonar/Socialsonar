@@ -103,7 +103,7 @@ export default function Events({ params, searchParams }: EventsProps) {
                 showForm &&
                 <button onClick={backAction}><ArrowLeftIcon className='w-10' /></button>
             }
-            <div className="flex gap-10 h-4/6 max-h-96 self-center">
+            <div className="flex lg:flex-row md:flex-row flex-col gap-10 h-4/6 lg:max-h-96 md:max-h-96 max-h-fit self-center">
                 <div className="flex flex-col gap-5">
                     <div>
                         <p className='text-xl'>Steve Jobs</p>
@@ -122,7 +122,7 @@ export default function Events({ params, searchParams }: EventsProps) {
                         </div>
                     }
                 </div>
-                <div className='bg-gray-800 w-[1px]' />
+                <div className='bg-gray-800 w-[1px] lg:flex md:flex hidden' />
                 {
                     showForm ?
                         <div>
@@ -141,7 +141,7 @@ export default function Events({ params, searchParams }: EventsProps) {
                         </div>
                         :
                         <EventDatePicker
-                            className='flex gap-8'
+                            className='flex lg:flex-row md:flex-row flex-col gap-8 lg:items-stretch md:items-stretch items-center'
                             value={value}
                             onChange={onChange}
                             dateRange={minMaxDates}

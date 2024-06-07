@@ -30,9 +30,9 @@ export default function EventDatePicker({ className, value, onChange, dateRange,
             </div>
             {
                 showTimeList &&
-                <div className='flex flex-col gap-3 w-60'>
+                <div className='flex flex-col gap-3 w-60 lg:items-stretch md:items-stretch items-center'>
                     <p>{(value as Date)?.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-                    <div className='overflow-scroll flex flex-col gap-2 p-3'>
+                    <div className='overflow-scroll lg:flex md:flex lg:flex-col md:flex-col grid grid-cols-3 gap-2 p-3'>
                         {/* TODO */}
                         <button className='p-3 border-2 border-teal-800 text-teal-800 rounded-xl font-bold hover:border-teal-500' onClick={(e) => onTimeSelect(e.currentTarget.value)} value='09:00'>09:00</button>
                         <button className='p-3 border-2 border-teal-800 text-teal-800 rounded-xl font-bold hover:border-teal-500' onClick={(e) => onTimeSelect(e.currentTarget.value)} value='09:30'>09:30</button>

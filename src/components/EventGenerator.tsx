@@ -70,7 +70,7 @@ export default function EventGenerator({ showNotification, userId }: EventGenera
             </button>
             {
                 open &&
-                <div className='flex gap-10'>
+                <div className='flex lg:flex-row md:flex-row flex-col gap-10'>
                     <Calendar
                         className="text-black rounded-2xl"
                         view='year'
@@ -83,11 +83,11 @@ export default function EventGenerator({ showNotification, userId }: EventGenera
                         showDurations &&
                         <div className='flex flex-col gap-5'>
                             <h1 className='text-xl font-semibold'>Event duration</h1>
-                            <div className='space-y-4 hover:cursor-pointer flex flex-col items-start'>
+                            <div className='lg:space-y-4 md:space-y-4 hover:cursor-pointer lg:flex md:flex lg:flex-col md:flex-col flex-row items-start grid grid-cols-3'>
                                 {timeData.map(({ value, title }) => (
                                     <button
                                         key={value}
-                                        className={`hover:text-teal-600 ${value === duration ? 'text-teal-600':''}`}
+                                        className={`hover:text-teal-600 ${value === duration ? 'text-teal-600' : ''}`}
                                         onClick={() => setDuration(value)}
                                     >
                                         {title}
