@@ -7,19 +7,24 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 
 
+type EventGeneratorProps = {
+    showNotification: () => Promise<void>,
+    userId: string
+}
+
+
 const getMonthStr = (date: Date): string => {
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const year = date.getFullYear()
     return `${year}-${month}`;
 }
 
-const buildEventURL = (duration: string, monthStr: string): string => {    
-    // TODO: add user-id instead of the dummy 'u-u-i-d' value
-    return `${window.location.origin}/u/u-u-i-d/events/${duration}?month=${monthStr}`
+const buildEventURL = (duration: string, monthStr: string, userId: string): string => {
+    return `${window.location.origin}/u/${userId}/events/${duration}?month=${monthStr}`
 }
 
 
-export default function EventGenerator() {
+export default function EventGenerator({ showNotification, userId }: EventGeneratorProps) {
     const [duration, setDuration] = useState<string>('')
     const [open, setOpen] = useState<boolean>(false)
     const [showDurations, setShowDurations] = useState<boolean>(false)
@@ -35,8 +40,8 @@ export default function EventGenerator() {
     useEffect(() => {
         if (value && duration) {
             const monthStr = getMonthStr((value as Date))
-            const eventURL = buildEventURL(duration, monthStr)
-            console.log("Event URL:", eventURL);
+            const eventURL = buildEventURL(duration, monthStr, userId)
+            navigator.clipboard.writeText(eventURL).then(showNotification)
         }
 
     }, [value, duration])

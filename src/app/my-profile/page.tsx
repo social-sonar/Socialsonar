@@ -2,7 +2,7 @@
 
 import React, { Fragment, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { CheckCircleIcon, ExclamationTriangleIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon, ExclamationTriangleIcon, TrashIcon, CheckIcon } from '@heroicons/react/24/outline';
 import Button from '../../components/Button'
 import { deleteAccount } from '../../actions/delete-account';
 import { signOut, useSession } from 'next-auth/react'
@@ -54,6 +54,10 @@ export default function Example() {
       }
       setIsSaving(false)
     }
+  }
+  const clipBoardNotificationHandler = async () => {
+    showNotification("URL copied to clipboard", "", <CheckIcon className='w-[25px] text-green-800 rounded-full p-1 bg-green-200' />, 'bg-green-400 flex flex-col justify-center')
+    await new Promise(() => setTimeout(hideNotification, 5000))
   }
   return (
     <>
@@ -124,10 +128,10 @@ export default function Example() {
           </div>
         </Dialog>
       </Transition>
-        <div className="flex flex-col items-center justify-center gap-10">
-          <EventGenerator/>
-          <Button onClick={() => { setOpen(true) }} className='text-red-500'>Delete your account <TrashIcon className='w-4 h-4'></TrashIcon></Button>
-        </div>
+      <div className="flex flex-col items-center justify-center gap-10">
+        <EventGenerator showNotification={clipBoardNotificationHandler} userId={session.data?.user.id!} />
+        <Button onClick={() => { setOpen(true) }} className='text-red-500'>Delete your account <TrashIcon className='w-4 h-4'></TrashIcon></Button>
+      </div>
     </>
   );
 }
