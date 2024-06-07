@@ -2,7 +2,7 @@
 
 import nextauth from '@/auth'
 import prisma from '@/db'
-import { syncGoogleContacts } from '@/lib/data/common'
+import { pullAndSyncGoogleContacts } from '@/lib/data/common'
 import {
   CustomSession,
   GoogleContactMainResponse,
@@ -12,32 +12,31 @@ import { GoogleAccount } from '@prisma/client'
 import { GaxiosResponse } from 'gaxios'
 import { OAuth2Client } from 'google-auth-library'
 import { google } from 'googleapis'
-import { redirect } from 'next/navigation'
 
 type PeopleRequestResult = {
   syncToken: string
   data: GoogleResponse[]
 }
 
-const refreshToken = async (
-  googleAccountSession: GoogleAccount,
+export const refreshToken = async (
+  googleAccount: GoogleAccount,
   oauth2Client: OAuth2Client,
 ) => {
   oauth2Client.setCredentials({
-    refresh_token: googleAccountSession.refreshToken,
+    refresh_token: googleAccount.refreshToken,
   })
   const { credentials } = await oauth2Client.refreshAccessToken()
-  googleAccountSession.accessToken = credentials.access_token!
+  googleAccount.accessToken = credentials.access_token!
   oauth2Client.setCredentials({
-    access_token: googleAccountSession.accessToken,
+    access_token: googleAccount.accessToken,
   })
   prisma.googleAccount.update({
     data: {
-      accessToken: googleAccountSession.accessToken,
-      refreshToken: googleAccountSession.refreshToken,
+      accessToken: googleAccount.accessToken,
+      refreshToken: googleAccount.refreshToken,
     },
     where: {
-      id: googleAccountSession.id,
+      id: googleAccount.id,
     },
   })
 }
@@ -121,10 +120,9 @@ export async function fetchGoogleContacts(googleAccountId: string) {
       token: response.syncToken,
     },
   })
-
+  
   if (response.data) {
-    syncGoogleContacts(response.data, userId, googleAccountId)
+    pullAndSyncGoogleContacts(response.data, userId, googleAccountId)
     return
   }
-  // redirect('/contacts-list')
 }

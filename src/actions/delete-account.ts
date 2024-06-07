@@ -61,6 +61,15 @@ export async function deleteAccount(session: Session): State {
             } catch (error) {
               console.log(error)
             }
+          } else {
+            prisma.googleAccount.update({
+              where: {
+                id: eachGoogleAccount.id
+              },
+              data:{
+                token: null
+              }
+            })
           }
         })
       }

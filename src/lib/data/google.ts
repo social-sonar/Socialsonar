@@ -26,7 +26,7 @@ import {
     getPhoneNumberType,
     getPhotoIDs,
 } from '../data/common'
-import { dateString } from '../utils'
+import { dateString, getContactIdFromResourceName } from '../utils'
 
 
 const compareItems = (itemA: Record<string, any>, itemB: Record<string, any>, metaParams: MetaParamsMultiProperty) =>
@@ -504,7 +504,7 @@ export const syncExisting = async (
     googlePayload: GoogleResponse[],
 ) => {
     // ensure ascending order based on the resource name for matching the ascending order of existingGoogleContacts
-    googlePayload = googlePayload.sort((a, b) => a.resourceName!.slice(7).localeCompare(b.resourceName!.slice(7)))
+    googlePayload = googlePayload.sort((a, b) => getContactIdFromResourceName(a).localeCompare(getContactIdFromResourceName(b)))
     const length = existingGoogleContacts.length
     for (let index = 0; index < length; index++) {
         console.log("Processing sync contact: ", index, length)
