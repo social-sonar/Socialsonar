@@ -57,6 +57,10 @@ export default function EventGenerator({ showNotification, userId }: EventGenera
 
     }, [value, duration])
 
+    useEffect(() => {
+        setShowDurations(false)
+        setDuration('')
+    }, [open])
 
     return (
         <div className='flex flex-col items-center gap-10'>
