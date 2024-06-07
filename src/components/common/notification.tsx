@@ -5,7 +5,7 @@ import { XMarkIcon } from '@heroicons/react/20/solid'
 import { useNotification } from '@/app/NotificationsProvider'
 
 const Notification: React.FC = () => {
-  const { show, message, description, hideNotification, icon } =
+  const { show, message, description, hideNotification, icon, className } =
     useNotification()
 
   return (
@@ -25,10 +25,10 @@ const Notification: React.FC = () => {
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+            <div className={`pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg shadow-lg ring-1 ring-black bg-white ring-opacity-5 ${className}`}>
               <div className="p-4">
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 mt-2">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
                     {icon ?? (
                       <CheckCircleIcon
                         className="h-6 w-6 text-green-400"
