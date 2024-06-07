@@ -27,7 +27,9 @@ const buildEventURL = (duration: string, monthStr: string, userId: string): stri
 const timeData: { value: string, title: string }[] = [
     { value: '5m', title: '5 minutes' },
     { value: '10m', title: '10 minutes' },
+    { value: '15m', title: '15 minutes' },
     { value: '20m', title: '20 minutes' },
+    { value: '25m', title: '25 minutes' },
     { value: '30m', title: '30 minutes' },
     { value: '45m', title: '45 minutes' },
     { value: '1h', title: '1 hour' },
@@ -69,14 +71,14 @@ export default function EventGenerator({ showNotification, userId }: EventGenera
                 {
                     open ?
                         <ChevronUpIcon className='w-[20px]' /> :
-                        <ChevronDownIcon className='w-[20px]' />
+                        <ChevronDownIcon className='w-[20px] animate-pulse' />
                 }
             </button>
             {
                 open &&
                 <div className='flex lg:flex-row md:flex-row flex-col gap-10'>
                     <Calendar
-                        className="text-black rounded-2xl"
+                        className="text-black rounded-2xl h-fit"
                         view='year'
                         value={value}
                         onClickMonth={onChange}
@@ -85,13 +87,13 @@ export default function EventGenerator({ showNotification, userId }: EventGenera
                     />
                     {
                         showDurations &&
-                        <div className='flex flex-col gap-5'>
+                        <div className='flex flex-col gap-5 lg:items-stretch md:items-stretch items-center'>
                             <h1 className='text-xl font-semibold'>Event duration</h1>
-                            <div className='lg:space-y-4 md:space-y-4 hover:cursor-pointer lg:flex md:flex lg:flex-col md:flex-col flex-row items-start grid grid-cols-3'>
+                            <div className='lg:space-y-3 md:space-y-3 hover:cursor-pointer lg:flex md:flex lg:flex-col md:flex-col flex-row items-start grid grid-cols-3 justify-items-start'>
                                 {timeData.map(({ value, title }) => (
                                     <button
                                         key={value}
-                                        className={`hover:text-teal-600 ${value === duration ? 'text-teal-600' : ''}`}
+                                        className={`hover:text-teal-600 lg:mx-0 md:mx-0 mx-2 ${value === duration ? 'text-teal-600' : ''}`}
                                         onClick={() => setDuration(value)}
                                     >
                                         {title}
