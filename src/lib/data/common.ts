@@ -14,8 +14,16 @@ import {
 } from '../definitions'
 import { syncExisting } from './google'
 import { fuzzy } from 'fast-fuzzy'
-import { dateObject, dateString } from '../utils'
+import {
+  dateObject,
+  dateString,
+  getContactIdFromResourceName,
+  getSession,
+} from '../utils'
 import phone from 'phone'
+import { google, people_v1 } from 'googleapis'
+import { OAuth2Client } from 'google-auth-library'
+import { refreshToken } from '@/actions/integrations'
 
 export const getPhoneNumberType = (type: string): PhoneNumberType => {
   const typeMap: { [key: string]: PhoneNumberType } = {
@@ -333,12 +341,12 @@ const findDuplicates = async (userId: string) => {
   })
 }
 
-export const syncGoogleContacts = async (
+export const pullAndSyncGoogleContacts = async (
   people: GoogleResponse[],
   userId: string,
   googleAccountId: string,
 ): Promise<void> => {
-  const googleIds = people.map((person) => person.resourceName!.slice(7))
+  const googleIds = people.map((person) => getContactIdFromResourceName(person))
   const existingGoogleContacts = await findExistingGoogleIds(googleIds, userId)
   const existingGoogleIdsSet = new Set(
     existingGoogleContacts.map(
@@ -352,12 +360,14 @@ export const syncGoogleContacts = async (
   //  sync of google contacts thasecondContacts.length > 0t already exist and were updated somehow
   await syncExisting(
     existingGoogleContacts,
-    people.filter((person) => !googleIdsSet.has(person.resourceName!.slice(7))),
+    people.filter(
+      (person) => !googleIdsSet.has(getContactIdFromResourceName(person)),
+    ),
   )
   let index = 0
   // creation of non existing google contacts
   for (const person of people.filter((person) =>
-    googleIdsSet.has(person.resourceName!.slice(7)),
+    googleIdsSet.has(getContactIdFromResourceName(person)),
   )) {
     console.log('Processing new contact: ', ++index, people.length)
     const organizationsIDs = await getOrganizationIDs(
@@ -382,8 +392,8 @@ export const syncGoogleContacts = async (
     await prisma.contactGoogle.create({
       data: {
         contactId: newContact.id,
-        googleContactId: person.resourceName!.slice(7),
-      }, // remove "people/" prefix
+        googleContactId: getContactIdFromResourceName(person),
+      },
     })
     await prisma.contactOrganization.createMany({
       data: organizationsIDs.map((organization) => ({
@@ -688,3 +698,186 @@ export const normalizeContact = (contact: any): FlattenContact => ({
       : null,
   source: contact.googleContacts.length > 0 ? 'google' : 'custom',
 })
+
+export const updateContactInGoogle = async (contactId: number) => {
+  const session = await getSession()
+
+  const contact = (await prisma.contact.findFirst({
+    where: {
+      id: contactId!,
+    },
+    include: {
+      organizations: { select: { organization: { select: { name: true } } } },
+      phoneNumbers: {
+        select: { phoneNumber: { select: { number: true, type: true } } },
+      },
+      occupations: {
+        select: { ocuppation: { select: { name: true, id: true } } },
+      },
+      photos: { select: { photo: { select: { url: true } } } },
+      addresses: { select: { address: true } },
+      emails: { select: { email: { select: { address: true } } } },
+      googleContacts: { select: { googleContactId: true } },
+    },
+  }))!
+
+  const userId = session.user.id
+
+  let userGoogleAccount = await prisma.userGoogleAccount.findFirst({
+    orderBy: {
+      createdAt: 'asc',
+    },
+    where: {
+      googleAccount: {
+        contacts: {
+          some: {
+            id: contactId!,
+          },
+        },
+      },
+      userId: userId,
+    },
+    include: {
+      googleAccount: true,
+    },
+  })
+
+  if (!userGoogleAccount || contact.googleContacts.length == 0) {
+    console.log('Contact has no googleId')
+    userGoogleAccount = await prisma.userGoogleAccount.findFirst({
+      where: {
+        userId,
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+      include: { googleAccount: true },
+    })
+    console.log('Using:', userGoogleAccount?.googleAccount.email)
+    // throw new Error('Google Account not found')
+  }
+
+  const googleAccount = userGoogleAccount!.googleAccount
+
+  const oauth2Client = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    process.env.REDIRECT_URL,
+  )
+
+  oauth2Client.setCredentials({ access_token: googleAccount.accessToken })
+
+  const people = google.people({
+    version: 'v1',
+    auth: oauth2Client,
+  })
+  let existingContact
+
+  if ((contact?.googleContacts || []).length > 0) {
+    try {
+      existingContact = await people.people.get({
+        resourceName: `people/${contact?.googleContacts[0].googleContactId}`,
+        personFields:
+          'names,emailAddresses,addresses,phoneNumbers,organizations,occupations,birthdays',
+      })
+    } catch (error: unknown) {
+      try {
+        await refreshToken(googleAccount, oauth2Client)
+        existingContact = await people.people.get({
+          resourceName: `people/${contact?.googleContacts[0].googleContactId}`,
+          personFields:
+            'names,emailAddresses,addresses,phoneNumbers,organizations,occupations,birthdays',
+        })
+      } catch (error: unknown) {
+        throw error
+      }
+    }
+  }
+
+  const updatedContactData = {
+    names: existingContact?.data.names || [],
+    emailAddresses: existingContact?.data.emailAddresses || [],
+    phoneNumbers: existingContact?.data.phoneNumbers || [],
+    etag: existingContact?.data.etag,
+    organizations: existingContact?.data.organizations || [],
+    occupations: existingContact?.data.occupations || [],
+    addresses: existingContact?.data.addresses || [],
+    birthdays: existingContact?.data.birthdays || [],
+  }
+
+  updatedContactData.names = [
+    {
+      ...(updatedContactData.names[0] || {}),
+      displayName: contact!.name,
+      givenName: contact!.name,
+      unstructuredName: contact!.name,
+    },
+  ]
+  updatedContactData.emailAddresses = contact!.emails.map((a) => {
+    return {
+      value: a.email.address,
+    }
+  })
+  updatedContactData.phoneNumbers = contact!.phoneNumbers.map((a) => {
+    return { value: a.phoneNumber.number, type: a.phoneNumber.type }
+  })
+  updatedContactData.organizations = contact!.organizations.map((a) => {
+    return {
+      name: a.organization.name,
+    }
+  })
+  updatedContactData.occupations = contact!.occupations.map((a) => {
+    return {
+      value: a.ocuppation.name,
+    }
+  })
+  updatedContactData.addresses = contact!.addresses.map((a) => {
+    return {
+      streetAddress: a.address.streetAddress,
+      postalCode: a.address.postalCode,
+      city: a.address.city,
+      region: a.address.region,
+      countryCode: a.address.countryCode,
+    }
+  })
+
+  if (contact!.birthday) {
+    updatedContactData.birthdays[0] = {
+      date: dateObject(contact!.birthday!),
+    }
+  }
+  let response
+  if (existingContact) {
+    response = await people.people.updateContact({
+      resourceName: `people/${contact?.googleContacts[0].googleContactId}`,
+      updatePersonFields:
+        'names,emailAddresses,addresses,phoneNumbers,organizations,occupations,birthdays',
+      requestBody: updatedContactData,
+    })
+  } else {
+    try {
+      response = await people.people.createContact({
+        requestBody: updatedContactData,
+        prettyPrint: true,
+      })
+    } catch (error) {
+      await refreshToken(googleAccount, oauth2Client)
+      response = await people.people.createContact({
+        requestBody: updatedContactData,
+        prettyPrint: true,
+      })
+    }
+    await prisma.contact.update({
+      where: {
+        id: contact.id,
+      },
+      data: {
+        googleContacts: {
+          create: {
+            googleContactId: getContactIdFromResourceName(response.data),
+          },
+        },
+      },
+    })
+  }
+}
