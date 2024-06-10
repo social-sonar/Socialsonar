@@ -1,13 +1,15 @@
 'use client'
 
-import { DateRange, Value, TimeDuration } from '@/lib/definitions';
-import { useState, useEffect } from 'react';
-import Calendar from 'react-calendar';
+import { scheduleEvent } from '@/actions/scheduler';
 import Button from '@/components/Button';
+import { DateRange, TimeDuration, Value } from '@/lib/definitions';
 import { toLocalISOString } from '@/lib/utils';
 import { ArrowLeftIcon, CalendarIcon, ClockIcon, VideoCameraIcon } from '@heroicons/react/24/outline';
 import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import { useFormState } from 'react-dom';
 
 type DatePickerProps = {
     className: string,
@@ -51,6 +53,16 @@ const prettyDate = (date: Date, timedelta: number): string => {
     return `${timeString}, ${dateString}`
 }
 
+
+const ErrorBox = ({ errors }: { errors?: string[] }): React.ReactElement | null => {
+    if (!errors) return null;
+    return (
+        <div>
+            {errors.map((error, idx) => <p className='text-red-500' key={idx}>{error}</p>)}
+        </div>
+    )
+}
+
 function DatePicker({ className, value, onChange, dateRange, onTimeSelect }: DatePickerProps) {
     const [showTimeList, setShowTimeList] = useState<boolean>(false)
     return (
@@ -91,6 +103,7 @@ function DatePicker({ className, value, onChange, dateRange, onTimeSelect }: Dat
 export default function EventDatePicker({ duration, month, dateString, userName }: EventDatePicker) {
     const { replace } = useRouter()
     const pathname = usePathname()
+    const [addGuests, showGuestsTextarea] = useState<boolean>(false)
     const [value, onChange] = useState<Value>(new Date());
     const [date, setDate] = useState<Date | null>(null)
     const [time, setTime] = useState<string>('');
@@ -123,7 +136,7 @@ export default function EventDatePicker({ duration, month, dateString, userName 
     }, [time, value])
 
     useEffect(() => {
-        const params = new URLSearchParams({month});
+        const params = new URLSearchParams({ month });
         if (date) {
             setShowForm(true)
             params.set('date', toLocalISOString(date))
@@ -132,10 +145,15 @@ export default function EventDatePicker({ duration, month, dateString, userName 
     }, [date])
 
     const backAction = () => {
-        const params = new URLSearchParams({month, date: dateString!});
+        const params = new URLSearchParams({ month, date: dateString! });
         params.delete('date')
         replace(`${pathname}?${params}`)
     }
+
+    const [formState, action] = useFormState(
+        scheduleEvent.bind(null, parsedDuration.timedelta, date!),
+        { errors: {} }
+    );
 
     return (
         <>
@@ -166,16 +184,31 @@ export default function EventDatePicker({ duration, month, dateString, userName 
                 {
                     showForm ?
                         <div>
-                            <form className='flex flex-col gap-8'>
+                            <form className='flex flex-col gap-8' action={action}>
                                 <h1 className='text-xl font-semibold'>Scheduler details</h1>
                                 <div className='flex flex-col gap-4'>
                                     <label htmlFor="name">Name *</label>
                                     <input type="text" name='name' id='name' className='rounded-lg text-black' />
+                                    <ErrorBox errors={formState.errors.name}/>
                                 </div>
                                 <div className='flex flex-col gap-4'>
                                     <label htmlFor="email">Email *</label>
                                     <input type="email" name='email' id='email' className='rounded-lg text-black' />
+                                    <ErrorBox errors={formState.errors.email}/>
                                 </div>
+                                {
+                                    addGuests ?
+                                        <div className='flex flex-col gap-4'>
+                                            <div>
+                                                <label htmlFor="guests">Guests</label>
+                                                <p className='text-gray-400 text-sm'><span className='font-bold'>Important: </span>Enter an email address per line </p>
+                                            </div>
+                                            <textarea name='guests' id='guests' className='rounded-lg text-black' />
+                                            <ErrorBox errors={formState.errors.guests}/>
+                                        </div> :
+                                        <button onClick={() => showGuestsTextarea(true)} className='w-fit p-2 border rounded-xl'>Add guests <span className='font-bold'>+</span></button>
+                                }
+                                <ErrorBox errors={formState.errors._form}/>
                                 <Button className='w-fit'>Schedule</Button>
                             </form>
                         </div>
