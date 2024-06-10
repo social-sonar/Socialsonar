@@ -70,7 +70,7 @@ export default function EventGenerator({ showNotification, userId }: EventGenera
                 <span>Generate event URL</span>
                 {
                     open ?
-                        <ChevronUpIcon className='w-[20px]' /> :
+                        <ChevronUpIcon className='w-[20px] animate-pulse' /> :
                         <ChevronDownIcon className='w-[20px] animate-pulse' />
                 }
             </button>

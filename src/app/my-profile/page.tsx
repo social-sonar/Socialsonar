@@ -56,7 +56,7 @@ export default function Example() {
     }
   }
   const clipBoardNotificationHandler = async () => {
-    showNotification("URL copied to clipboard", "", <CheckIcon className='w-[25px] text-green-800 rounded-full p-1 bg-green-200' />, 'bg-green-400 flex flex-col justify-center')
+    showNotification("URL copied to clipboard", "", <CheckIcon className='w-[25px] text-green-800 rounded-full p-1 bg-green-200' />, 'bg-green-500 flex flex-col justify-center')
     await new Promise(() => setTimeout(hideNotification, 5000))
   }
   return (
