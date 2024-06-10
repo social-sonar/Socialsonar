@@ -64,5 +64,5 @@ export const scheduleEvent = async (
     }
   }
 
-  return { errors: {} }
+  return { errors: {}, success: true }
 }

@@ -3,7 +3,7 @@
 import { scheduleEvent } from '@/actions/scheduler';
 import Button from '@/components/Button';
 import { DateRange, TimeDuration, Value } from '@/lib/definitions';
-import { ArrowLeftIcon, CalendarIcon, ClockIcon, VideoCameraIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, CalendarIcon, ClockIcon, VideoCameraIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
@@ -100,6 +100,15 @@ function DatePicker({ className, value, onChange, dateRange, onTimeSelect }: Dat
     )
 }
 
+const SuccessScreen = (): React.ReactElement => {
+    return (
+        <div className='flex flex-col justify-center gap-10 items-center'>
+            <CheckCircleIcon className='w-52 text-green-700' />
+            <p>Your event was successfully scheduled</p>
+        </div>
+    )
+}
+
 
 export default function EventDatePicker({ duration, month, dateString, user }: EventDatePicker) {
     const [addGuests, showGuestsTextarea] = useState<boolean>(false)
@@ -107,7 +116,7 @@ export default function EventDatePicker({ duration, month, dateString, user }: E
     const [date, setDate] = useState<Date | null>(null)
     const [time, setTime] = useState<string>('');
     const [showForm, setShowForm] = useState<boolean>(false)
-    
+
     const parsedDuration = parseTimeInput(duration)
     const minMaxDates = getMinMaxDate(month)
 
@@ -150,6 +159,8 @@ export default function EventDatePicker({ duration, month, dateString, user }: E
         setTime('')
         setDate(null)
     }
+
+    if (formState.success === true) return <SuccessScreen />
 
     return (
         <>
