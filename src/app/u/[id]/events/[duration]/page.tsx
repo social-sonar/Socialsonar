@@ -37,7 +37,7 @@ export default async function Events({ params, searchParams }: EventsProps) {
                             dateString={searchParams.date}
                             duration={params.duration}
                             month={searchParams.month}
-                            userName={user?.name!}
+                            user={{ id: user?.id!, name: user?.name! }}
                         />
                     </div> :
                     <div className="flex flex-col justify-center gap-10 items-center">

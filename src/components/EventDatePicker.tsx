@@ -23,7 +23,10 @@ type EventDatePicker = {
     duration: string,
     month: string,
     dateString?: string
-    userName: string
+    user: {
+        id: string,
+        name: string
+    }
 }
 
 const parseTimeInput = (input: string): TimeDuration => {
@@ -100,7 +103,7 @@ function DatePicker({ className, value, onChange, dateRange, onTimeSelect }: Dat
 }
 
 
-export default function EventDatePicker({ duration, month, dateString, userName }: EventDatePicker) {
+export default function EventDatePicker({ duration, month, dateString, user }: EventDatePicker) {
     const { replace } = useRouter()
     const pathname = usePathname()
     const [addGuests, showGuestsTextarea] = useState<boolean>(false)
@@ -143,17 +146,22 @@ export default function EventDatePicker({ duration, month, dateString, userName 
             replace(`${pathname}?${params}`)
         }
     }, [date])
+    
+    const [formState, action] = useFormState(
+        scheduleEvent.bind(null, user.id, parsedDuration.timedelta, date!),
+        { errors: {} }
+    );
 
-    const backAction = () => {
+    const backAction = async () => {
         const params = new URLSearchParams({ month, date: dateString! });
         params.delete('date')
         replace(`${pathname}?${params}`)
+        setShowForm(false)
+        await new Promise(() => setTimeout(() =>{
+            formState.errors = {}
+            showGuestsTextarea(false)
+        }, 500))
     }
-
-    const [formState, action] = useFormState(
-        scheduleEvent.bind(null, parsedDuration.timedelta, date!),
-        { errors: {} }
-    );
 
     return (
         <>
@@ -164,7 +172,7 @@ export default function EventDatePicker({ duration, month, dateString, userName 
             <div className="flex lg:flex-row md:flex-row flex-col gap-10 h-4/6 lg:max-h-96 md:max-h-96 max-h-fit self-center">
                 <div className="flex flex-col gap-5">
                     <div>
-                        <p className='text-xl'>{userName}</p>
+                        <p className='text-xl'>{user.name}</p>
                         <p className='text-4xl font-semibold'>{`${parsedDuration.repr} event`}</p>
                     </div>
                     <div className='flex gap-3'>
@@ -189,12 +197,12 @@ export default function EventDatePicker({ duration, month, dateString, userName 
                                 <div className='flex flex-col gap-4'>
                                     <label htmlFor="name">Name *</label>
                                     <input type="text" name='name' id='name' className='rounded-lg text-black' />
-                                    <ErrorBox errors={formState.errors.name}/>
+                                    <ErrorBox errors={formState.errors.name} />
                                 </div>
                                 <div className='flex flex-col gap-4'>
                                     <label htmlFor="email">Email *</label>
                                     <input type="email" name='email' id='email' className='rounded-lg text-black' />
-                                    <ErrorBox errors={formState.errors.email}/>
+                                    <ErrorBox errors={formState.errors.email} />
                                 </div>
                                 {
                                     addGuests ?
@@ -204,11 +212,11 @@ export default function EventDatePicker({ duration, month, dateString, userName 
                                                 <p className='text-gray-400 text-sm'><span className='font-bold'>Important: </span>Enter an email address per line </p>
                                             </div>
                                             <textarea name='guests' id='guests' className='rounded-lg text-black' />
-                                            <ErrorBox errors={formState.errors.guests}/>
+                                            <ErrorBox errors={formState.errors.guests} />
                                         </div> :
                                         <button onClick={() => showGuestsTextarea(true)} className='w-fit p-2 border rounded-xl'>Add guests <span className='font-bold'>+</span></button>
                                 }
-                                <ErrorBox errors={formState.errors._form}/>
+                                <ErrorBox errors={formState.errors._form} />
                                 <Button className='w-fit'>Schedule</Button>
                             </form>
                         </div>
