@@ -1,5 +1,6 @@
 'use server'
 
+import prisma from '@/db'
 import { z } from 'zod'
 
 const createEventSchema = z.object({
@@ -19,12 +20,12 @@ type CreateEventSchemaFormState = {
 }
 
 export const scheduleEvent = async (
+  userId: string,
   timedelta: number,
   startDate: Date,
   formState: CreateEventSchemaFormState,
   formData: FormData,
 ): Promise<CreateEventSchemaFormState> => {
-  
   const result = createEventSchema.safeParse({
     name: formData.get('name'),
     email: formData.get('email'),
@@ -36,6 +37,32 @@ export const scheduleEvent = async (
       errors: result.error.flatten().fieldErrors,
     }
   }
+  try {
+    await prisma.event.create({
+      data: {
+        userId,
+        requesterName: result.data.name,
+        requesterEmail: result.data.email,
+        start: startDate,
+        end: new Date(startDate.getTime() + timedelta),
+        guests: result.data.guests?.split('\r\n'),
+      },
+    })
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        errors: {
+          _form: [err.message],
+        },
+      }
+    } else {
+      return {
+        errors: {
+          _form: ['Something went wrong'],
+        },
+      }
+    }
+  }
 
-  return {errors: {}}
+  return { errors: {} }
 }
