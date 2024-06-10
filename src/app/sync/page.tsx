@@ -1,11 +1,15 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import getGoogleAccounts from '@/lib/data/getGoogleAccounts'
+import {
+  getGoogleAccounts,
+  editGoogleAccount,
+} from '@/lib/data/getGoogleAccounts'
 import { GoogleAccount, UserGoogleAccount } from '@prisma/client'
 import { GoogleSyncButton } from '@/components/Sync'
 import Button from '@/components/Button'
 import LoadingSpinner from '@/components/common/spinner'
+import { Switch } from '@headlessui/react'
 
 interface ExtendedUserGoogleAccount extends UserGoogleAccount {
   googleAccount: GoogleAccount
@@ -25,6 +29,31 @@ export default function SyncGoogleAccounts() {
     fetchData()
   }, [])
 
+  function classNames(...classes: string[]) {
+    return classes.filter(Boolean).join(' ')
+  }
+
+  const changeAbleToWrite = (
+    e: boolean,
+    eachUserGoogleAccount: ExtendedUserGoogleAccount,
+  ) => {
+    const indexOfChange = userGoogleAccounts.findIndex((e) => {
+      return e.id === eachUserGoogleAccount.id
+    })
+    setUserGoogleAccounts(
+      userGoogleAccounts.with(indexOfChange, {
+        ...userGoogleAccounts[indexOfChange],
+        googleAccount: {
+          ...userGoogleAccounts[indexOfChange].googleAccount,
+          ableToWrite: e,
+        },
+      }),
+    )
+    editGoogleAccount(
+      userGoogleAccounts[indexOfChange].id,
+      userGoogleAccounts[indexOfChange].googleAccount,
+    )
+  }
   return (
     <div className="max-w-7xl">
       <div className="mx-auto max-w-7xl">
@@ -69,9 +98,15 @@ export default function SyncGoogleAccounts() {
                           </th>
                           <th
                             scope="col"
+                            className="px-3 py-3.5 text-left text-sm font-semibold text-white"
+                          >
+                            Edit contacts
+                          </th>
+                          <th
+                            scope="col"
                             className="relative py-3.5 pl-3 pr-4 sm:pr-0"
                           >
-                            <span className="sr-only">Edit</span>
+                            <span className="sr-only">Connect / Sync</span>
                           </th>
                         </tr>
                       </thead>
@@ -83,7 +118,37 @@ export default function SyncGoogleAccounts() {
                                 {eachUserGoogleAccount.googleAccount.email}
                               </td>
                               <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-300">
-                                {eachUserGoogleAccount.createdAt.toString()}
+                                {eachUserGoogleAccount.createdAt.toLocaleString()}
+                              </td>
+                              <td className="margin-auto">
+                                <Switch
+                                  checked={
+                                    eachUserGoogleAccount.googleAccount
+                                      .ableToWrite
+                                  }
+                                  onChange={(e) => {
+                                    changeAbleToWrite(e, eachUserGoogleAccount)
+                                  }}
+                                  className={classNames(
+                                    eachUserGoogleAccount.googleAccount
+                                      .ableToWrite
+                                      ? 'bg-teal-600'
+                                      : 'bg-gray-200',
+                                    'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2',
+                                  )}
+                                >
+                                  <span
+                                    aria-hidden="true"
+                                    className={classNames(
+                                      eachUserGoogleAccount.googleAccount
+                                        .ableToWrite
+                                        ? 'translate-x-5'
+                                        : 'translate-x-0',
+                                      'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+                                    )}
+                                  />
+                                </Switch>
+                                <span className="ml-3 text-sm">(BETA)</span>
                               </td>
                               <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
                                 <GoogleSyncButton

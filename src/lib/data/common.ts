@@ -700,6 +700,7 @@ export const normalizeContact = (contact: any): FlattenContact => ({
 })
 
 export const updateContactInGoogle = async (contactId: number) => {
+  console.time('updateContactInGoogle')
   const session = await getSession()
 
   const contact = (await prisma.contact.findFirst({
@@ -758,6 +759,15 @@ export const updateContactInGoogle = async (contactId: number) => {
   }
 
   const googleAccount = userGoogleAccount!.googleAccount
+
+  if (!googleAccount.ableToWrite) {
+    console.log("User didn't allow editing his contacts")
+    console.timeEnd('updateContactInGoogle')
+    return {
+      success: false,
+      message: 'You are not able to write contacts',
+    }
+  }
 
   const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
@@ -879,5 +889,10 @@ export const updateContactInGoogle = async (contactId: number) => {
         },
       },
     })
+  }
+  console.timeEnd('updateContactInGoogle')
+  return {
+    success: true,
+    message: 'Successfully updated contact',
   }
 }

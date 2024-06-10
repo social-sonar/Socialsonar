@@ -30,7 +30,9 @@ export const dateObject = (dateString: string): BirthDay => {
 }
 
 export const getSession = async () => {
-  return (await nextAuth.auth()) as CustomSession
+  const session = (await nextAuth.auth()) as CustomSession
+  if (!session) throw new Error('No session')
+  return session
 }
 
 export const getContactIdFromResourceName = (

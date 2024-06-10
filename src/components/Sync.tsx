@@ -8,7 +8,7 @@ export function GoogleSyncButton({ googleAccountId }: { googleAccountId: string 
     const action = fetchGoogleContacts.bind(null, googleAccountId)
     return (
         <form action={action}>
-            <SyncButton title='Google contacts' logo={googleContactsLogo} />
+            <SyncButton title='Sync Google contacts' logo={googleContactsLogo} />
         </form>
     )
 }
