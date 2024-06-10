@@ -65,21 +65,35 @@ model User {
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
   Contact        Contact[]
+  events         Event[]
 
   @@map("user")
+}
+
+model Event {
+  id        String   @id @default(cuid())
+  userId    String
+  requester String
+  guests    String[]
+  start     DateTime
+  end       DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model GoogleAccount {
   id           String              @id @default(cuid())
   googleId     String              @unique
-  email        String?              @unique
+  email        String?             @unique
   accessToken  String?
   refreshToken String?
   users        UserGoogleAccount[]
   createdAt    DateTime            @default(now())
   updatedAt    DateTime            @updatedAt
-  token   String?
-  contacts Contact[]
+  token        String?
+  contacts     Contact[]
+  ableToWrite  Boolean            @default(false)
 
   @@map("google_account")
 }
