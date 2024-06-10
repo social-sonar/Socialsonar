@@ -3,9 +3,7 @@
 import { scheduleEvent } from '@/actions/scheduler';
 import Button from '@/components/Button';
 import { DateRange, TimeDuration, Value } from '@/lib/definitions';
-import { toLocalISOString } from '@/lib/utils';
 import { ArrowLeftIcon, CalendarIcon, ClockIcon, VideoCameraIcon } from '@heroicons/react/24/outline';
-import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
@@ -104,14 +102,12 @@ function DatePicker({ className, value, onChange, dateRange, onTimeSelect }: Dat
 
 
 export default function EventDatePicker({ duration, month, dateString, user }: EventDatePicker) {
-    const { replace } = useRouter()
-    const pathname = usePathname()
     const [addGuests, showGuestsTextarea] = useState<boolean>(false)
     const [value, onChange] = useState<Value>(new Date());
     const [date, setDate] = useState<Date | null>(null)
     const [time, setTime] = useState<string>('');
     const [showForm, setShowForm] = useState<boolean>(false)
-
+    
     const parsedDuration = parseTimeInput(duration)
     const minMaxDates = getMinMaxDate(month)
 
@@ -139,28 +135,20 @@ export default function EventDatePicker({ duration, month, dateString, user }: E
     }, [time, value])
 
     useEffect(() => {
-        const params = new URLSearchParams({ month });
-        if (date) {
-            setShowForm(true)
-            params.set('date', toLocalISOString(date))
-            replace(`${pathname}?${params}`)
-        }
+        if (date) setShowForm(true)
     }, [date])
-    
+
     const [formState, action] = useFormState(
         scheduleEvent.bind(null, user.id, parsedDuration.timedelta, date!),
         { errors: {} }
     );
 
     const backAction = async () => {
-        const params = new URLSearchParams({ month, date: dateString! });
-        params.delete('date')
-        replace(`${pathname}?${params}`)
         setShowForm(false)
-        await new Promise(() => setTimeout(() =>{
-            formState.errors = {}
-            showGuestsTextarea(false)
-        }, 500))
+        formState.errors = {}
+        showGuestsTextarea(false)
+        setTime('')
+        setDate(null)
     }
 
     return (
