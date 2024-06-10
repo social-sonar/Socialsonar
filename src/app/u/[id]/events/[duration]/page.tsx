@@ -1,5 +1,6 @@
 import EventDatePicker from "@/components/EventDatePicker"
 import prisma from "@/db"
+import { notFound } from "next/navigation"
 
 type EventsProps = {
     params: {
@@ -28,6 +29,7 @@ export default async function Events({ params, searchParams }: EventsProps) {
             id: params.id
         }
     })
+    if(!user) notFound()
     return (
         <>
             {
@@ -37,7 +39,7 @@ export default async function Events({ params, searchParams }: EventsProps) {
                             dateString={searchParams.date}
                             duration={params.duration}
                             month={searchParams.month}
-                            user={{ id: user?.id!, name: user?.name! }}
+                            user={{ id: user.id, name: user.name! }}
                         />
                     </div> :
                     <div className="flex flex-col justify-center gap-10 items-center">
