@@ -3,12 +3,13 @@
 import { scheduleEvent } from '@/actions/scheduler';
 import Button from '@/components/Button';
 import { DateRange, TimeDuration, UserTimeInformation, Value } from '@/lib/definitions';
-import { getMinMaxDate } from '@/lib/utils';
-import { ArrowLeftIcon, CalendarIcon, ClockIcon, VideoCameraIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
-import { useEffect, useState } from 'react';
+import { getMinMaxDate, localDayNumber, localTime } from '@/lib/utils';
+import { ArrowLeftIcon, CalendarIcon, ClockIcon, VideoCameraIcon, CheckCircleIcon, MapIcon } from '@heroicons/react/24/outline';
+import React, { useEffect, useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { useFormState } from 'react-dom';
+import TimeZoneList from './TimeZoneList';
 
 type DatePickerProps = {
     className: string,
@@ -16,14 +17,16 @@ type DatePickerProps = {
     onChange: (value: Value) => void,
     dateRange: DateRange,
     onTimeSelect: (value: string) => void,
-    availableTime: Map<string, string[]>
+    children: React.ReactElement,
+    availableTime: Map<string, Date[]>
+    tz: string
 }
 
 type EventDatePicker = {
     durationMetadata: TimeDuration,
     month: string,
-    dateString?: string
     userInfo: UserTimeInformation
+    tz: string
 }
 
 const prettyDate = (date: Date, timedelta: number): string => {
@@ -43,10 +46,31 @@ const ErrorBox = ({ errors }: { errors?: string[] }): React.ReactElement | null 
     )
 }
 
-function DatePicker({ className, value, onChange, dateRange, onTimeSelect, availableTime }: DatePickerProps) {
-    const [showTimeList, setShowTimeList] = useState<boolean>(false)
+function DatePicker({ className, value, onChange, dateRange, onTimeSelect, availableTime, children, tz }: DatePickerProps) {
     const dateStr = `${(value as Date).getFullYear()}-${((value as Date).getMonth() + 1).toString().padStart(2, '0')}-${(value as Date).getDate().toString().padStart(2, '0')}`
-    const currentDateAvailabilities = availableTime.get(dateStr)
+    const [currentDateAvailabilities, setCurrentDateAvailabilities] = useState<string[]>([])
+    const [showTimeList, setShowTimeList] = useState<boolean>(false)
+
+    useEffect(() => {
+        let previousTime = ''
+        let previousLocalDayNumber: number | null = null
+        const updatedAvailability: string[] = []
+        availableTime.get(dateStr)?.forEach(date => {
+            const currentLocalTime = localTime(tz, date);
+            const currentLocalDayNumber = localDayNumber(tz, date);
+            if (!previousLocalDayNumber || (parseInt(currentLocalTime) > parseInt(previousTime) &&
+                currentLocalDayNumber === previousLocalDayNumber
+            )) {
+                // filter out times from the next day, .i.e. events with a duration of 2 hours
+                // 09:00 - OK, 11:00 - OK, 01:00 - FILTERED OUT
+                updatedAvailability.push(currentLocalTime)
+                previousLocalDayNumber = currentLocalDayNumber
+                previousTime = currentLocalTime
+            }
+        })
+        setCurrentDateAvailabilities(updatedAvailability)
+    }, [tz, value])
+
     return (
         <div className={className}>
             <div className='flex flex-col gap-5'>
@@ -58,7 +82,9 @@ function DatePicker({ className, value, onChange, dateRange, onTimeSelect, avail
                     showNeighboringMonth={false}
                     minDate={dateRange.minDate}
                     maxDate={dateRange.maxDate}
-                    onClickDay={() => setShowTimeList(true)} />
+                    onClickDay={() => setShowTimeList(true)}
+                />
+                {children}
             </div>
             {
                 showTimeList &&
@@ -71,7 +97,8 @@ function DatePicker({ className, value, onChange, dateRange, onTimeSelect, avail
                                     key={idx}
                                     className='p-3 border-2 border-teal-800 text-teal-800 rounded-xl font-bold hover:border-teal-500'
                                     onClick={(e) => onTimeSelect(e.currentTarget.value)}
-                                    value={time}>{time}
+                                    value={time}>
+                                    {time}
                                 </button>
                             )
                         }
@@ -92,7 +119,8 @@ const SuccessScreen = (): React.ReactElement => {
 }
 
 
-export default function EventDatePicker({ durationMetadata, month, dateString, userInfo }: EventDatePicker) {
+export default function EventDatePicker({ durationMetadata, month, userInfo, tz }: EventDatePicker) {
+    const [selected, setSelected] = useState(tz)
     const [addGuests, showGuestsTextarea] = useState<boolean>(false)
     const [value, onChange] = useState<Value>(new Date());
     const [date, setDate] = useState<Date | null>(null)
@@ -101,26 +129,9 @@ export default function EventDatePicker({ durationMetadata, month, dateString, u
     const minMaxDates = getMinMaxDate(month)
 
     useEffect(() => {
-        if (dateString) {
-            const newDate = new Date(dateString)
-            setDate(newDate);
-            setTime(`${newDate.getHours().toString().padStart(2, '0')}:${newDate.getMinutes().toString().padStart(2, '0')}`)
-        } else {
-            setShowForm(false)
-            setTime('')
-            setDate(null)
-        }
-    }, [dateString]);
-
-    useEffect(() => {
         if (!time) return;
-        // const [hours, minutes] = time.split(':').map(Number);
-        // const [year, month, day] = (value as Date).toISOString().split('T')[0].split('-').map(Number);
-        // const eventDate = new Date(Date.UTC(year, month - 1, day, hours, minutes, 0));
-        // setDate(eventDate);
         const [hours, minutes] = time.split(':').map(Number)
         const eventDate = new Date((value as Date).getTime())
-
         eventDate.setHours(hours)
         eventDate.setMinutes(minutes)
         eventDate.setSeconds(0)
@@ -166,10 +177,16 @@ export default function EventDatePicker({ durationMetadata, month, dateString, u
                     </div>
                     {
                         date &&
-                        <div className='flex gap-3 font-bold'>
-                            <CalendarIcon className='w-[25px]' /> {`${time} - ${prettyDate(date, durationMetadata.timedelta)}`}
-                        </div>
+                        <>
+                            <div className='flex gap-3 font-bold'>
+                                <CalendarIcon className='w-[25px]' /> {`${time} - ${prettyDate(date, durationMetadata.timedelta)}`}
+                            </div>
+                            <div className='flex gap-3'>
+                                <MapIcon className='w-[25px]' /> {selected}
+                            </div>
+                        </>
                     }
+
                 </div>
                 <div className='bg-gray-800 w-[1px] lg:flex md:flex hidden' />
                 {
@@ -211,7 +228,10 @@ export default function EventDatePicker({ durationMetadata, month, dateString, u
                             dateRange={minMaxDates}
                             onTimeSelect={setTime}
                             availableTime={userInfo.availableTime}
-                        />
+                            tz={selected}
+                        >
+                            <TimeZoneList value={selected} selectionHandler={setSelected} />
+                        </DatePicker>
                 }
 
             </div>
