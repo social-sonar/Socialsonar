@@ -25,13 +25,9 @@ const buildEventURL = (duration: string, monthStr: string, userId: string): stri
 
 
 const timeData: { value: string, title: string }[] = [
-    { value: '5m', title: '5 minutes' },
     { value: '10m', title: '10 minutes' },
-    { value: '15m', title: '15 minutes' },
     { value: '20m', title: '20 minutes' },
-    { value: '25m', title: '25 minutes' },
     { value: '30m', title: '30 minutes' },
-    { value: '45m', title: '45 minutes' },
     { value: '1h', title: '1 hour' },
     { value: '2h', title: '2 hours' }
 ];
