@@ -1,6 +1,6 @@
 import EventDatePicker from "@/components/EventDatePicker"
-import prisma from "@/db"
-import { notFound } from "next/navigation"
+import { getUserData } from "@/lib/data/events"
+import { TimeDuration } from "@/lib/definitions"
 
 type EventsProps = {
     params: {
@@ -22,14 +22,20 @@ const checkMonth = (month: string): boolean => {
     return dateFromMonth >= updatedDate
 }
 
+const parseTimeInput = (input: string): TimeDuration => {
+    const [, value, timeUnit] = input.match(/(\d+)([mh])/)!
+    const duration = parseInt(value)
+    return {
+        duration,
+        repr: timeUnit === 'm' ? `${value} minutes` : `${value} hour(s)`,
+        timedelta: timeUnit === 'm' ? 1000 * 60 * duration : 1000 * 60 * 60 * duration
+    }
+}
+
 export default async function Events({ params, searchParams }: EventsProps) {
     const isValidMonth = checkMonth(searchParams.month)
-    const user = await prisma.user.findUnique({
-        where: {
-            id: params.id
-        }
-    })
-    if(!user) notFound()
+    const parsedDuration = parseTimeInput(params.duration)
+    const userData = await getUserData(params.id, searchParams.month, parsedDuration)
     return (
         <>
             {
@@ -37,9 +43,9 @@ export default async function Events({ params, searchParams }: EventsProps) {
                     <div className='flex flex-col justify-center gap-10'>
                         <EventDatePicker
                             dateString={searchParams.date}
-                            duration={params.duration}
+                            durationMetadata={parsedDuration}
                             month={searchParams.month}
-                            user={{ id: user.id, name: user.name! }}
+                            userInfo={userData}
                         />
                     </div> :
                     <div className="flex flex-col justify-center gap-10 items-center">

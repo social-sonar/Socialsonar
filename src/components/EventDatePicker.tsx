@@ -2,7 +2,8 @@
 
 import { scheduleEvent } from '@/actions/scheduler';
 import Button from '@/components/Button';
-import { DateRange, TimeDuration, Value } from '@/lib/definitions';
+import { DateRange, TimeDuration, UserTimeInformation, Value } from '@/lib/definitions';
+import { getMinMaxDate } from '@/lib/utils';
 import { ArrowLeftIcon, CalendarIcon, ClockIcon, VideoCameraIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
 import Calendar from 'react-calendar';
@@ -14,37 +15,15 @@ type DatePickerProps = {
     value: Value,
     onChange: (value: Value) => void,
     dateRange: DateRange,
-    onTimeSelect: (value: string) => void
+    onTimeSelect: (value: string) => void,
+    availableTime: Map<string, string[]>
 }
 
 type EventDatePicker = {
-    duration: string,
+    durationMetadata: TimeDuration,
     month: string,
     dateString?: string
-    user: {
-        id: string,
-        name: string
-    }
-}
-
-const parseTimeInput = (input: string): TimeDuration => {
-    const [, value, timeUnit] = input.match(/(\d+)([mh])/)!
-    const duration = parseInt(value)
-    return {
-        duration,
-        repr: timeUnit === 'm' ? `${value} minutes` : `${value} hour(s)`,
-        timedelta: timeUnit === 'm' ? 1000 * 60 * duration : 1000 * 60 * 60 * duration
-    }
-}
-
-const getMinMaxDate = (date: string): DateRange => {
-    const [year, month] = date.split('-').map(Number)
-    const maxDate = new Date(year, month, 0)
-    const minDate = new Date(year, month - 1, 1)
-    return {
-        minDate,
-        maxDate
-    }
+    userInfo: UserTimeInformation
 }
 
 const prettyDate = (date: Date, timedelta: number): string => {
@@ -64,8 +43,10 @@ const ErrorBox = ({ errors }: { errors?: string[] }): React.ReactElement | null 
     )
 }
 
-function DatePicker({ className, value, onChange, dateRange, onTimeSelect }: DatePickerProps) {
+function DatePicker({ className, value, onChange, dateRange, onTimeSelect, availableTime }: DatePickerProps) {
     const [showTimeList, setShowTimeList] = useState<boolean>(false)
+    const dateStr = `${(value as Date).getFullYear()}-${((value as Date).getMonth() + 1).toString().padStart(2, '0')}-${(value as Date).getDate().toString().padStart(2, '0')}`
+    const currentDateAvailabilities = availableTime.get(dateStr)
     return (
         <div className={className}>
             <div className='flex flex-col gap-5'>
@@ -84,15 +65,16 @@ function DatePicker({ className, value, onChange, dateRange, onTimeSelect }: Dat
                 <div className='flex flex-col gap-3 w-60 lg:items-stretch md:items-stretch items-center'>
                     <p>{(value as Date)?.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
                     <div className='overflow-scroll lg:flex md:flex lg:flex-col md:flex-col grid grid-cols-3 gap-2 p-3'>
-                        {/* TODO */}
-                        <button className='p-3 border-2 border-teal-800 text-teal-800 rounded-xl font-bold hover:border-teal-500' onClick={(e) => onTimeSelect(e.currentTarget.value)} value='09:00'>09:00</button>
-                        <button className='p-3 border-2 border-teal-800 text-teal-800 rounded-xl font-bold hover:border-teal-500' onClick={(e) => onTimeSelect(e.currentTarget.value)} value='09:30'>09:30</button>
-                        <button className='p-3 border-2 border-teal-800 text-teal-800 rounded-xl font-bold hover:border-teal-500' onClick={(e) => onTimeSelect(e.currentTarget.value)} value='10:00'>10:00</button>
-                        <button className='p-3 border-2 border-teal-800 text-teal-800 rounded-xl font-bold hover:border-teal-500' onClick={(e) => onTimeSelect(e.currentTarget.value)} value='10:30'>10:30</button>
-                        <button className='p-3 border-2 border-teal-800 text-teal-800 rounded-xl font-bold hover:border-teal-500' onClick={(e) => onTimeSelect(e.currentTarget.value)} value='11:00'>11:00</button>
-                        <button className='p-3 border-2 border-teal-800 text-teal-800 rounded-xl font-bold hover:border-teal-500' onClick={(e) => onTimeSelect(e.currentTarget.value)} value='11:30'>11:30</button>
-                        <button className='p-3 border-2 border-teal-800 text-teal-800 rounded-xl font-bold hover:border-teal-500' onClick={(e) => onTimeSelect(e.currentTarget.value)} value='12:00'>12:00</button>
-
+                        {
+                            currentDateAvailabilities?.map((time, idx) =>
+                                <button
+                                    key={idx}
+                                    className='p-3 border-2 border-teal-800 text-teal-800 rounded-xl font-bold hover:border-teal-500'
+                                    onClick={(e) => onTimeSelect(e.currentTarget.value)}
+                                    value={time}>{time}
+                                </button>
+                            )
+                        }
                     </div>
                 </div>
             }
@@ -110,14 +92,12 @@ const SuccessScreen = (): React.ReactElement => {
 }
 
 
-export default function EventDatePicker({ duration, month, dateString, user }: EventDatePicker) {
+export default function EventDatePicker({ durationMetadata, month, dateString, userInfo }: EventDatePicker) {
     const [addGuests, showGuestsTextarea] = useState<boolean>(false)
     const [value, onChange] = useState<Value>(new Date());
     const [date, setDate] = useState<Date | null>(null)
     const [time, setTime] = useState<string>('');
     const [showForm, setShowForm] = useState<boolean>(false)
-
-    const parsedDuration = parseTimeInput(duration)
     const minMaxDates = getMinMaxDate(month)
 
     useEffect(() => {
@@ -134,6 +114,10 @@ export default function EventDatePicker({ duration, month, dateString, user }: E
 
     useEffect(() => {
         if (!time) return;
+        // const [hours, minutes] = time.split(':').map(Number);
+        // const [year, month, day] = (value as Date).toISOString().split('T')[0].split('-').map(Number);
+        // const eventDate = new Date(Date.UTC(year, month - 1, day, hours, minutes, 0));
+        // setDate(eventDate);
         const [hours, minutes] = time.split(':').map(Number)
         const eventDate = new Date((value as Date).getTime())
 
@@ -148,7 +132,7 @@ export default function EventDatePicker({ duration, month, dateString, user }: E
     }, [date])
 
     const [formState, action] = useFormState(
-        scheduleEvent.bind(null, user.id, parsedDuration.timedelta, date!),
+        scheduleEvent.bind(null, userInfo.user.id, durationMetadata.timedelta, date!),
         { errors: {} }
     );
 
@@ -171,11 +155,11 @@ export default function EventDatePicker({ duration, month, dateString, user }: E
             <div className="flex lg:flex-row md:flex-row flex-col gap-10 h-4/6 lg:max-h-96 md:max-h-96 max-h-fit self-center">
                 <div className="flex flex-col gap-5">
                     <div>
-                        <p className='text-xl'>{user.name}</p>
-                        <p className='text-4xl font-semibold'>{`${parsedDuration.repr} event`}</p>
+                        <p className='text-xl'>{userInfo.user.name}</p>
+                        <p className='text-4xl font-semibold'>{`${durationMetadata.repr} event`}</p>
                     </div>
                     <div className='flex gap-3'>
-                        <ClockIcon className='w-[25px]' /> {parsedDuration.repr}
+                        <ClockIcon className='w-[25px]' /> {durationMetadata.repr}
                     </div>
                     <div className='flex gap-3'>
                         <VideoCameraIcon className='w-[25px]' /> Event details provided after confirmation
@@ -183,7 +167,7 @@ export default function EventDatePicker({ duration, month, dateString, user }: E
                     {
                         date &&
                         <div className='flex gap-3 font-bold'>
-                            <CalendarIcon className='w-[25px]' /> {`${time} - ${prettyDate(date, parsedDuration.timedelta)}`}
+                            <CalendarIcon className='w-[25px]' /> {`${time} - ${prettyDate(date, durationMetadata.timedelta)}`}
                         </div>
                     }
                 </div>
@@ -226,6 +210,7 @@ export default function EventDatePicker({ duration, month, dateString, user }: E
                             onChange={onChange}
                             dateRange={minMaxDates}
                             onTimeSelect={setTime}
+                            availableTime={userInfo.availableTime}
                         />
                 }
 
