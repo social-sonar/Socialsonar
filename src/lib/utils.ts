@@ -53,7 +53,24 @@ export const getMinMaxDate = (date: string): DateRange => {
   const maxDate = new Date(year, month, 0)
   const minDate = new Date(year, month - 1, 1)
   return {
-      minDate,
-      maxDate
+    minDate,
+    maxDate,
   }
+}
+
+export const localTime = (timeZone: string, date?: Date) => {
+  const actualDate = date ?? new Date()
+  const timeString = actualDate.toLocaleTimeString('en-US', {
+    timeZone,
+    hour12: false,
+  })
+  return timeString.slice(0, -3)
+}
+
+export const localDayNumber = (timeZone: string, date: Date) => {
+  const dateString = date.toLocaleDateString('en-US', {
+    timeZone,
+    hour12: false,
+  })
+  return parseInt(dateString.split('/')[1])
 }
