@@ -1,5 +1,5 @@
 import { people_v1 } from 'googleapis'
-import { BirthDay, CustomSession, GoogleDate } from './definitions'
+import { BirthDay, CustomSession, DateRange, GoogleDate } from './definitions'
 import nextAuth from '@/auth'
 
 export function formatDate(dateString: string) {
@@ -46,4 +46,14 @@ export const toLocalISOString = (date: Date): string => {
   newDate.setMinutes(newDate.getMinutes() - newDate.getTimezoneOffset())
   const [dateSegment, time] = newDate.toISOString().split('T')
   return `${dateSegment}T${time.slice(0, -5)}`
+}
+
+export const getMinMaxDate = (date: string): DateRange => {
+  const [year, month] = date.split('-').map(Number)
+  const maxDate = new Date(year, month, 0)
+  const minDate = new Date(year, month - 1, 1)
+  return {
+      minDate,
+      maxDate
+  }
 }
