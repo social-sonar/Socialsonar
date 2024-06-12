@@ -190,5 +190,5 @@ export type UserTimeInformation = {
     id: string
     name: string
   }
-  availableTime: Map<string, string[]>
+  availableTime: Map<string, Date[]>
 }

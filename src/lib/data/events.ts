@@ -38,22 +38,20 @@ export const getUserData = async (
 
   const events = user?.events || []
   const minMaxDates = getMinMaxDate(month)
-  const finalTimeData: Map<string, string[]> = new Map<string, string[]>()
+  const finalTimeData: Map<string, Date[]> = new Map<string, Date[]>()
   const days = Array.from(
     { length: minMaxDates.maxDate.getDate() },
     (_, i) => i + 1,
   )
   days.forEach((day) => {
     const dateStr = `${month}-${day.toString().padStart(2, '0')}`
-    const data: string[] = []
-    const validStartDate = new Date(`${dateStr}T08:00:00-00:00`)
-    const validEndDate = new Date(`${dateStr}T17:00:00-00:00`)
-    let currentTime = new Date(validStartDate) // 8:00
-
+    const data: Date[] = []
+    const validStartDate = new Date(`${dateStr}T08:00:00`)
+    const validEndDate = new Date(`${dateStr}T17:00:00`)
+    let currentTime = new Date(validStartDate)
     while (currentTime < validEndDate) {
       let endTime = new Date(currentTime.getTime() + durationMetadata.timedelta)
-      const [hours, minutes, ] = (currentTime as Date).toISOString().split('T')[1].split(':');
-      data.push(`${hours}:${minutes}`)
+      data.push(currentTime as Date)
       for (let index = 0; index < events.length; index++) {
         const event = events[index]
         if (event.start.getDate() === currentTime.getDate()) {
@@ -81,6 +79,6 @@ export const getUserData = async (
       id: user.id,
       name: user.name!,
     },
-    availableTime: finalTimeData,
+      availableTime: finalTimeData,
   }
 }
