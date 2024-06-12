@@ -5,6 +5,8 @@ import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import TimeZoneList from './TimeZoneList';
+import { TIMEZONES } from '@/lib/constants';
 
 
 type EventGeneratorProps = {
@@ -19,8 +21,8 @@ const getMonthStr = (date: Date): string => {
     return `${year}-${month}`;
 }
 
-const buildEventURL = (duration: string, monthStr: string, userId: string): string => {
-    return `${window.location.origin}/u/${userId}/events/${duration}?month=${monthStr}`
+const buildEventURL = (duration: string, monthStr: string, userId: string, tz: string): string => {
+    return `${window.location.origin}/u/${userId}/events/${duration}?month=${monthStr}&tz=${tz}`
 }
 
 
@@ -34,6 +36,7 @@ const timeData: { value: string, title: string }[] = [
 
 
 export default function EventGenerator({ showNotification, userId }: EventGeneratorProps) {
+    const [selected, setSelected] = useState(TIMEZONES[0])
     const [duration, setDuration] = useState<string>('')
     const [open, setOpen] = useState<boolean>(false)
     const [showDurations, setShowDurations] = useState<boolean>(false)
@@ -49,11 +52,11 @@ export default function EventGenerator({ showNotification, userId }: EventGenera
     useEffect(() => {
         if (value && duration) {
             const monthStr = getMonthStr((value as Date))
-            const eventURL = buildEventURL(duration, monthStr, userId)
+            const eventURL = buildEventURL(duration, monthStr, userId, selected)
             navigator.clipboard.writeText(eventURL).then(showNotification)
         }
 
-    }, [value, duration])
+    }, [value, duration, selected])
 
     useEffect(() => {
         setShowDurations(false)
@@ -96,6 +99,7 @@ export default function EventGenerator({ showNotification, userId }: EventGenera
                                     </button>
                                 ))}
                             </div>
+                            <TimeZoneList value={selected} selectionHandler={setSelected} />
                         </div>
                     }
                 </div>
