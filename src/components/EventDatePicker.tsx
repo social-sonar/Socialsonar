@@ -40,7 +40,7 @@ const prettyDate = (date: Date, timedelta: number): string => {
 const ErrorBox = ({ errors }: { errors?: string[] }): React.ReactElement | null => {
     if (!errors) return null;
     return (
-        <div>
+        <div className='lg:w-72 md:w-72 w-80'>
             {errors.map((error, idx) => <p className='text-red-500' key={idx}>{error}</p>)}
         </div>
     )
@@ -143,7 +143,7 @@ export default function EventDatePicker({ durationMetadata, month, userInfo, tz 
     }, [date])
 
     const [formState, action] = useFormState(
-        scheduleEvent.bind(null, userInfo.user.id, durationMetadata.timedelta, date!),
+        scheduleEvent.bind(null, userInfo.user.id, durationMetadata.timedelta, tz, date!),
         { errors: {} }
     );
 
