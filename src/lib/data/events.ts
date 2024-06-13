@@ -1,7 +1,7 @@
 import prisma from '@/db'
 import { TimeDuration, UserTimeInformation } from '../definitions'
 import { notFound } from 'next/navigation'
-import { getMinMaxDate } from '../utils'
+import { getMinMaxDate } from '../utils/dates'
 
 const isDateInRange = (date: Date, startDate: Date, endDate: Date): boolean => {
   return date >= startDate && date < endDate

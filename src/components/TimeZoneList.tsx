@@ -1,5 +1,5 @@
 import { TIMEZONES } from "@/lib/constants"
-import { localTime } from "@/lib/utils"
+import { localTime } from "@/lib/utils/dates"
 import { Combobox, Transition } from "@headlessui/react"
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid"
 import { Fragment, useState } from "react"

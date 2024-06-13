@@ -14,16 +14,11 @@ import {
 } from '../definitions'
 import { syncExisting } from './google'
 import { fuzzy } from 'fast-fuzzy'
-import {
-  dateObject,
-  dateString,
-  getContactIdFromResourceName,
-  getSession,
-} from '../utils'
 import phone from 'phone'
-import { google, people_v1 } from 'googleapis'
-import { OAuth2Client } from 'google-auth-library'
-import { refreshToken } from '@/actions/integrations'
+import { google } from 'googleapis'
+import { getContactIdFromResourceName, getSession } from '../utils/common'
+import { dateObject, dateString } from '../utils/dates'
+import { refreshToken } from '../utils/google'
 
 export const getPhoneNumberType = (type: string): PhoneNumberType => {
   const typeMap: { [key: string]: PhoneNumberType } = {

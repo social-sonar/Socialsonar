@@ -3,8 +3,8 @@
 import { scheduleEvent } from '@/actions/scheduler';
 import Button from '@/components/Button';
 import { DateRange, TimeDuration, UserTimeInformation, Value } from '@/lib/definitions';
-import { getMinMaxDate, localDayNumber, localTime } from '@/lib/utils';
-import { ArrowLeftIcon, CalendarIcon, ClockIcon, VideoCameraIcon, CheckCircleIcon, MapIcon } from '@heroicons/react/24/outline';
+import { getMinMaxDate, localDayNumber, localTime } from '@/lib/utils/dates';
+import { ArrowLeftIcon, CalendarIcon, CheckCircleIcon, ClockIcon, MapIcon, VideoCameraIcon } from '@heroicons/react/24/outline';
 import React, { useEffect, useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';

@@ -1,6 +1,4 @@
-import { people_v1 } from 'googleapis'
-import { BirthDay, CustomSession, DateRange, GoogleDate } from './definitions'
-import nextAuth from '@/auth'
+import { BirthDay, DateRange, GoogleDate } from '@/lib/definitions'
 
 export function formatDate(dateString: string) {
   return new Date(`${dateString}T00:00:00Z`).toLocaleDateString('en-US', {
@@ -27,18 +25,6 @@ export const dateObject = (dateString: string): BirthDay => {
     month: parseInt(month),
     day: parseInt(day),
   }
-}
-
-export const getSession = async () => {
-  const session = (await nextAuth.auth()) as CustomSession
-  if (!session) throw new Error('No session')
-  return session
-}
-
-export const getContactIdFromResourceName = (
-  payload: people_v1.Schema$Person,
-) => {
-  return payload.resourceName!.slice(7)
 }
 
 export const toLocalISOString = (date: Date): string => {

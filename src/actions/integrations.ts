@@ -8,7 +8,7 @@ import {
   GoogleContactMainResponse,
   GoogleResponse,
 } from '@/lib/definitions'
-import { GoogleAccount } from '@prisma/client'
+import { refreshToken } from '@/lib/utils/google'
 import { GaxiosResponse } from 'gaxios'
 import { OAuth2Client } from 'google-auth-library'
 import { google } from 'googleapis'
@@ -16,29 +16,6 @@ import { google } from 'googleapis'
 type PeopleRequestResult = {
   syncToken: string
   data: GoogleResponse[]
-}
-
-export const refreshToken = async (
-  googleAccount: GoogleAccount,
-  oauth2Client: OAuth2Client,
-) => {
-  oauth2Client.setCredentials({
-    refresh_token: googleAccount.refreshToken,
-  })
-  const { credentials } = await oauth2Client.refreshAccessToken()
-  googleAccount.accessToken = credentials.access_token!
-  oauth2Client.setCredentials({
-    access_token: googleAccount.accessToken,
-  })
-  prisma.googleAccount.update({
-    data: {
-      accessToken: googleAccount.accessToken,
-      refreshToken: googleAccount.refreshToken,
-    },
-    where: {
-      id: googleAccount.id,
-    },
-  })
 }
 
 const requestPeopleAPI = async (
