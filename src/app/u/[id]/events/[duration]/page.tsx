@@ -9,7 +9,7 @@ type EventsProps = {
     },
     searchParams: {
         month: string,
-        date?: string
+        tz: string
     }
 }
 
@@ -42,7 +42,7 @@ export default async function Events({ params, searchParams }: EventsProps) {
                 isValidMonth ?
                     <div className='flex flex-col justify-center gap-10'>
                         <EventDatePicker
-                            dateString={searchParams.date}
+                            tz={searchParams.tz}
                             durationMetadata={parsedDuration}
                             month={searchParams.month}
                             userInfo={userData}
