@@ -66,7 +66,7 @@ export default function SyncGoogleAccounts() {
                     Connected accounts
                   </h1>
                   <p className="mt-2 text-sm text-gray-300">
-                    This are the connected accounts
+                    These are the connected accounts
                   </p>
                 </div>
                 <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">

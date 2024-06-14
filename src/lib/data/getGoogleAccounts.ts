@@ -1,9 +1,8 @@
 'use server'
 
 import prisma from '@/db'
-import NextAuth from '@/auth'
-import { getSession } from '../utils'
-import { GoogleAccount, UserGoogleAccount } from '@prisma/client'
+import { GoogleAccount } from '@prisma/client'
+import { getSession } from '../utils/common'
 
 export async function getGoogleAccounts() {
   const session = await getSession()
