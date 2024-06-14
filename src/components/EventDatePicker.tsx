@@ -1,15 +1,16 @@
 'use client'
 
 import { scheduleEvent } from '@/actions/scheduler';
-import Button from '@/components/Button';
 import { DateRange, TimeDuration, UserTimeInformation, Value } from '@/lib/definitions';
-import { getMinMaxDate, localDayNumber, localTime } from '@/lib/utils/dates';
+import { getMinMaxDate, localDayNumber, localTime, utcDateWithOffset } from '@/lib/utils/dates';
 import { ArrowLeftIcon, CalendarIcon, CheckCircleIcon, ClockIcon, MapIcon, VideoCameraIcon } from '@heroicons/react/24/outline';
 import React, { useEffect, useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { useFormState } from 'react-dom';
 import TimeZoneList from './TimeZoneList';
+import { FormButton } from './common/form-button';
+
 
 type DatePickerProps = {
     className: string,
@@ -113,14 +114,15 @@ const SuccessScreen = (): React.ReactElement => {
     return (
         <div className='flex flex-col justify-center gap-10 items-center'>
             <CheckCircleIcon className='w-52 text-green-700' />
-            <p>Your event was successfully scheduled</p>
+            <p>Your event was successfully scheduled. Please check your email for confirmation</p>
         </div>
     )
 }
 
 
 export default function EventDatePicker({ durationMetadata, month, userInfo, tz }: EventDatePicker) {
-    const [selected, setSelected] = useState(tz)
+    const [selected, setSelected] = useState<string>(tz)
+    const [dateWithOffset, setDateWithOffset] = useState<Date>(new Date())
     const [addGuests, showGuestsTextarea] = useState<boolean>(false)
     const [value, onChange] = useState<Value>(new Date());
     const [date, setDate] = useState<Date | null>(null)
@@ -136,14 +138,15 @@ export default function EventDatePicker({ durationMetadata, month, userInfo, tz 
         eventDate.setMinutes(minutes)
         eventDate.setSeconds(0)
         setDate(new Date(eventDate.getTime()))
-    }, [time, value])
+        setDateWithOffset(utcDateWithOffset(eventDate, time, selected))
+    }, [time, value, selected])
 
     useEffect(() => {
         if (date) setShowForm(true)
     }, [date])
 
     const [formState, action] = useFormState(
-        scheduleEvent.bind(null, userInfo.user.id, durationMetadata.timedelta, tz, date!),
+        scheduleEvent.bind(null, userInfo.user.id, durationMetadata, selected, dateWithOffset),
         { errors: {} }
     );
 
@@ -217,7 +220,7 @@ export default function EventDatePicker({ durationMetadata, month, userInfo, tz 
                                         <button onClick={() => showGuestsTextarea(true)} className='w-fit p-2 border rounded-xl'>Add guests <span className='font-bold'>+</span></button>
                                 }
                                 <ErrorBox errors={formState.errors._form} />
-                                <Button className='w-fit'>Schedule</Button>
+                                <FormButton className='w-fit'>Schedule</FormButton>
                             </form>
                         </div>
                         :
