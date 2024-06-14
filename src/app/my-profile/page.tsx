@@ -2,7 +2,8 @@
 
 import React, { Fragment, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { CheckCircleIcon, ExclamationTriangleIcon, TrashIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon, ExclamationTriangleIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { ClipboardDocumentIcon} from '@heroicons/react/20/solid';
 import Button from '../../components/Button'
 import { deleteAccount } from '../../actions/delete-account';
 import { signOut, useSession } from 'next-auth/react'
@@ -56,7 +57,7 @@ export default function Example() {
     }
   }
   const clipBoardNotificationHandler = async () => {
-    showNotification("URL copied to clipboard", "", <CheckIcon className='w-[25px] text-green-800 rounded-full p-1 bg-green-200' />, 'bg-green-500 flex flex-col justify-center')
+    showNotification("URL copied to clipboard", "", <ClipboardDocumentIcon className='w-[25px] text-black' />, 'bg-green-500 flex flex-col justify-center')
     await new Promise(() => setTimeout(hideNotification, 5000))
   }
   return (
