@@ -31,7 +31,8 @@ const timeData: { value: string, title: string }[] = [
     { value: '20m', title: '20 minutes' },
     { value: '30m', title: '30 minutes' },
     { value: '1h', title: '1 hour' },
-    { value: '2h', title: '2 hours' }
+    { value: '2h', title: '2 hours' },
+    { value: '3h', title: '3 hours' }
 ];
 
 
@@ -76,30 +77,34 @@ export default function EventGenerator({ showNotification, userId }: EventGenera
             {
                 open &&
                 <div className='flex lg:flex-row md:flex-row flex-col gap-10'>
-                    <Calendar
-                        className="text-black rounded-2xl h-fit"
-                        view='year'
-                        value={value}
-                        onClickMonth={onChange}
-                        minDate={new Date()}
-                        maxDate={currentDate}
-                    />
+                    <div className='flex flex-col gap-4'>
+                        <Calendar
+                            className="text-black rounded-2xl h-fit"
+                            view='year'
+                            value={value}
+                            onClickMonth={onChange}
+                            minDate={new Date()}
+                            maxDate={currentDate}
+                        />
+                        <TimeZoneList value={selected} selectionHandler={setSelected} className='w-full' />
+                    </div>
                     {
                         showDurations &&
-                        <div className='flex flex-col gap-5 lg:items-stretch md:items-stretch items-center'>
-                            <h1 className='text-xl font-semibold'>Event duration</h1>
-                            <div className='lg:space-y-3 md:space-y-3 hover:cursor-pointer lg:flex md:flex lg:flex-col md:flex-col flex-row items-start grid grid-cols-3 justify-items-start'>
-                                {timeData.map(({ value, title }) => (
-                                    <button
-                                        key={value}
-                                        className={`hover:text-teal-600 lg:mx-0 md:mx-0 mx-2 ${value === duration ? 'text-teal-600' : ''}`}
-                                        onClick={() => setDuration(value)}
-                                    >
-                                        {title}
-                                    </button>
-                                ))}
+                        <div className='flex flex-col gap-5 lg:items-stretch md:items-stretch items-center justify-between'>
+                            <div className='flex flex-col gap-6'>
+                                <h1 className='text-xl font-semibold'>Event duration</h1>
+                                <div className='lg:space-y-3 md:space-y-3 hover:cursor-pointer lg:flex md:flex lg:flex-col md:flex-col gap-3 text-lg items-start grid grid-cols-3 justify-items-start'>
+                                    {timeData.map(({ value, title }) => (
+                                        <button
+                                            key={value}
+                                            className={`hover:text-teal-600 lg:mx-0 md:mx-0 mx-2 lg:w-fit md:w-fit w-full ${value === duration ? 'text-teal-600' : ''}`}
+                                            onClick={() => setDuration(value)}
+                                        >
+                                            {title}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-                            <TimeZoneList value={selected} selectionHandler={setSelected} />
                         </div>
                     }
                 </div>

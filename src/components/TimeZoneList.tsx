@@ -6,10 +6,11 @@ import { Fragment, useState } from "react"
 
 type TimeZoneListProps = {
     value: string,
-    selectionHandler: (value: string) => void
+    selectionHandler: (value: string) => void,
+    className?: string
 }
 
-export default function TimeZoneList({ value, selectionHandler }: TimeZoneListProps) {
+export default function TimeZoneList({ value, selectionHandler, className }: TimeZoneListProps) {
     const [query, setQuery] = useState('')    
     const filteredTimezones =
         query === ''
@@ -24,7 +25,7 @@ export default function TimeZoneList({ value, selectionHandler }: TimeZoneListPr
     const tzTime = filteredTimezones.map(timezone => `${timezone} (${localTime(timezone)})`)
 
     return (
-        <div className="flex flex-col">
+        <div className={`flex flex-col ${className}`}>
             <h1 className='font-bold'>Time zone</h1>
             <Combobox value={value} onChange={selectionHandler}>
                 <div className="relative mt-1">
