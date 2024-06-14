@@ -159,6 +159,7 @@ export const scheduleEvent = async (
         start: startDate,
         end: endDate,
         guests,
+        timezone
       },
     })
     await sendEventNotification({

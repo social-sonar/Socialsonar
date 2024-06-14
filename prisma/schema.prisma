@@ -78,6 +78,7 @@ model Event {
   guests         String[]
   start          DateTime
   end            DateTime
+  timezone       String
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
