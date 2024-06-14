@@ -121,9 +121,12 @@ function DatePicker({ className, value, onChange, dateRange, onTimeSelect, avail
 
 const SuccessScreen = (): React.ReactElement => {
     return (
-        <div className='flex flex-col justify-center gap-10 items-center'>
+        <div className='flex flex-col justify-center lg:gap-10 md:gap-10 gap-2 items-center lg:text-4xl md:text-4xl text-lg font-light'>
             <CheckCircleIcon className='w-52 text-green-700' />
-            <p>Your event was successfully scheduled. Please check your email for confirmation</p>
+            <div className='px-5 flex flex-col justify-center items-center'>
+                <p>Your event was successfully scheduled</p>
+                <p>Please check your email for confirmation</p>
+            </div>
         </div>
     )
 }
