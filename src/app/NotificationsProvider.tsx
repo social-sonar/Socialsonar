@@ -32,7 +32,7 @@ interface NotificationProviderProps {
 }
 
 export const NotificationProvider: React.FC<NotificationProviderProps> = ({ children }) => {
-  const [notification, setNotification] = useState<Notification>({ show: false, message: '', description: '', icon:<></> });
+  const [notification, setNotification] = useState<Notification>({ show: false, message: '', description: '', icon:<></>, className: '' });
 
   const showNotification = useCallback((message: string, description: string, icon: ReactNode, className?: string) => {
     setNotification({ show: true, message, description, icon: icon, className });
