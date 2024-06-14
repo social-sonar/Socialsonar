@@ -10,6 +10,8 @@ import { GoogleSyncButton } from '@/components/Sync'
 import Button from '@/components/Button'
 import LoadingSpinner from '@/components/common/spinner'
 import { Switch } from '@headlessui/react'
+import GoogleAccountsMenu from '@/components/GoogleAccountsMenu'
+import Menu from '@/components/GoogleAccountsMenu'
 
 interface ExtendedUserGoogleAccount extends UserGoogleAccount {
   googleAccount: GoogleAccount
@@ -55,8 +57,8 @@ export default function SyncGoogleAccounts() {
     )
   }
   return (
-    <div className="max-w-7xl">
-      <div className="mx-auto max-w-7xl">
+    <div className="">
+      <div className="">
         {userGoogleAccounts.length > 0 ? (
           <div className="">
             <div className="px-4 sm:px-6 lg:px-8">
@@ -79,9 +81,9 @@ export default function SyncGoogleAccounts() {
                 </div>
               </div>
               <div className="mt-8 flow-root">
-                <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                  <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                    <table className="min-w-full divide-y divide-gray-700">
+                <div className="sm:-mx-6 lg:-mx-8">
+                  <div className="inline-block py-2 align-middle sm:px-6 lg:px-8">
+                    <table className=" divide-y divide-gray-700">
                       <thead>
                         <tr>
                           <th
@@ -151,11 +153,11 @@ export default function SyncGoogleAccounts() {
                                 <span className="ml-3 text-sm">(BETA)</span>
                               </td>
                               <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                                <GoogleSyncButton
+                                <Menu
                                   googleAccountId={
                                     eachUserGoogleAccount.googleAccountId
                                   }
-                                ></GoogleSyncButton>
+                                ></Menu>
                               </td>
                             </tr>
                           ),

@@ -36,19 +36,17 @@ export async function saveContact(
       throw new Error('User not authenticated')
     }
 
-    
-    
     let dataToUpdate: Partial<PlainFields> = {
       name: contact.name ?? '',
       nickName: contact.nickName ?? '',
     }
-    
+
     if (contact.birthday) {
       dataToUpdate.birthday = dateString({ ...contact.birthday! })
     } else {
       dataToUpdate.birthday = ''
     }
-    
+
     const upsertedContact = await prisma.contact.upsert({
       where: {
         id: contact.id ?? -1,
@@ -56,8 +54,7 @@ export async function saveContact(
       update: dataToUpdate,
       create: { ...dataToUpdate, userId: session!.user!.id! },
     })
-    
-    
+
     if (contact.phoneNumbers) {
       const phoneNumbersIDs = await getPhoneNumberIDs(contact.phoneNumbers)
       await prisma.contactPhoneNumber.deleteMany({
@@ -76,7 +73,7 @@ export async function saveContact(
         skipDuplicates: true,
       })
     }
-    
+
     if (contact.occupations) {
       const occupationsIDs = await getOccupationIDs(contact.occupations)
       await prisma.contactOccupation.deleteMany({
@@ -95,7 +92,7 @@ export async function saveContact(
         skipDuplicates: true,
       })
     }
-    
+
     if (contact.organizations) {
       const organizationIDs = await getOrganizationIDs(contact.organizations)
       await prisma.contactOrganization.deleteMany({
@@ -114,7 +111,7 @@ export async function saveContact(
         skipDuplicates: true,
       })
     }
-    
+
     if (contact.emails) {
       const emailsIDs = await getEmailsIDs(contact.emails)
       await prisma.contactEmail.deleteMany({
@@ -167,15 +164,12 @@ export async function saveContact(
         googleContacts: { select: { googleContactId: true } },
       },
     })
-    
+
     const actualContact = normalizeContact(contactUpdatedRaw!)
-    
+
     const state: State = {
-      
       errors: [],
       message: 'Contact saved',
-
-    
 
       contact: actualContact!,
       isNew: !contact.id,

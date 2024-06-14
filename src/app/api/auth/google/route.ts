@@ -16,7 +16,7 @@ export async function GET() {
     return NextResponse.json({ Error: session })
   }
   const scopes = [
-    'https://www.googleapis.com/auth/contacts.readonly',
+    'https://www.googleapis.com/auth/contacts',
     'https://www.googleapis.com/auth/userinfo.email',
     'https://www.googleapis.com/auth/userinfo.profile',
   ]

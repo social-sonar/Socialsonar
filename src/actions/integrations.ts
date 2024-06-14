@@ -2,13 +2,18 @@
 
 import nextauth from '@/auth'
 import prisma from '@/db'
-import { pullAndSyncGoogleContacts } from '@/lib/data/common'
 import {
+  pullAndSyncGoogleContacts,
+  restoreContactsInGoogle,
+} from '@/lib/data/common'
+import {
+  backupFileData,
   CustomSession,
   GoogleContactMainResponse,
   GoogleResponse,
 } from '@/lib/definitions'
-import { GoogleAccount } from '@prisma/client'
+import { getSession } from '@/lib/utils'
+import { GoogleAccount, Prisma } from '@prisma/client'
 import { GaxiosResponse } from 'gaxios'
 import { OAuth2Client } from 'google-auth-library'
 import { google } from 'googleapis'
@@ -41,7 +46,7 @@ export const refreshToken = async (
   })
 }
 
-const requestPeopleAPI = async (
+export const requestPeopleAPI = async (
   oauth2Client: OAuth2Client,
   syncToken?: string | null,
 ): Promise<PeopleRequestResult> => {
@@ -70,16 +75,18 @@ const requestPeopleAPI = async (
 
   return { syncToken: response.data.nextSyncToken!, data }
 }
-
-export async function fetchGoogleContacts(googleAccountId: string) {
-  const session = (await nextauth.auth()) as CustomSession
+async function fetchGoogleContacts(
+  googleAccountId: string,
+  ignoreSyncToken = false,
+) {
+  const session = await getSession()
 
   const userId = session.user.id
 
   const userGoogleAccount = await prisma.userGoogleAccount.findFirst({
     where: {
       googleAccountId,
-      userId: session.user.id,
+      userId,
     },
     include: {
       googleAccount: true,
@@ -103,26 +110,95 @@ export async function fetchGoogleContacts(googleAccountId: string) {
   // Fetch the user's Google Contacts
   let response: PeopleRequestResult
   try {
-    response = await requestPeopleAPI(oauth2Client, googleAccount.token)
+    response = await requestPeopleAPI(
+      oauth2Client,
+      ignoreSyncToken ? null : googleAccount.token,
+    )
   } catch (error: unknown) {
     try {
       await refreshToken(googleAccount, oauth2Client)
-      response = await requestPeopleAPI(oauth2Client, googleAccount.token)
+      response = await requestPeopleAPI(
+        oauth2Client,
+        ignoreSyncToken ? null : googleAccount.token,
+      )
     } catch (error: unknown) {
       throw error
     }
   }
-  await prisma.googleAccount.update({
+
+  if (!ignoreSyncToken) {
+    await prisma.googleAccount.update({
+      where: {
+        id: googleAccountId,
+      },
+      data: {
+        token: response.syncToken,
+      },
+    })
+  }
+
+  return response
+}
+
+export async function pullGoogleContacts(googleAccountId: string) {
+  const session = await getSession()
+
+  const response = await fetchGoogleContacts(googleAccountId)
+
+  if (response.data) {
+    pullAndSyncGoogleContacts(response.data, session.user.id, googleAccountId)
+    return {}
+  }
+}
+
+export async function prepareBackup(googleAccountId: string) {
+  const session = await getSession()
+  const response = await fetchGoogleContacts(googleAccountId, true)
+  if (response.data) {
+    const responseText = JSON.stringify({
+      data: response.data,
+      googleAccountId,
+    })
+
+    const encondedText = Buffer.from(responseText, 'utf8').toString('base64')
+
+    const userGoogleAccount = await prisma.userGoogleAccount.findFirst({
+      where: {
+        googleAccountId: googleAccountId,
+        userId: session.user.id,
+      },
+      select: {
+        googleAccount: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    })
+
+    return {
+      email: userGoogleAccount?.googleAccount.email,
+      data: encondedText,
+      date: new Date(),
+      user: session.user.name,
+    } as backupFileData
+  }
+}
+
+export async function restoreBackup(data: string) {
+  const session = await getSession()
+
+  const decodedText = Buffer.from(data, 'base64').toString('utf8')
+  const backupData = JSON.parse(decodedText)
+  console.log(backupData)
+
+  const googleAccount = await prisma.googleAccount.findFirst({
     where: {
-      id: googleAccountId,
-    },
-    data: {
-      token: response.syncToken,
+      id: backupData.googleAccountId,
     },
   })
   
-  if (response.data) {
-    pullAndSyncGoogleContacts(response.data, userId, googleAccountId)
-    return
-  }
+
+  return restoreContactsInGoogle(googleAccount!, backupData.data)
+
 }

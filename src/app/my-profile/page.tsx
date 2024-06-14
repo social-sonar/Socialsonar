@@ -25,7 +25,7 @@ export default function Example() {
         'Your account is being deleted',
         LoadingSpinner({ size: 20 }),
       )
-      let saveResponse = await deleteAccount(session.data!)
+      let saveResponse = await deleteAccount()
 
       if (
         saveResponse &&
