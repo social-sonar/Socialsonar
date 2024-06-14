@@ -36,6 +36,8 @@ export const getUserData = async (
     },
   })
 
+  if (!user) notFound()
+
   const events = user?.events || []
   const minMaxDates = getMinMaxDate(month)
   const finalTimeData: Map<string, Date[]> = new Map<string, Date[]>()
@@ -71,8 +73,6 @@ export const getUserData = async (
     }
     finalTimeData.set(dateStr, data)
   })
-
-  if (!user) notFound()
 
   return {
     user: {
