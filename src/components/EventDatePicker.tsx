@@ -57,10 +57,10 @@ function DatePicker({ className, value, onChange, dateRange, onTimeSelect, avail
         dayButtons.forEach(button => {
             // disable dates that are not available
             const currenDateStr = `${dateRange.minDate.getFullYear()}-${(dateRange.minDate.getMonth() + 1).toString().padStart(2, '0')}-${button.textContent!.padStart(2, '0')}`
-            if(availableTime.get(currenDateStr)?.length == 0) button.disabled = true
+            if (availableTime.get(currenDateStr)?.length == 0) button.disabled = true
         })
     }, [])
-    
+
     useEffect(() => {
         let previousTime = ''
         let previousLocalDayNumber: number | null = null
