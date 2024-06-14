@@ -11,10 +11,3 @@ export const getContactIdFromResourceName = (
 ) => {
   return payload.resourceName!.slice(7)
 }
-
-export class EventServiceError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "EventServiceError";
-  }
-}

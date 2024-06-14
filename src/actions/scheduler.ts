@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { OAuth2Client } from 'google-auth-library'
 import { google, calendar_v3 } from 'googleapis'
 import { refreshToken } from '@/lib/utils/google'
-import { EventServiceError } from '@/lib/utils/common'
+import { TimeDuration } from '@/lib/definitions'
 
 const createEventSchema = z.object({
   name: z.string().min(3),
@@ -31,6 +31,7 @@ type EventData = {
   endDate: string
   timezone: string
   guests?: string[]
+  description: string
 }
 
 const send = async (
@@ -43,11 +44,11 @@ const send = async (
       auth: oauth2Client,
       calendarId: 'primary',
       requestBody: event,
-      sendNotifications: true
+      sendNotifications: true,
     })
   } catch (error) {
     if (error instanceof Error)
-      throw new EventServiceError(
+      throw new Error(
         `There was an error scheduling the event on the calendar service: ${error.message}`,
       )
   }
@@ -61,6 +62,7 @@ const sendEventNotification = async ({
   endDate,
   timezone,
   guests,
+  description,
 }: EventData): Promise<void> => {
   const user = await prisma.user.findUnique({
     where: {
@@ -74,6 +76,7 @@ const sendEventNotification = async ({
   const event: calendar_v3.Schema$Event = {
     summary: `${user!.name} and ${requesterName}`,
     location: 'Organizer will send a meeting URL if needed',
+    description: `${description} event`,
     organizer: { email: user?.email! },
     start: {
       dateTime: startDate,
@@ -83,7 +86,9 @@ const sendEventNotification = async ({
       dateTime: endDate,
       timeZone: timezone,
     },
-    attendees: [requesterEmail, ...(guests || [])].map((email) => ({ email })),
+    attendees: [user?.email!, requesterEmail, ...(guests || [])].map(
+      (email) => ({ email }),
+    ),
     reminders: {
       useDefault: false,
       overrides: [
@@ -115,7 +120,6 @@ const sendEventNotification = async ({
   try {
     await send(event, oauth2Client)
   } catch (error: unknown) {
-    if (error instanceof EventServiceError) throw error
     try {
       await refreshToken(userGoogleAccount.googleAccount, oauth2Client)
       await send(event, oauth2Client)
@@ -127,7 +131,7 @@ const sendEventNotification = async ({
 
 export const scheduleEvent = async (
   userId: string,
-  timedelta: number,
+  { timedelta, repr }: TimeDuration,
   timezone: string,
   startDate: Date,
   formState: CreateEventSchemaFormState,
@@ -165,6 +169,7 @@ export const scheduleEvent = async (
       endDate: endDate.toISOString(),
       timezone,
       guests,
+      description: repr,
     })
   } catch (err) {
     if (err instanceof Error) {
