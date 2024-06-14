@@ -32,30 +32,24 @@ const parseTimeInput = (input: string): TimeDuration => {
     }
 }
 
-export default async function Events({ params, searchParams }: EventsProps) {
+export default async function EventScheduler({ params, searchParams }: EventsProps) {
     const isValidMonth = checkMonth(searchParams.month)
-    const parsedDuration = parseTimeInput(params.duration)
-    const userData = await getUserData(params.id, searchParams.month, parsedDuration)
-    return (
-        <>
-            {
-                isValidMonth ?
-                    <div className='flex flex-col justify-center gap-10'>
-                        <EventDatePicker
-                            tz={searchParams.tz}
-                            durationMetadata={parsedDuration}
-                            month={searchParams.month}
-                            userInfo={userData}
-                        />
-                    </div> :
-                    <div className="flex flex-col justify-center gap-10 items-center">
-                        <p className="text-2xl font-bold">Oops!</p>
-                        <p>
-                            It seems you are trying to schedule an event in the <span className="text-red-500">past</span>
-                        </p>
-                    </div >
-            }
-        </>
-
-    )
+    if (isValidMonth) {
+        const parsedDuration = parseTimeInput(params.duration)
+        const userData = await getUserData(params.id, searchParams.month, parsedDuration)
+        return <div className='flex flex-col justify-center gap-10'>
+            <EventDatePicker
+                tz={searchParams.tz}
+                durationMetadata={parsedDuration}
+                month={searchParams.month}
+                userInfo={userData}
+            />
+        </div>
+    }
+    return <div className="flex flex-col justify-center gap-10 items-center">
+        <p className="text-2xl font-bold">Oops!</p>
+        <p>
+            It seems you are trying to schedule an event in the <span className="text-red-500">past</span>
+        </p>
+    </div >
 }
