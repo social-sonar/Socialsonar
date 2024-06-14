@@ -4,16 +4,7 @@
 'use server'
 
 import prisma from '@/db'
-import { getPhoneNumberType, normalizeContact } from '@/lib/data/common'
-import {
-  CleanPhoneData,
-  CustomSession,
-  FlattenContact,
-  PlainFields,
-} from '@/lib/definitions'
-import { dateString } from '@/lib/utils'
-import { Address, Email, Occupation, Organization } from '@prisma/client'
-import { useSession } from 'next-auth/react'
+import { getSession } from '@/lib/utils/common'
 import { Session } from 'next-auth'
 
 export type State = {
@@ -21,11 +12,9 @@ export type State = {
   message?: string | null
 }
 
-export async function deleteAccount(session: Session): State {
+export async function deleteAccount(): State {
   try {
-    if (!session || !session.user) {
-      throw new Error('User not authenticated')
-    }
+    getSession()
     const userId = session.user.id
     try {
       const deletedUser = await prisma.user.delete({
@@ -51,7 +40,7 @@ export async function deleteAccount(session: Session): State {
                 },
               },
             })
-            //If no other account has this google account connect, delete it.
+          //If no other account has this google account connected, delete it.
           if (amountOfOtherAccountsConnected == 0) {
             try {
               await prisma.googleAccount.delete({
@@ -64,11 +53,11 @@ export async function deleteAccount(session: Session): State {
           } else {
             prisma.googleAccount.update({
               where: {
-                id: eachGoogleAccount.id
+                id: eachGoogleAccount.id,
               },
-              data:{
-                token: null
-              }
+              data: {
+                token: null,
+              },
             })
           }
         })

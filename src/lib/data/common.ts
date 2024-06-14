@@ -1,4 +1,8 @@
-import { ContactMergeStatus, PhoneNumberType } from '@prisma/client'
+import {
+  ContactMergeStatus,
+  GoogleAccount,
+  PhoneNumberType,
+} from '@prisma/client'
 import prisma from '@/db'
 import {
   GoogleAddress,
@@ -19,6 +23,8 @@ import { google } from 'googleapis'
 import { getContactIdFromResourceName, getSession } from '../utils/common'
 import { dateObject, dateString } from '../utils/dates'
 import { refreshToken } from '../utils/google'
+import { OAuth2Client } from 'google-auth-library'
+import { requestPeopleAPI } from '@/actions/integrations'
 
 export const getPhoneNumberType = (type: string): PhoneNumberType => {
   const typeMap: { [key: string]: PhoneNumberType } = {
@@ -890,4 +896,130 @@ export const updateContactInGoogle = async (contactId: number) => {
     success: true,
     message: 'Successfully updated contact',
   }
+}
+
+export const restoreContactsInGoogle = async (
+  googleAccount: GoogleAccount,
+  backupContacts: any[],
+) => {
+  const oauth2Client = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    process.env.REDIRECT_URL,
+  )
+
+  oauth2Client.setCredentials({
+    access_token: googleAccount.accessToken,
+    refresh_token: googleAccount.refreshToken,
+  })
+
+  const people = google.people({
+    version: 'v1',
+    auth: oauth2Client,
+  })
+
+  const contacts = await requestPeopleAPI(oauth2Client, null)
+
+  console.log('contacts to delete: ', contacts.data.length, googleAccount.email)
+
+  let resourceNamesToDelete = []
+  for (let i = 0; i < contacts.data.length; i++) {
+    const contact = contacts.data[i]
+    if (!contact.resourceName) continue
+    resourceNamesToDelete.push(contact.resourceName)
+
+    // If we reach the batch size, delete them
+    if (resourceNamesToDelete.length >= 500) {
+      await people.people.batchDeleteContacts({
+        requestBody: { resourceNames: resourceNamesToDelete },
+      })
+      // Reset the array for the next batch
+      resourceNamesToDelete = []
+    }
+  }
+
+  // If there are remaining contacts to delete after the loop, do it now
+  if (resourceNamesToDelete.length > 0) {
+    await people.people.batchDeleteContacts({
+      requestBody: { resourceNames: resourceNamesToDelete },
+    })
+  }
+
+  const processedBackupedContacts = backupContacts.map((contact) => {
+    delete contact.resourceName
+    delete contact.etag
+    delete contact.metadata
+    delete contact.photos
+    delete contact.sources
+
+    if (Array.isArray(contact.names)) {
+      contact.names = contact.names.map((name: { metadata: any }) => {
+        if (name.metadata) {
+          delete name.metadata
+        }
+        return name
+      })
+    }
+
+    if (Array.isArray(contact.birthdays)) {
+      contact.birthdays = contact.birthdays.map((birthday: { metadata: any }) => {
+        if (birthday.metadata) {
+          delete birthday.metadata
+        }
+        return birthday
+      })
+    }
+
+    if (Array.isArray(contact.addresses)) {
+      contact.addresses = contact.addresses.map((address: { metadata: any }) => {
+        if (address.metadata) {
+          delete address.metadata
+        }
+        return address
+      })
+    }
+
+    if (Array.isArray(contact.phoneNumbers)) {
+      contact.phoneNumbers = contact.phoneNumbers.map((phoneNumber: { metadata: any }) => {
+        if (phoneNumber.metadata) {
+          delete phoneNumber.metadata
+        }
+        return phoneNumber
+      })
+    }
+
+    if (Array.isArray(contact.organizations)) {
+      contact.organizations = contact.organizations.map((organization: { metadata: any }) => {
+        if (organization.metadata) {
+          delete organization.metadata
+        }
+        return organization
+      })
+    }
+
+    if (Array.isArray(contact.emailAddresses)) {
+      contact.emailAddresses = contact.emailAddresses.map((emailAddress: { metadata: any }) => {
+        if (emailAddress.metadata) {
+          delete emailAddress.metadata
+        }
+        return emailAddress
+      })
+    }
+
+    return { contactPerson: contact }
+  })
+
+  for (let i = 0; i < processedBackupedContacts.length; i += 200) {
+    const batch = processedBackupedContacts.slice(i, i + 200)
+    try {
+      await people.people.batchCreateContacts({
+        requestBody: { contacts: batch },
+        prettyPrint: true,
+      })
+    } catch (error) {
+      console.log('Error creating contact', error)
+    }
+  }
+
+  return { processed: processedBackupedContacts.length }
 }
