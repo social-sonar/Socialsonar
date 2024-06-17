@@ -14,7 +14,7 @@ export type State = {
 
 export async function deleteAccount(): State {
   try {
-    getSession()
+    const session = await getSession()
     const userId = session.user.id
     try {
       const deletedUser = await prisma.user.delete({
@@ -22,6 +22,7 @@ export async function deleteAccount(): State {
         include: {
           accounts: true,
           sessions: true,
+          events: true,
           googleAccounts: {
             include: {
               googleAccount: true,

@@ -124,8 +124,13 @@ export async function pullGoogleContacts(googleAccountId: string) {
   const response = await fetchGoogleContacts(googleAccountId)
 
   if (response.data) {
-    pullAndSyncGoogleContacts(response.data, session.user.id, googleAccountId)
-    return {}
+    return {
+      data: pullAndSyncGoogleContacts(
+        response.data,
+        session.user.id,
+        googleAccountId,
+      ),
+    }
   }
 }
 
@@ -164,17 +169,14 @@ export async function prepareBackup(googleAccountId: string) {
 }
 
 export async function restoreBackup(data: string) {
-
   const decodedText = Buffer.from(data, 'base64').toString('utf8')
   const backupData = JSON.parse(decodedText)
-  
+
   const googleAccount = await prisma.googleAccount.findFirst({
     where: {
       id: backupData.googleAccountId,
     },
   })
-  
 
   return restoreContactsInGoogle(googleAccount!, backupData.data)
-
 }

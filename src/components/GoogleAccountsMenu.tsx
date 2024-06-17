@@ -1,6 +1,7 @@
 import { Fragment, useRef, useState } from 'react'
 import { Popover, Transition, Dialog } from '@headlessui/react'
 import {
+  CheckCircleIcon,
   CheckIcon,
   ChevronDownIcon,
   ExclamationTriangleIcon,
@@ -12,10 +13,13 @@ import GoogleAccountBackup from './GoogleAccountBackup'
 import GoogleAccountRestore from './GoogleAccountRestore'
 import { backupFileData } from '@/lib/definitions'
 import { useNotification } from '@/app/NotificationsProvider'
+import LoadingSpinner from './common/spinner'
 
 export default function Menu({ googleAccountId }: { googleAccountId: string }) {
   const { showNotification, hideNotification } = useNotification()
   const [open, setOpen] = useState(true)
+
+  const [syncing, setSyncing] = useState(false)
 
   const fileInput = useRef<HTMLInputElement>(null)
   const [backupData, setBackupData] = useState<backupFileData | null>(null)
@@ -83,10 +87,16 @@ export default function Menu({ googleAccountId }: { googleAccountId: string }) {
 
   const handleSyncButton = async (event: React.FormEvent) => {
     event.preventDefault()
-    console.log(event)
+    setSyncing(true)
 
     const response = await pullGoogleContacts(googleAccountId)
-    console.log(response)
+    response?.data.then(console.log)
+    setSyncing(false)
+    showNotification(
+      'Successfully called sync process',
+      `Your contacts will be pulled and sync in the following minutes`,
+      <CheckCircleIcon className="h-6 w-6 text-green-400" aria-hidden="true" />,
+    )
   }
 
   return (
@@ -132,8 +142,16 @@ export default function Menu({ googleAccountId }: { googleAccountId: string }) {
             <Popover.Panel className="absolute z-10 mt-5 flex w-screen max-w-max -translate-x-1/2 px-4">
               <div className="flex-auto rounded-3xl bg-white p-4 text-left text-sm leading-6 shadow-lg ring-1 ring-gray-900/5">
                 <div className="pb-4">
-                  <Button onClick={handleSyncButton} className="w-full">
-                    Sync google contacts
+                  <Button
+                    onClick={handleSyncButton}
+                    disabled={syncing}
+                    className="w-full"
+                  >
+                    {syncing ? (
+                      <LoadingSpinner size={20}></LoadingSpinner>
+                    ) : (
+                      'Sync google contacts'
+                    )}
                   </Button>
                 </div>
                 <div className="pb-4">
