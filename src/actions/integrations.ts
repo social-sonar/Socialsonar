@@ -100,8 +100,11 @@ async function fetchGoogleContacts(
         ignoreSyncToken ? null : googleAccount.token,
       )
     } catch (error: unknown) {
+      console.log("catched error 2 level", error);
+      
       throw error
-    }
+      }
+    console.log("catched error 1 level", error);
   }
 
   if (!ignoreSyncToken) {
