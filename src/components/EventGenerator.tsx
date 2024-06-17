@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import TimeZoneList from './TimeZoneList';
-import { TIMEZONES } from '@/lib/constants';
+import { getTimeZoneID } from '@/lib/utils/dates';
 
 
 type EventGeneratorProps = {
@@ -37,7 +37,7 @@ const timeData: { value: string, title: string }[] = [
 
 
 export default function EventGenerator({ showNotification, userId }: EventGeneratorProps) {
-    const [selected, setSelected] = useState(TIMEZONES[0])
+    const [selected, setSelected] = useState(getTimeZoneID())
     const [duration, setDuration] = useState<string>('')
     const [open, setOpen] = useState<boolean>(false)
     const [showDurations, setShowDurations] = useState<boolean>(false)

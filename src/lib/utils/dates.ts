@@ -1,5 +1,5 @@
 import { BirthDay, DateRange, GoogleDate } from '@/lib/definitions'
-import {tz} from 'moment-timezone'
+import { tz } from 'moment-timezone'
 
 export function formatDate(dateString: string) {
   return new Date(`${dateString}T00:00:00Z`).toLocaleDateString('en-US', {
@@ -62,8 +62,17 @@ export const localDayNumber = (timeZone: string, date: Date) => {
   return parseInt(dateString.split('/')[1])
 }
 
-
-export const utcDateWithOffset = (moment: Date, time: string, timezone: string): Date => {
-  const momentDate = tz(`${moment.toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' })} ${time}`, timezone)
+export const utcDateWithOffset = (
+  moment: Date,
+  time: string,
+  timezone: string,
+): Date => {
+  const momentDate = tz(
+    `${moment.toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' })} ${time}`,
+    timezone,
+  )
   return new Date(momentDate.utc().format())
-  }
+}
+
+export const getTimeZoneID = (): string =>
+  Intl.DateTimeFormat().resolvedOptions().timeZone
