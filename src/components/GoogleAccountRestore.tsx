@@ -1,8 +1,9 @@
 import { Fragment, MouseEventHandler, useEffect, useRef, useState } from 'react'
 import { Popover, Transition, Dialog } from '@headlessui/react'
-import { CheckIcon, FolderIcon } from '@heroicons/react/24/outline'
+import { CheckCircleIcon, CheckIcon, FolderIcon } from '@heroicons/react/24/outline'
 import { prepareBackup, restoreBackup } from '@/actions/integrations'
 import { backupFileData } from '@/lib/definitions'
+import { useNotification } from '@/app/NotificationsProvider'
 
 export default function GoogleAccountRestore({
   googleAccountId,
@@ -13,6 +14,7 @@ export default function GoogleAccountRestore({
   googleAccountId: string
   callClose: () => {}
 }) {
+  const { showNotification, hideNotification } = useNotification()
   // click 3 times to confirm restore
   const AMOUTOFCONFIRMATIONTIMES = 3
 
@@ -26,16 +28,26 @@ export default function GoogleAccountRestore({
     }
   }, [open])
 
-  async function handleRestoreClick(
-    event: any,
-  ): Promise<void> {
+  async function handleRestoreClick(event: any): Promise<void> {
     event.preventDefault()
 
     if (AMOUTOFCONFIRMATIONTIMES > confirmationTimes) {
       setConfirmationTimes((prevCount) => prevCount + 1)
     } else if (confirmationTimes >= AMOUTOFCONFIRMATIONTIMES) {
       setLoading(true)
-      const response = await restoreBackup(backupData?.data!)
+
+      try {
+        const response = await restoreBackup(backupData?.data!)
+        setOpen(false)
+        showNotification(
+          'Successfully restored data',
+          `Your google contacts (${response.processed}) were restored`,
+          <CheckCircleIcon
+            className="h-6 w-6 text-green-400"
+            aria-hidden="true"
+          />,
+        )
+      } catch (error) {}
       setLoading(false)
       setConfirmationTimes(0)
     }
@@ -83,11 +95,16 @@ export default function GoogleAccountRestore({
                         </Dialog.Title>
                         <div className="mt-2">
                           <p className="text-sm text-gray-500">
-                            Selected backup is from <b>({backupData.email})</b> google
-                            account made <b>{backupData.date.toLocaleString()}</b>.
-                            Please note that this will <b>overwrite all your current
-                            contacts in Google Contacts</b>. So be extremely careful while restoring
-                            your contacts.
+                            Selected backup is from <b>({backupData.email})</b>{' '}
+                            google account made{' '}
+                            <b>{backupData.date.toLocaleString()}</b>. Please
+                            note that this will{' '}
+                            <b>
+                              overwrite all your current contacts in Google
+                              Contacts
+                            </b>
+                            . So be extremely careful while restoring your
+                            contacts.
                           </p>
                         </div>
                       </div>
@@ -101,7 +118,8 @@ export default function GoogleAccountRestore({
                       >
                         {loading
                           ? 'Loading...'
-                          : confirmationTimes > 0 && (AMOUTOFCONFIRMATIONTIMES - confirmationTimes) > 0
+                          : confirmationTimes > 0 &&
+                              AMOUTOFCONFIRMATIONTIMES - confirmationTimes > 0
                             ? `Click ${AMOUTOFCONFIRMATIONTIMES - confirmationTimes} more times to confirm`
                             : 'Restore from backup'}
                       </button>
