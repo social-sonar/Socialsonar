@@ -47,6 +47,19 @@ export const requestPeopleAPI = async (
       requestSyncToken: true,
       syncToken: syncToken ?? undefined,
     })
+    if (response.status == 400){
+      console.log("[Google sync] Error 400 while syncing google", response);
+      console.log("[Google sync] Making a full sync");
+      
+      response = await people.people.connections.list({
+        resourceName: 'people/me',
+        pageToken: nextPageToken,
+        sortOrder: 'LAST_MODIFIED_DESCENDING',
+        pageSize: 1000,
+        personFields:
+          'names,emailAddresses,addresses,phoneNumbers,photos,organizations,occupations,birthdays',
+      })
+    }
     data.push(...(response.data.connections! || []))
     nextPageToken = response.data.nextPageToken
   } while (nextPageToken)
