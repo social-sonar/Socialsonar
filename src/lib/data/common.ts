@@ -24,7 +24,7 @@ import { getContactIdFromResourceName, getSession } from '../utils/common'
 import { dateObject, dateString } from '../utils/dates'
 import { refreshToken } from '../utils/google'
 import { OAuth2Client } from 'google-auth-library'
-import { refreshToken, requestPeopleAPI } from '@/actions/integrations'
+import { requestPeopleAPI } from '@/actions/integrations'
 
 export const getPhoneNumberType = (type: string): PhoneNumberType => {
   const typeMap: { [key: string]: PhoneNumberType } = {
