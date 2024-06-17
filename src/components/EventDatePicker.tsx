@@ -51,7 +51,7 @@ function DatePicker({ className, value, onChange, dateRange, onTimeSelect, avail
     const dateStr = `${(value as Date).getFullYear()}-${((value as Date).getMonth() + 1).toString().padStart(2, '0')}-${(value as Date).getDate().toString().padStart(2, '0')}`
     const [currentDateAvailabilities, setCurrentDateAvailabilities] = useState<string[]>([])
     const [showTimeList, setShowTimeList] = useState<boolean>(false)
-
+    
     useEffect(() => {
         const dayButtons = Array.from(document.getElementsByClassName('react-calendar__month-view__days__day')) as HTMLButtonElement[]
         dayButtons.forEach(button => {
@@ -68,7 +68,8 @@ function DatePicker({ className, value, onChange, dateRange, onTimeSelect, avail
         availableTime.get(dateStr)?.forEach(date => {
             const currentLocalTime = localTime(tz, date);
             const currentLocalDayNumber = localDayNumber(tz, date);
-            if (!previousLocalDayNumber || (parseInt(currentLocalTime) > parseInt(previousTime) &&
+            
+            if (!previousLocalDayNumber || (parseInt(currentLocalTime) >= parseInt(previousTime) &&
                 currentLocalDayNumber === previousLocalDayNumber
             )) {
                 // Filter out times that spill over into the next day, .i.e. events with a duration of 2 hours
