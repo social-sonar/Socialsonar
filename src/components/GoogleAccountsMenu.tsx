@@ -148,7 +148,7 @@ export default function Menu({ googleAccountId }: { googleAccountId: string }) {
                     className="w-full"
                   >
                     {syncing ? (
-                      <LoadingSpinner size={20}></LoadingSpinner>
+                      <LoadingSpinner size={24}></LoadingSpinner>
                     ) : (
                       'Sync google contacts'
                     )}
