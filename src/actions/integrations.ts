@@ -162,19 +162,3 @@ export async function prepareBackup(googleAccountId: string) {
     } as backupFileData
   }
 }
-
-export async function restoreBackup(data: string) {
-  const session = await getSession()
-
-  const decodedText = Buffer.from(data, 'base64').toString('utf8')
-  const backupData = JSON.parse(decodedText)
-  console.log(backupData)
-
-  const googleAccount = await prisma.googleAccount.findFirst({
-    where: {
-      id: backupData.googleAccountId,
-    },
-  })
-
-  return restoreContactsInGoogle(googleAccount!, backupData.data)
-}

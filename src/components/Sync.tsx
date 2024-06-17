@@ -1,6 +1,7 @@
 import googleContactsLogo from '@/images/logos/google-contacts.svg'
 import { SyncButton } from './common/form-button'
 
+
 export function GoogleSyncButton({
   googleAccountId,
 }: {
