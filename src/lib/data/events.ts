@@ -2,6 +2,7 @@ import prisma from '@/db'
 import { TimeDuration, UserTimeInformation } from '../definitions'
 import { notFound } from 'next/navigation'
 import { getMinMaxDate } from '../utils/dates'
+import { tz } from 'moment-timezone'
 
 const isDateInRange = (date: Date, startDate: Date, endDate: Date): boolean => {
   return date >= startDate && date < endDate
@@ -11,6 +12,7 @@ export const getUserData = async (
   userId: string,
   month: string,
   durationMetadata: TimeDuration,
+  timezone: string,
 ): Promise<UserTimeInformation> => {
   const user = await prisma.user.findUnique({
     where: {
@@ -48,8 +50,8 @@ export const getUserData = async (
   days.forEach((day) => {
     const dateStr = `${month}-${day.toString().padStart(2, '0')}`
     const data: Date[] = []
-    const validStartDate = new Date(`${dateStr}T08:00:00`)
-    const validEndDate = new Date(`${dateStr}T17:00:00`)
+    const validStartDate = tz(`${dateStr} 08:00:00`, timezone).toDate()
+    const validEndDate = tz(`${dateStr} 17:00:00`, timezone).toDate()
     let currentTime = new Date(validStartDate)
     while (currentTime < validEndDate) {
       let endTime = new Date(currentTime.getTime() + durationMetadata.timedelta)
@@ -79,6 +81,6 @@ export const getUserData = async (
       id: user.id,
       name: user.name!,
     },
-      availableTime: finalTimeData,
+    availableTime: finalTimeData,
   }
 }

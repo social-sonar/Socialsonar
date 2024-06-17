@@ -36,7 +36,7 @@ export default async function EventScheduler({ params, searchParams }: EventsPro
     const isValidMonth = checkMonth(searchParams.month)
     if (isValidMonth) {
         const parsedDuration = parseTimeInput(params.duration)
-        const userData = await getUserData(params.id, searchParams.month, parsedDuration)
+        const userData = await getUserData(params.id, searchParams.month, parsedDuration, searchParams.tz)
         return <div className='flex flex-col justify-center gap-10'>
             <EventDatePicker
                 tz={searchParams.tz}
