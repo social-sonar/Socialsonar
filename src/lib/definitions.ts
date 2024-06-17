@@ -192,3 +192,9 @@ export type UserTimeInformation = {
   }
   availableTime: Map<string, Date[]>
 }
+export interface backupFileData {
+  email: string
+  data: string
+  date: Date
+  user: string
+}
