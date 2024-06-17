@@ -26,7 +26,8 @@ import {
     getPhoneNumberType,
     getPhotoIDs,
 } from '../data/common'
-import { dateString, getContactIdFromResourceName } from '../utils'
+import { getContactIdFromResourceName } from '../utils/common'
+import { dateString } from '../utils/dates'
 
 
 const compareItems = (itemA: Record<string, any>, itemB: Record<string, any>, metaParams: MetaParamsMultiProperty) =>

@@ -1,10 +1,8 @@
 // src/app/api/contacts-list/route.ts
 import { findContacts, normalizeContact } from '@/lib/data/common'
-import { CleanPhoneData, FlattenContact } from '@/lib/definitions'
-import { dateObject } from '@/lib/utils'
+import { FlattenContact } from '@/lib/definitions'
 import { ContactMergeStatus } from '@prisma/client'
 import { NextRequest, NextResponse } from 'next/server'
-import { phone } from 'phone'
 
 export async function GET(req: NextRequest) {
   const userId = req.nextUrl.searchParams.get('userId') as string
