@@ -1,16 +1,17 @@
 'use client'
 
+export const maxDuration = 900
+export const dynamic = 'force-dynamic'
+
 import React, { useEffect, useState } from 'react'
 import {
   getGoogleAccounts,
   editGoogleAccount,
 } from '@/lib/data/getGoogleAccounts'
 import { GoogleAccount, UserGoogleAccount } from '@prisma/client'
-import { GoogleSyncButton } from '@/components/Sync'
 import Button from '@/components/Button'
 import LoadingSpinner from '@/components/common/spinner'
 import { Switch } from '@headlessui/react'
-import GoogleAccountsMenu from '@/components/GoogleAccountsMenu'
 import Menu from '@/components/GoogleAccountsMenu'
 
 interface ExtendedUserGoogleAccount extends UserGoogleAccount {

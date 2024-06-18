@@ -50,7 +50,6 @@ export const requestPeopleAPI = async (
       })
     } catch (error) {
       console.log('[Google sync] Making a full sync')
-
       response = await people.people.connections.list({
         resourceName: 'people/me',
         pageToken: nextPageToken,
@@ -133,7 +132,6 @@ async function fetchGoogleContacts(
 
   return response
 }
-
 export async function pullGoogleContacts(googleAccountId: string) {
   const session = await getSession()
 
