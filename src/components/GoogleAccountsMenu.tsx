@@ -92,11 +92,20 @@ export default function Menu({ googleAccountId }: { googleAccountId: string }) {
     showNotification(
       'Called sync process',
       `Your contacts will be pulled and sync in the following minutes`,
-      <CheckCircleIcon className="h-6 w-6 text-green-400" aria-hidden="true" />,
+      <LoadingSpinner size={30}></LoadingSpinner>,
     )
     const response = await pullGoogleContacts(googleAccountId)
     if (response?.data) {
-      response?.data.then(console.log)
+      response?.data.then(() => {
+        showNotification(
+          'Successfully synced contacts',
+          `Your contacts have be pulled and synced succesfully`,
+          <CheckCircleIcon
+            className="h-6 w-6 text-green-400"
+            aria-hidden="true"
+          />,
+        )
+      })
     } else {
       console.log(response?.msg)
       showNotification(
