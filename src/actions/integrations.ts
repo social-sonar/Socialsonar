@@ -37,20 +37,20 @@ export const requestPeopleAPI = async (
     auth: oauth2Client,
   })
   do {
-    response = await people.people.connections.list({
-      resourceName: 'people/me',
-      pageToken: nextPageToken,
-      sortOrder: 'LAST_MODIFIED_DESCENDING',
-      pageSize: 1000,
-      personFields:
-        'names,emailAddresses,addresses,phoneNumbers,photos,organizations,occupations,birthdays',
-      requestSyncToken: true,
-      syncToken: syncToken ?? undefined,
-    })
-    if (response.status == 400){
-      console.log("[Google sync] Error 400 while syncing google", response);
-      console.log("[Google sync] Making a full sync");
-      
+    try {
+      response = await people.people.connections.list({
+        resourceName: 'people/me',
+        pageToken: nextPageToken,
+        sortOrder: 'LAST_MODIFIED_DESCENDING',
+        pageSize: 1000,
+        personFields:
+          'names,emailAddresses,addresses,phoneNumbers,photos,organizations,occupations,birthdays',
+        requestSyncToken: true,
+        syncToken: syncToken ?? undefined,
+      })
+    } catch (error) {
+      console.log('[Google sync] Making a full sync')
+
       response = await people.people.connections.list({
         resourceName: 'people/me',
         pageToken: nextPageToken,
@@ -113,11 +113,11 @@ async function fetchGoogleContacts(
         ignoreSyncToken ? null : googleAccount.token,
       )
     } catch (error: unknown) {
-      console.log("catched error 2 level", error);
-      
+      console.log('catched error 2 level', error)
+
       throw error
-      }
-    console.log("catched error 1 level", error);
+    }
+    console.log('catched error 1 level', error)
   }
 
   if (!ignoreSyncToken) {
