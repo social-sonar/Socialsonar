@@ -97,6 +97,7 @@ export default function Menu({ googleAccountId }: { googleAccountId: string }) {
     const response = await pullGoogleContacts(googleAccountId)
     if (response?.data) {
       response?.data.then(() => {
+        console.log(response.data)
         showNotification(
           'Successfully synced contacts',
           `Your contacts have be pulled and synced succesfully`,

@@ -256,7 +256,7 @@ export default function ContactList() {
   }, [sortApplied, contacts, filteredContacts])
 
   return (
-    <Suspense fallback={<LoadingSpinner size={100} className="mx-auto" />}>
+    <>
       {detailedContact && (
         <ContactDetail
           open={showContactDetail}
@@ -718,6 +718,6 @@ export default function ContactList() {
         </section>
       </main>
       {/* )} */}
-    </Suspense>
+    </>
   )
 }
