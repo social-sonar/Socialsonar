@@ -98,20 +98,17 @@ export default function ContactList() {
   }, [showContactDetail])
 
   const fetchContacts = () => {
-    setContacts([])
-    if (session.status == 'authenticated') {
-      setIsLoading(true)
-      fetch(`/api/contacts-list?userId=${session?.data.user?.id}`)
-        .then((response) => response.json())
-        .then((data: FlattenContact[]) => {
-          setContacts(data)
-          setIsLoading(false)
-        })
-        .catch((error) => {
-          console.error('Failed to load contacts', error)
-          setIsLoading(false)
-        })
-    }
+    setIsLoading(true)
+    fetch(`/api/contacts-list`)
+      .then((response) => response.json())
+      .then((data: FlattenContact[]) => {
+        setContacts(data)
+        setIsLoading(false)
+      })
+      .catch((error) => {
+        console.error('Failed to load contacts', error)
+        setIsLoading(false)
+      })
   }
 
   useEffect(() => {
