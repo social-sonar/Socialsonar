@@ -1,11 +1,12 @@
 // src/app/api/contacts-list/route.ts
 import { findContacts, normalizeContact } from '@/lib/data/common'
 import { FlattenContact } from '@/lib/definitions'
+import { getSession } from '@/lib/utils/common'
 import { ContactMergeStatus } from '@prisma/client'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(req: NextRequest) {
-  const userId = req.nextUrl.searchParams.get('userId') as string
+  const userId = (await getSession()).user.id
   const contacts = await findContacts(userId)
 
   const responseContacts: FlattenContact[] = contacts.map((contact) => {
