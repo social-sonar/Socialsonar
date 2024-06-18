@@ -1,6 +1,6 @@
 'use client'
 
-export const maxDuration = 900
+export const maxDuration = 300
 export const dynamic = 'force-dynamic'
 
 import React, { useEffect, useState } from 'react'
