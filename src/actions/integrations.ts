@@ -84,7 +84,7 @@ async function fetchGoogleContacts(
   })
 
   if (!userGoogleAccount) {
-    throw new Error('Google Account not found')
+    throw new Error(`Google Account not found ${googleAccountId}`)
   }
 
   const googleAccount = userGoogleAccount.googleAccount
@@ -135,16 +135,25 @@ async function fetchGoogleContacts(
 export async function pullGoogleContacts(googleAccountId: string) {
   const session = await getSession()
 
-  const response = await fetchGoogleContacts(googleAccountId)
+  try {
+    const response = await fetchGoogleContacts(googleAccountId)
+    if (response.data) {
+      return {
+        data: pullAndSyncGoogleContacts(
+          response.data,
+          session.user.id,
+          googleAccountId,
+        ),
+      }
+    } else {
+      console.log('unhandled error', response)
 
-  if (response.data) {
-    return {
-      data: pullAndSyncGoogleContacts(
-        response.data,
-        session.user.id,
-        googleAccountId,
-      ),
+      return { msg: 'error from google syncing' }
     }
+  } catch (error) {
+    console.log(error)
+
+    return { msg: 'error from google syncing' }
   }
 }
 

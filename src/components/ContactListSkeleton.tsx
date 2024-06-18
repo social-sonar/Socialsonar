@@ -3,10 +3,11 @@ import ContentLoader from 'react-content-loader'
 export default function ContactListSkeleton(amout: number = 10) {
   return Array(amout)
     .fill(null)
-    .map(() => {
+    .map((a, index) => {
       return (
         <>
           <ContentLoader
+            key={index}
             speed={3}
             width={866}
             height={100}

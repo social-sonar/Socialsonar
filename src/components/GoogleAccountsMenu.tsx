@@ -89,14 +89,26 @@ export default function Menu({ googleAccountId }: { googleAccountId: string }) {
     event.preventDefault()
     setSyncing(true)
 
-    const response = await pullGoogleContacts(googleAccountId)
-    response?.data.then(console.log)
-    setSyncing(false)
     showNotification(
-      'Successfully called sync process',
+      'Called sync process',
       `Your contacts will be pulled and sync in the following minutes`,
       <CheckCircleIcon className="h-6 w-6 text-green-400" aria-hidden="true" />,
     )
+    const response = await pullGoogleContacts(googleAccountId)
+    if (response?.data) {
+      response?.data.then(console.log)
+    } else {
+      console.log(response?.msg)
+      showNotification(
+        'Error!',
+        `There was an error syncing your contacts: ${response?.msg}`,
+        <ExclamationTriangleIcon
+          className="h-6 w-6 text-red-400"
+          aria-hidden="true"
+        ></ExclamationTriangleIcon>,
+      )
+    }
+    setSyncing(false)
   }
 
   return (
