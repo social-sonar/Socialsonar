@@ -8,13 +8,13 @@ import {
   PlusIcon,
   XMarkIcon,
 } from '@heroicons/react/20/solid'
-import { getName, registerLocale } from 'i18n-iso-countries'
+import countries from 'i18n-iso-countries'
+import countriesEnLang from 'i18n-iso-countries/langs/en.json'
 import { Fragment, useEffect, useState, Suspense } from 'react'
 
 import { useContacts } from '@/app/ContactsProvider'
 import ContactDetail from '@/components/ContactDetail'
 import DuplicatesScreen from '@/components/DuplicatesScreen'
-import LoadingSpinner from '@/components/common/spinner'
 import RefreshIcon from '@/images/icons/refresh.svg'
 import UserIcon from '@/images/icons/user.svg'
 import { APP_NAME } from '@/lib/constants'
@@ -65,6 +65,8 @@ interface Option {
 }
 
 export default function ContactList() {
+  countries.registerLocale(countriesEnLang)
+  const { getName } = countries
   const { contacts, updateContact, setContacts } = useContacts()
   const [isLoading, setIsLoading] = useState(false)
   const [filters, setFilters] = useState(filtersTemplate)
@@ -82,6 +84,8 @@ export default function ContactList() {
     useState<Partial<FlattenContact> | null>(null)
 
   useEffect(() => {
+    console.log(searchParams, detailedContact)
+
     if (searchParams.has('add-new-contact')) {
       setDetailedContact({
         addresses: [],
@@ -99,6 +103,7 @@ export default function ContactList() {
 
   const fetchContacts = () => {
     setIsLoading(true)
+    setContacts([])
     fetch(`/api/contacts-list`)
       .then((response) => response.json())
       .then((data: FlattenContact[]) => {
@@ -263,7 +268,6 @@ export default function ContactList() {
         />
       )}
 
-      {/* Mobile filter dialog */}
       <Transition.Root show={mobileFiltersOpen} as={Fragment}>
         <Dialog
           as="div"
@@ -395,9 +399,6 @@ export default function ContactList() {
           </div>
         </Dialog>
       </Transition.Root>
-      {/* {isLoading ? (
-        <LoadingSpinner size={100} className="mx-auto" />
-      ) : ( */}
       <main className="mx-auto h-full px-4 sm:px-6 lg:px-8">
         <DuplicatesScreen
           contacts={contacts.filter(
@@ -614,12 +615,17 @@ export default function ContactList() {
             </form>
             {/* Product grid */}
             <div className="lg:col-span-3">
-              {
+              {isLoading ? (
+                <ContactListSkeleton
+                  key={'skeleton'}
+                  amount={10}
+                ></ContactListSkeleton>
+              ) : (
                 <ul
                   role="list"
                   className="w-full max-w-7xl divide-y divide-gray-800"
                 >
-                  {filteredContacts.length > 0 && !isLoading ? (
+                  {filteredContacts.length > 0 ? (
                     filteredContacts.map((contact) => (
                       <li
                         key={contact.id}
@@ -698,23 +704,25 @@ export default function ContactList() {
                         </div>
                       </li>
                     ))
-                  ) : contacts.length == 0 ? (
-                    <>{ContactListSkeleton(10)}</>
                   ) : (
                     <p>
-                      No contacts yet. Sync your contacts{' '}
+                      No contacts yet.{' '}
                       <Link href={'/sync'} className="text-teal-500">
-                        here
+                        Sync your contacts
+                      </Link>{' '}
+                      or{' '}
+                      <Link href={'?add-new-contact'} className="text-teal-500">
+                        create a contact
                       </Link>
+                      .
                     </p>
                   )}
                 </ul>
-              }
+              )}
             </div>
           </div>
         </section>
       </main>
-      {/* )} */}
     </>
   )
 }
