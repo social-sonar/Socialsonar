@@ -112,11 +112,11 @@ async function fetchGoogleContacts(
         ignoreSyncToken ? null : googleAccount.token,
       )
     } catch (error: unknown) {
-      console.log('catched error 2 level', error)
+      console.error('catched error 2 level', error)
 
       throw error
     }
-    console.log('catched error 1 level', error)
+    console.error('catched error 1 level', error)
   }
 
   if (!ignoreSyncToken) {
@@ -146,12 +146,12 @@ export async function pullGoogleContacts(googleAccountId: string) {
         ),
       }
     } else {
-      console.log('unhandled error', response)
+      console.error('unhandled error', response)
 
       return { msg: 'error from google syncing' }
     }
   } catch (error) {
-    console.log(error)
+    console.error(error)
 
     return { msg: 'error from google syncing' }
   }
