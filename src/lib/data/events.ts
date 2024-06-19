@@ -1,8 +1,12 @@
 import prisma from '@/db'
-import { TimeDuration, UserTimeInformation } from '../definitions'
-import { notFound } from 'next/navigation'
-import { getMinMaxDate } from '../utils/dates'
+import { refreshToken } from '@/lib/utils/google'
+import { GoogleAccount } from '@prisma/client'
+import { OAuth2Client } from 'google-auth-library'
+import { calendar_v3, google } from 'googleapis'
 import { tz } from 'moment-timezone'
+import { notFound } from 'next/navigation'
+import { TimeDuration, UserTimeInformation } from '../definitions'
+import { getMinMaxDate } from '../utils/dates'
 
 const isDateInRange = (date: Date, startDate: Date, endDate: Date): boolean => {
   return date >= startDate && date < endDate
@@ -53,6 +57,7 @@ export const getUserData = async (
     const validStartDate = tz(`${dateStr} 08:00:00`, timezone).toDate()
     const validEndDate = tz(`${dateStr} 17:00:00`, timezone).toDate()
     let currentTime = new Date(validStartDate)
+
     while (currentTime < validEndDate) {
       let endTime = new Date(currentTime.getTime() + durationMetadata.timedelta)
       data.push(currentTime as Date)
@@ -73,6 +78,7 @@ export const getUserData = async (
         endTime = new Date(validEndDate)
       }
     }
+
     finalTimeData.set(dateStr, data)
   })
 
@@ -83,4 +89,51 @@ export const getUserData = async (
     },
     availableTime: finalTimeData,
   }
+}
+
+const getCalendarEvents = async (
+  oauth2Client: OAuth2Client,
+): Promise<calendar_v3.Schema$Event[]> => {
+  const calendar = google.calendar({ version: 'v3', auth: oauth2Client })
+  const results = await calendar.events.list({
+    auth: oauth2Client,
+    calendarId: 'primary',
+    timeMin: new Date().toISOString(),
+  })
+  console.log(results.data.items)
+  return results.data.items || []
+}
+
+export const syncGoogleCalendar = async (
+  userId: string,
+  googleAccount: GoogleAccount,
+): Promise<void> => {
+  let events: calendar_v3.Schema$Event[] = []
+  const oauth2Client = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    process.env.REDIRECT_URL,
+  )
+  oauth2Client.setCredentials({
+    access_token: googleAccount.accessToken,
+  })
+  try {
+    events = await getCalendarEvents(oauth2Client)
+  } catch (error: unknown) {
+    try {
+      await refreshToken(googleAccount, oauth2Client)
+      events = await getCalendarEvents(oauth2Client)
+    } catch (error) {
+      throw error
+    }
+  }
+  await prisma.event.createMany({
+    data: events.map((event) => ({
+      userId,
+      googleEventId: event.id,
+      start: event.start?.dateTime!,
+      end: event.end?.dateTime!,
+      timezone: event.start?.timeZone!,
+    })),
+  })
 }
