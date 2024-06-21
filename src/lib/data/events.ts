@@ -10,6 +10,11 @@ import { notFound } from 'next/navigation'
 import { TimeDuration, UserTimeInformation } from '../definitions'
 import { getMinMaxDate } from '../utils/dates'
 
+type CalendarRequestResult = {
+  syncToken: string
+  data: calendar_v3.Schema$Event[]
+}
+
 const isDateInRange = (date: Date, startDate: Date, endDate: Date): boolean => {
   return date >= startDate && date < endDate
 }
@@ -95,22 +100,26 @@ export const getUserData = async (
 
 const getCalendarEvents = async (
   oauth2Client: OAuth2Client,
-): Promise<calendar_v3.Schema$Event[]> => {
+  syncToken?: string,
+): Promise<CalendarRequestResult> => {
   const calendar = google.calendar({ version: 'v3', auth: oauth2Client })
   const results = await calendar.events.list({
     auth: oauth2Client,
     calendarId: 'primary',
     timeMin: new Date().toISOString(),
+    syncToken,
   })
-  console.log(results.data.items)
-  return results.data.items || []
+  return {
+    data: results.data.items || [],
+    syncToken: results.data.nextSyncToken!,
+  }
 }
 
 export const syncGoogleCalendar = async (
   userId: string,
   googleAccount: GoogleAccount,
 ): Promise<void> => {
-  let events: calendar_v3.Schema$Event[] = []
+  let results: CalendarRequestResult | null = null
   const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
@@ -120,22 +129,37 @@ export const syncGoogleCalendar = async (
     access_token: googleAccount.accessToken,
   })
   try {
-    events = await getCalendarEvents(oauth2Client)
+    results = await getCalendarEvents(
+      oauth2Client,
+      googleAccount.calendarToken || undefined,
+    )
   } catch (error: unknown) {
     try {
       await refreshToken(googleAccount, oauth2Client)
-      events = await getCalendarEvents(oauth2Client)
+      results = await getCalendarEvents(
+        oauth2Client,
+        googleAccount.calendarToken || undefined,
+      )
     } catch (error) {
       throw error
     }
   }
+
   await prisma.event.createMany({
-    data: events.map((event) => ({
+    data: results.data.map((event) => ({
       userId,
       googleEventId: event.id,
       start: event.start?.dateTime!,
       end: event.end?.dateTime!,
       timezone: event.start?.timeZone!,
     })),
+  })
+  await prisma.googleAccount.update({
+    where: {
+      id: googleAccount.id,
+    },
+    data: {
+      calendarToken: results.syncToken,
+    },
   })
 }
