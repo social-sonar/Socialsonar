@@ -1,3 +1,5 @@
+'use server'
+
 import prisma from '@/db'
 import { refreshToken } from '@/lib/utils/google'
 import { GoogleAccount } from '@prisma/client'
