@@ -154,12 +154,16 @@ export const scheduleEvent = async (
     await prisma.event.create({
       data: {
         userId,
-        requesterName: result.data.name,
-        requesterEmail: result.data.email,
         start: startDate,
         end: endDate,
-        guests,
-        timezone
+        timezone,
+        eventDetails: {
+          create: {
+            requesterName: result.data.name,
+            requesterEmail: result.data.email,
+            guests,
+          },
+        },
       },
     })
     await sendEventNotification({
