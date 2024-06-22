@@ -106,11 +106,20 @@ const getCalendarEvents = async (
   const results = await calendar.events.list({
     auth: oauth2Client,
     calendarId: 'primary',
-    timeMin: new Date().toISOString(),
     syncToken,
   })
+  const currentDatetime = new Date()
   return {
-    data: results.data.items || [],
+    data:
+      results.data.items?.filter((event) => {
+        const until = event.recurrence?.[0].split('UNTIL=')[1]
+        // filter out events before the current date. This is necessary because the `timeMin` parameter of
+        // events.list cannot be used in conjunction with a sync token
+        return (
+          new Date(event.start?.dateTime!) > currentDatetime ||
+          (until && tz(until, 'UTC').toDate() > currentDatetime)
+        )
+      }) || [],
     syncToken: results.data.nextSyncToken!,
   }
 }
@@ -152,6 +161,7 @@ export const syncGoogleCalendar = async (
       start: event.start?.dateTime!,
       end: event.end?.dateTime!,
       timezone: event.start?.timeZone!,
+      recurrence: event.recurrence?.[0],
     })),
   })
   await prisma.googleAccount.update({
