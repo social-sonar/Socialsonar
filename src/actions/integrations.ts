@@ -1,6 +1,5 @@
 'use server'
 
-import nextauth from '@/auth'
 import prisma from '@/db'
 import {
   pullAndSyncGoogleContacts,
@@ -8,14 +7,12 @@ import {
 } from '@/lib/data/common'
 import {
   backupFileData,
-  CustomSession,
   GoogleContactMainResponse,
   GoogleResponse,
 } from '@/lib/definitions'
 import { refreshToken } from '@/lib/utils/google'
 
 import { getSession } from '../lib/utils/common'
-import { GoogleAccount, Prisma } from '@prisma/client'
 import { GaxiosResponse } from 'gaxios'
 import { OAuth2Client } from 'google-auth-library'
 import { google } from 'googleapis'

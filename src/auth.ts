@@ -27,7 +27,6 @@ export default NextAuth({
   },
   events: {
     async linkAccount({ user, account, profile }) {
-      
       if (account.provider == 'google') {
         const googleAccount = await prisma.googleAccount.upsert({
           where: { googleId: account!.providerAccountId },
@@ -41,7 +40,7 @@ export default NextAuth({
             email: profile?.email,
             accessToken: account!.access_token,
             refreshToken: account!.refresh_token,
-          }
+          },
         })
         try {
           await prisma.userGoogleAccount.create({
@@ -75,6 +74,19 @@ export default NextAuth({
       feededSession.expiresAt = token.exp
 
       return feededSession
+    },
+    async signIn({ user }) {
+      const userGoogleAccount = await prisma.userGoogleAccount.findFirst({
+        where: {
+          userId: user.id,
+        },
+        include: {
+          googleAccount: true,
+        },
+      })
+      if (userGoogleAccount)
+        await syncGoogleCalendar(user.id!, userGoogleAccount!.googleAccount)
+      return true
     },
   },
 })
