@@ -7,6 +7,7 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import TimeZoneList from './TimeZoneList';
 import { getTimeZoneID } from '@/lib/utils/dates';
+import { syncGoogleCalendar } from '@/actions';
 
 
 type EventGeneratorProps = {
@@ -66,14 +67,17 @@ export default function EventGenerator({ showNotification, userId }: EventGenera
 
     return (
         <div className='flex flex-col items-center gap-10'>
-            <button onClick={() => setOpen(!open)} className='flex gap-2 hover:text-teal-600'>
-                <span>Generate event URL</span>
-                {
-                    open ?
-                        <ChevronUpIcon className='w-[20px] animate-pulse' /> :
-                        <ChevronDownIcon className='w-[20px] animate-pulse' />
-                }
-            </button>
+            <form action={syncGoogleCalendar.bind(null, userId, undefined)}>
+
+                <button onClick={() => setOpen(!open)} className='flex gap-2 hover:text-teal-600'>
+                    <span>Generate event URL</span>
+                    {
+                        open ?
+                            <ChevronUpIcon className='w-[20px] animate-pulse' /> :
+                            <ChevronDownIcon className='w-[20px] animate-pulse' />
+                    }
+                </button>
+            </form>
             {
                 open &&
                 <div className='flex lg:flex-row md:flex-row flex-col gap-10'>
