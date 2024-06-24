@@ -126,7 +126,7 @@ const getCalendarEvents = async (
 
 export const syncGoogleCalendar = async (
   userId: string,
-  googleAccount: GoogleAccount,
+  googleAccount?: GoogleAccount,
 ): Promise<void> => {
   let results: CalendarRequestResult | null = null
   const oauth2Client = new google.auth.OAuth2(
@@ -134,20 +134,31 @@ export const syncGoogleCalendar = async (
     process.env.GOOGLE_CLIENT_SECRET,
     process.env.REDIRECT_URL,
   )
+  if (!googleAccount) {
+    const userGoogleAccount = await prisma.userGoogleAccount.findFirst({
+      where: {
+        userId,
+      },
+      include: {
+        googleAccount: true,
+      },
+    })
+    googleAccount = userGoogleAccount?.googleAccount
+  }
   oauth2Client.setCredentials({
-    access_token: googleAccount.accessToken,
+    access_token: googleAccount!.accessToken,
   })
   try {
     results = await getCalendarEvents(
       oauth2Client,
-      googleAccount.calendarToken || undefined,
+      googleAccount!.calendarToken || undefined,
     )
   } catch (error: unknown) {
     try {
-      await refreshToken(googleAccount, oauth2Client)
+      await refreshToken(googleAccount!, oauth2Client)
       results = await getCalendarEvents(
         oauth2Client,
-        googleAccount.calendarToken || undefined,
+        googleAccount!.calendarToken || undefined,
       )
     } catch (error) {
       throw error
@@ -166,7 +177,7 @@ export const syncGoogleCalendar = async (
   })
   await prisma.googleAccount.update({
     where: {
-      id: googleAccount.id,
+      id: googleAccount!.id,
     },
     data: {
       calendarToken: results.syncToken,
