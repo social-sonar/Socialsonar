@@ -100,26 +100,33 @@ export const getUserData = async (
 
 const getCalendarEvents = async (
   oauth2Client: OAuth2Client,
+  firstSync: boolean,
   syncToken?: string,
 ): Promise<CalendarRequestResult> => {
   const calendar = google.calendar({ version: 'v3', auth: oauth2Client })
   const results = await calendar.events.list({
     auth: oauth2Client,
     calendarId: 'primary',
-    syncToken,
+    ...(firstSync ? { timeMin: new Date().toISOString() } : { syncToken }),
   })
   const currentDatetime = new Date()
+  let events: calendar_v3.Schema$Event[] | undefined = []
+  if (firstSync)
+    events = results.data.items?.filter((event) => event.status === 'confirmed')
+  else
+    events = results.data.items?.filter((event) => {
+      const until = event.recurrence?.[0].match(/(?<=UNTIL=)\w+/)?.[0]
+      // filter out events before the current date. This is necessary because the `timeMin` parameter of
+      // events.list cannot be used in conjunction with a sync token
+      return (
+        (new Date(event.start?.dateTime!) > currentDatetime ||
+          (until && tz(until, 'UTC').toDate() > currentDatetime)) &&
+        event.status === 'confirmed'
+      )
+    })
+
   return {
-    data:
-      results.data.items?.filter((event) => {
-        const until = event.recurrence?.[0].split('UNTIL=')[1]
-        // filter out events before the current date. This is necessary because the `timeMin` parameter of
-        // events.list cannot be used in conjunction with a sync token
-        return (
-          new Date(event.start?.dateTime!) > currentDatetime ||
-          (until && tz(until, 'UTC').toDate() > currentDatetime)
-        )
-      }) || [],
+    data: events || [],
     syncToken: results.data.nextSyncToken!,
   }
 }
@@ -127,6 +134,7 @@ const getCalendarEvents = async (
 export const syncGoogleCalendar = async (
   userId: string,
   googleAccount?: GoogleAccount,
+  firstSync: boolean = false,
 ): Promise<void> => {
   let results: CalendarRequestResult | null = null
   const oauth2Client = new google.auth.OAuth2(
@@ -151,6 +159,7 @@ export const syncGoogleCalendar = async (
   try {
     results = await getCalendarEvents(
       oauth2Client,
+      firstSync,
       googleAccount!.calendarToken || undefined,
     )
   } catch (error: unknown) {
@@ -158,6 +167,7 @@ export const syncGoogleCalendar = async (
       await refreshToken(googleAccount!, oauth2Client)
       results = await getCalendarEvents(
         oauth2Client,
+        firstSync,
         googleAccount!.calendarToken || undefined,
       )
     } catch (error) {

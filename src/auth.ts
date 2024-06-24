@@ -52,7 +52,7 @@ export default NextAuth({
         } catch (error) {
           console.log(error)
         }
-        await syncGoogleCalendar(user.id!, googleAccount)
+        await syncGoogleCalendar(user.id!, googleAccount, true)
       }
     },
   },
