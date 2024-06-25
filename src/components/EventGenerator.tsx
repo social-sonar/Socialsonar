@@ -67,7 +67,12 @@ export default function EventGenerator({ showNotification, userId }: EventGenera
 
     return (
         <div className='flex flex-col items-center gap-10'>
-            <form action={syncGoogleCalendar.bind(null, userId, undefined, false)}>
+            <form onSubmit={(e) => {
+                e.preventDefault()
+                // note that at this point `open` is the opposite because of a timing issue between its state and the form submission
+                // that's why we are using `open === true` instead of `open === false`
+                if (open === true) syncGoogleCalendar(userId, undefined, false).then(null).catch(console.log)
+            }}>
 
                 <button onClick={() => setOpen(!open)} className='flex gap-2 hover:text-teal-600'>
                     <span>Generate event URL</span>
