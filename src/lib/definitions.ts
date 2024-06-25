@@ -198,3 +198,9 @@ export interface backupFileData {
   date: Date
   user: string
 }
+
+export type LightEvent = {
+  start: Date,
+  end: Date,
+  recurrence: string
+}
