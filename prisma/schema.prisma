@@ -71,33 +71,45 @@ model User {
 }
 
 model Event {
-  id             String   @id @default(cuid())
-  userId         String
-  requesterName  String
-  requesterEmail String
-  guests         String[]
-  start          DateTime
-  end            DateTime
-  timezone       String
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id            String       @id @default(cuid())
+  userId        String
+  googleEventId String?
+  start         DateTime
+  end           DateTime
+  timezone      String
+  recurrence    String       @default("unique")
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  eventDetails  EventDetail?
 
   @@map("event")
 }
 
+model EventDetail {
+  id             String   @id @default(cuid())
+  eventId        String   @unique
+  requesterName  String
+  requesterEmail String
+  guests         String[]
+  event          Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("event_detail")
+}
+
 model GoogleAccount {
-  id           String              @id @default(cuid())
-  googleId     String              @unique
-  email        String?             @unique
-  accessToken  String?
-  refreshToken String?
-  users        UserGoogleAccount[]
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
-  token        String?
-  contacts     Contact[]
-  ableToWrite  Boolean             @default(false)
+  id            String              @id @default(cuid())
+  googleId      String              @unique
+  email         String?             @unique
+  accessToken   String?
+  refreshToken  String?
+  users         UserGoogleAccount[]
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  token         String?
+  calendarToken String?
+  contacts      Contact[]
+  ableToWrite   Boolean             @default(false)
 
   @@map("google_account")
 }

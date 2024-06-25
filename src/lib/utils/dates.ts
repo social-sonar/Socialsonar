@@ -76,3 +76,9 @@ export const utcDateWithOffset = (
 
 export const getTimeZoneID = (): string =>
   Intl.DateTimeFormat().resolvedOptions().timeZone
+
+export const getDayID = (date?: Date): string =>
+  (date ?? new Date())
+    .toLocaleString('en-us', { weekday: 'short' })
+    .substring(0, 2)
+    .toUpperCase()

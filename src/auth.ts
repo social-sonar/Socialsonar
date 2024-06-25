@@ -3,6 +3,7 @@ import GoogleProvider from 'next-auth/providers/google'
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import { prisma } from '@/db'
 import { CustomSession } from '@/lib/definitions'
+import { syncGoogleCalendar } from './lib/data/events'
 
 export default NextAuth({
   providers: [
@@ -26,7 +27,6 @@ export default NextAuth({
   },
   events: {
     async linkAccount({ user, account, profile }) {
-      
       if (account.provider == 'google') {
         const googleAccount = await prisma.googleAccount.upsert({
           where: { googleId: account!.providerAccountId },
@@ -41,9 +41,6 @@ export default NextAuth({
             accessToken: account!.access_token,
             refreshToken: account!.refresh_token,
           },
-          select: {
-            id: true,
-          },
         })
         try {
           await prisma.userGoogleAccount.create({
@@ -55,6 +52,7 @@ export default NextAuth({
         } catch (error) {
           console.log(error)
         }
+        await syncGoogleCalendar(user.id!, googleAccount, true)
       }
     },
   },
@@ -76,6 +74,19 @@ export default NextAuth({
       feededSession.expiresAt = token.exp
 
       return feededSession
+    },
+    async signIn({ user }) {
+      const userGoogleAccount = await prisma.userGoogleAccount.findFirst({
+        where: {
+          userId: user.id,
+        },
+        include: {
+          googleAccount: true,
+        },
+      })
+      if (userGoogleAccount)
+        await syncGoogleCalendar(user.id!, userGoogleAccount!.googleAccount)
+      return true
     },
   },
 })

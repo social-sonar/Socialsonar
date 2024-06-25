@@ -7,6 +7,7 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import TimeZoneList from './TimeZoneList';
 import { getTimeZoneID } from '@/lib/utils/dates';
+import { syncGoogleCalendar } from '@/actions';
 
 
 type EventGeneratorProps = {
@@ -66,14 +67,22 @@ export default function EventGenerator({ showNotification, userId }: EventGenera
 
     return (
         <div className='flex flex-col items-center gap-10'>
-            <button onClick={() => setOpen(!open)} className='flex gap-2 hover:text-teal-600'>
-                <span>Generate event URL</span>
-                {
-                    open ?
-                        <ChevronUpIcon className='w-[20px] animate-pulse' /> :
-                        <ChevronDownIcon className='w-[20px] animate-pulse' />
-                }
-            </button>
+            <form onSubmit={(e) => {
+                e.preventDefault()
+                // note that at this point `open` is the opposite because of a timing issue between its state and the form submission
+                // that's why we are using `open === true` instead of `open === false`
+                if (open === true) syncGoogleCalendar(userId, undefined, false).then(null).catch(console.log)
+            }}>
+
+                <button onClick={() => setOpen(!open)} className='flex gap-2 hover:text-teal-600'>
+                    <span>Generate event URL</span>
+                    {
+                        open ?
+                            <ChevronUpIcon className='w-[20px] animate-pulse' /> :
+                            <ChevronDownIcon className='w-[20px] animate-pulse' />
+                    }
+                </button>
+            </form>
             {
                 open &&
                 <div className='flex lg:flex-row md:flex-row flex-col gap-10'>

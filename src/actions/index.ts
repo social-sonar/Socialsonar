@@ -1,3 +1,5 @@
 export { signIn } from './sign-in'
 export { signOut } from './sign-out'
 export { saveContact as saveWebsite } from './saveContact'
+export { scheduleEvent } from './scheduler'
+export { syncGoogleCalendar } from '@/lib/data/events'

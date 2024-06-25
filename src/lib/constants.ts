@@ -6,6 +6,23 @@ export const APP_DESCRIPTION = 'This is a simple contacts sync application'
 
 export const REPO_URL = 'https://github.com/blackbookcleaner/Socialsonar'
 
+export const DAYS_IDS: Record<string, number | string> = {
+  SU: 0,
+  MO: 1,
+  TU: 2,
+  WE: 3,
+  TH: 4,
+  FR: 5,
+  SA: 6,
+  0: 'SU',
+  1: 'MO',
+  2: 'TU',
+  3: 'WE',
+  4: 'TH',
+  5: 'FR',
+  6: 'SA',
+}
+
 export const TIMEZONES = [
   'Africa/Abidjan',
   'Africa/Accra',
