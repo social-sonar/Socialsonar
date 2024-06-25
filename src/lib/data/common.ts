@@ -19,7 +19,7 @@ import {
 import { syncExisting } from './google'
 import { fuzzy } from 'fast-fuzzy'
 import phone from 'phone'
-import { google } from 'googleapis'
+import { google, people_v1 } from 'googleapis'
 import { getContactIdFromResourceName, getSession } from '../utils/common'
 import { dateObject, dateString } from '../utils/dates'
 import { refreshToken } from '../utils/google'
@@ -346,7 +346,10 @@ export const pullAndSyncGoogleContacts = async (
   people: GoogleResponse[],
   userId: string,
   googleAccountId: string,
-): Promise<void> => {
+): Promise<{
+  syncedContactsPromise: Promise<[void, void, void, void, void, void, void]>[]
+  createdContactsPromise: Promise<void>[]
+}> => {
   const googleIds = people.map((person) => getContactIdFromResourceName(person))
   const existingGoogleContacts = await findExistingGoogleIds(googleIds, userId)
   const existingGoogleIdsSet = new Set(
@@ -359,90 +362,101 @@ export const pullAndSyncGoogleContacts = async (
     googleIds.filter((id) => !existingGoogleIdsSet.has(id)),
   )
   //  sync of google contacts thasecondContacts.length > 0t already exist and were updated somehow
-  await syncExisting(
+  const syncedContactsPromise = await syncExisting(
     existingGoogleContacts,
     people.filter(
       (person) => !googleIdsSet.has(getContactIdFromResourceName(person)),
     ),
   )
-  let index = 0
+  let rawContactsPromise: Promise<void>[] = []
   // creation of non existing google contacts
   for (const person of people.filter((person) =>
     googleIdsSet.has(getContactIdFromResourceName(person)),
   )) {
-    console.log('Processing new contact: ', ++index, people.length)
-    const organizationsIDs = await getOrganizationIDs(
-      person.organizations ?? [],
-    )
-    const phoneNumbersIDs = await getPhoneNumberIDs(person.phoneNumbers ?? [])
-    const occupationIDs = await getOccupationIDs(person.occupations ?? [])
-    const photosIDs = await getPhotoIDs(person.photos ?? [])
-    const addressesIDs = await getAddressIDs(person.addresses ?? [])
-    const emailsIDs = await getEmailsIDs(person.emailAddresses ?? [])
-
-    const newContact = await prisma.contact.create({
-      data: {
-        name: (person.names && person.names[0].displayName) || 'Contact',
-        nickName: (person.nicknames && person.nicknames[0].value) || null,
-        birthday:
-          (person.birthdays && dateString(person.birthdays[0].date!)) || null,
-        userId: userId,
-        googleAccountId,
-      },
-    })
-    await prisma.contactGoogle.create({
-      data: {
-        contactId: newContact.id,
-        googleContactId: getContactIdFromResourceName(person),
-      },
-    })
-    await prisma.contactOrganization.createMany({
-      data: organizationsIDs.map((organization) => ({
-        contactId: newContact.id,
-        organizationId: organization,
-      })),
-      skipDuplicates: true,
-    })
-    await prisma.contactPhoneNumber.createMany({
-      data: phoneNumbersIDs.map((phoneNumber) => ({
-        contactId: newContact.id,
-        phoneNumberId: phoneNumber,
-      })),
-      skipDuplicates: true,
-    })
-    await prisma.contactOccupation.createMany({
-      data: occupationIDs.map((occupation) => ({
-        contactId: newContact.id,
-        occupationId: occupation,
-      })),
-      skipDuplicates: true,
-    })
-    await prisma.contactPhoto.createMany({
-      data: photosIDs.map((photo) => ({
-        contactId: newContact.id,
-        photoId: photo,
-      })),
-      skipDuplicates: true,
-    })
-    await prisma.contactAddress.createMany({
-      data: addressesIDs.map((address) => ({
-        contactId: newContact.id,
-        addressId: address,
-      })),
-      skipDuplicates: true,
-    })
-    await prisma.contactEmail.createMany({
-      data: emailsIDs.map((email) => ({
-        contactId: newContact.id,
-        emailId: email,
-      })),
-      skipDuplicates: true,
-    })
+    rawContactsPromise.push(createNewContact(person, userId, googleAccountId))
   }
+
+  const createdContactsPromise = rawContactsPromise
+
+  return {
+    createdContactsPromise,
+    syncedContactsPromise,
+  }
+}
+
+async function createNewContact(
+  person: people_v1.Schema$Person,
+  userId: string,
+  googleAccountId: string,
+) {
+  const organizationsIDs = await getOrganizationIDs(person.organizations ?? [])
+  const phoneNumbersIDs = await getPhoneNumberIDs(person.phoneNumbers ?? [])
+  const occupationIDs = await getOccupationIDs(person.occupations ?? [])
+  const photosIDs = await getPhotoIDs(person.photos ?? [])
+  const addressesIDs = await getAddressIDs(person.addresses ?? [])
+  const emailsIDs = await getEmailsIDs(person.emailAddresses ?? [])
+
+  const newContact = await prisma.contact.create({
+    data: {
+      name: (person.names && person.names[0].displayName) || 'Contact',
+      nickName: (person.nicknames && person.nicknames[0].value) || null,
+      birthday:
+        (person.birthdays && dateString(person.birthdays[0].date!)) || null,
+      userId: userId,
+      googleAccountId,
+    },
+  })
+  await prisma.contactGoogle.create({
+    data: {
+      contactId: newContact.id,
+      googleContactId: getContactIdFromResourceName(person),
+    },
+  })
+  await prisma.contactOrganization.createMany({
+    data: organizationsIDs.map((organization) => ({
+      contactId: newContact.id,
+      organizationId: organization,
+    })),
+    skipDuplicates: true,
+  })
+  await prisma.contactPhoneNumber.createMany({
+    data: phoneNumbersIDs.map((phoneNumber) => ({
+      contactId: newContact.id,
+      phoneNumberId: phoneNumber,
+    })),
+    skipDuplicates: true,
+  })
+  await prisma.contactOccupation.createMany({
+    data: occupationIDs.map((occupation) => ({
+      contactId: newContact.id,
+      occupationId: occupation,
+    })),
+    skipDuplicates: true,
+  })
+  await prisma.contactPhoto.createMany({
+    data: photosIDs.map((photo) => ({
+      contactId: newContact.id,
+      photoId: photo,
+    })),
+    skipDuplicates: true,
+  })
+  await prisma.contactAddress.createMany({
+    data: addressesIDs.map((address) => ({
+      contactId: newContact.id,
+      addressId: address,
+    })),
+    skipDuplicates: true,
+  })
+  await prisma.contactEmail.createMany({
+    data: emailsIDs.map((email) => ({
+      contactId: newContact.id,
+      emailId: email,
+    })),
+    skipDuplicates: true,
+  })
 
   await findDuplicates(userId)
 }
-
 export const findContacts = async (userId: string) => {
   const userGoogleAccounts = (
     await prisma.userGoogleAccount.findMany({
@@ -962,48 +976,58 @@ export const restoreContactsInGoogle = async (
     }
 
     if (Array.isArray(contact.birthdays)) {
-      contact.birthdays = contact.birthdays.map((birthday: { metadata: any }) => {
-        if (birthday.metadata) {
-          delete birthday.metadata
-        }
-        return birthday
-      })
+      contact.birthdays = contact.birthdays.map(
+        (birthday: { metadata: any }) => {
+          if (birthday.metadata) {
+            delete birthday.metadata
+          }
+          return birthday
+        },
+      )
     }
 
     if (Array.isArray(contact.addresses)) {
-      contact.addresses = contact.addresses.map((address: { metadata: any }) => {
-        if (address.metadata) {
-          delete address.metadata
-        }
-        return address
-      })
+      contact.addresses = contact.addresses.map(
+        (address: { metadata: any }) => {
+          if (address.metadata) {
+            delete address.metadata
+          }
+          return address
+        },
+      )
     }
 
     if (Array.isArray(contact.phoneNumbers)) {
-      contact.phoneNumbers = contact.phoneNumbers.map((phoneNumber: { metadata: any }) => {
-        if (phoneNumber.metadata) {
-          delete phoneNumber.metadata
-        }
-        return phoneNumber
-      })
+      contact.phoneNumbers = contact.phoneNumbers.map(
+        (phoneNumber: { metadata: any }) => {
+          if (phoneNumber.metadata) {
+            delete phoneNumber.metadata
+          }
+          return phoneNumber
+        },
+      )
     }
 
     if (Array.isArray(contact.organizations)) {
-      contact.organizations = contact.organizations.map((organization: { metadata: any }) => {
-        if (organization.metadata) {
-          delete organization.metadata
-        }
-        return organization
-      })
+      contact.organizations = contact.organizations.map(
+        (organization: { metadata: any }) => {
+          if (organization.metadata) {
+            delete organization.metadata
+          }
+          return organization
+        },
+      )
     }
 
     if (Array.isArray(contact.emailAddresses)) {
-      contact.emailAddresses = contact.emailAddresses.map((emailAddress: { metadata: any }) => {
-        if (emailAddress.metadata) {
-          delete emailAddress.metadata
-        }
-        return emailAddress
-      })
+      contact.emailAddresses = contact.emailAddresses.map(
+        (emailAddress: { metadata: any }) => {
+          if (emailAddress.metadata) {
+            delete emailAddress.metadata
+          }
+          return emailAddress
+        },
+      )
     }
 
     return { contactPerson: contact }

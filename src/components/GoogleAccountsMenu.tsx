@@ -1,5 +1,7 @@
-import { Fragment, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { Popover, Transition, Dialog } from '@headlessui/react'
+import { CircularProgress } from '@nextui-org/progress'
+
 import {
   CheckCircleIcon,
   CheckIcon,
@@ -24,10 +26,38 @@ export default function Menu({ googleAccountId }: { googleAccountId: string }) {
   const fileInput = useRef<HTMLInputElement>(null)
   const [backupData, setBackupData] = useState<backupFileData | null>(null)
 
+  const [createdCounter, setCreatedCounter] = useState<number>(0)
+  const [createdCounterTotal, setCreatedCounterTotal] = useState<number>(0)
+  const [syncedCounter, setSyncedCounter] = useState<number>(0)
+  const [syncedCounterTotal, setSyncedCounterTotal] = useState<number>(0)
+
   const [backup, showBackup] = useState(false)
   const [restore, showRestore] = useState(false)
 
   let fileReader: FileReader
+
+  useEffect(() => {
+    if (syncing) {
+      showNotification(
+        'Sync process',
+        `Your contacts will be pulled and sync in the following minutes`,
+        <CircularProgress
+          aria-label="Loading..."
+          size="lg"
+          value={createdCounter + syncedCounter}
+          maxValue={createdCounterTotal + syncedCounterTotal}
+          className="text-sm text-green-600"
+          showValueLabel={true}
+        />,
+      )
+    }
+    console.log(
+      'createdCounter, syncedCounter',
+      createdCounter,
+      syncedCounter,
+      syncing,
+    )
+  }, [createdCounter, syncedCounter])
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return
@@ -84,41 +114,75 @@ export default function Menu({ googleAccountId }: { googleAccountId: string }) {
       )
     }
   }
-
   const handleSyncButton = async (event: React.FormEvent) => {
     event.preventDefault()
     setSyncing(true)
 
-    showNotification(
-      'Called sync process',
-      `Your contacts will be pulled and sync in the following minutes`,
-      <LoadingSpinner size={30}></LoadingSpinner>,
-    )
-    const response = await pullGoogleContacts(googleAccountId)
-    if (response?.data) {
-      response?.data.then(() => {
-        console.log(response.data)
-        showNotification(
-          'Successfully synced contacts',
-          `Your contacts have be pulled and synced succesfully`,
-          <CheckCircleIcon
-            className="h-6 w-6 text-green-400"
-            aria-hidden="true"
-          />,
-        )
-      })
-    } else {
-      console.log(response?.msg)
+    try {
       showNotification(
-        'Error!',
-        `There was an error syncing your contacts: ${response?.msg}`,
-        <ExclamationTriangleIcon
-          className="h-6 w-6 text-red-400"
-          aria-hidden="true"
-        ></ExclamationTriangleIcon>,
+        'Called sync process',
+        `Your contacts will be pulled and sync in the following minutes`,
+        <LoadingSpinner size={30}></LoadingSpinner>,
       )
+      const response = await pullGoogleContacts(googleAccountId)
+
+      if (response?.data) {
+        response?.data.then(async (heavyTasks) => {
+          console.log(
+            'heavyTasks',
+            heavyTasks.createdContactsPromise.length,
+            heavyTasks.syncedContactsPromise.length,
+          )
+          setCreatedCounter(0)
+          setCreatedCounterTotal(heavyTasks.createdContactsPromise.length)
+          heavyTasks.createdContactsPromise.forEach((a) => {
+            a.then(() => {
+              setCreatedCounter((prevCount) => {
+                return prevCount + 1
+              })
+            })
+          })
+          setSyncedCounter(0)
+          setSyncedCounterTotal(heavyTasks.syncedContactsPromise.length)
+          heavyTasks.syncedContactsPromise.forEach((a) => {
+            a.then(() => {
+              setSyncedCounter((prevCount) => {
+                return prevCount + 1
+              })
+            })
+          })
+          ;(await Promise.all(heavyTasks.syncedContactsPromise)) &&
+            (await Promise.all(heavyTasks.createdContactsPromise))
+          setSyncing(false)
+          setSyncedCounter(0)
+          setSyncedCounterTotal(0)
+          setCreatedCounter(0)
+          setCreatedCounterTotal(0)
+          showNotification(
+            'Successfully synced contacts',
+            `Your contacts have be pulled and synced succesfully`,
+            <CheckCircleIcon
+              className="h-6 w-6 text-green-400"
+              aria-hidden="true"
+            />,
+          )
+        })
+      } else {
+        console.log(response?.msg)
+        setSyncing(false)
+        showNotification(
+          'Error!',
+          `There was an error syncing your contacts: ${response?.msg}`,
+          <ExclamationTriangleIcon
+            className="h-6 w-6 text-red-400"
+            aria-hidden="true"
+          ></ExclamationTriangleIcon>,
+        )
+      }
+    } catch (error) {
+      setSyncing(false)
+      console.log('ERROR:', error)
     }
-    setSyncing(false)
   }
 
   return (
