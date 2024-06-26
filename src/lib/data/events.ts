@@ -237,9 +237,9 @@ export const syncGoogleCalendar = async (
     data: results.data.map((event) => ({
       userId,
       googleEventId: event.id,
-      start: event.start?.dateTime!,
-      end: event.end?.dateTime!,
-      timezone: event.start?.timeZone!,
+      start: event.start?.dateTime || `${event.start?.date!}T00:00:00.000Z`,
+      end: event.end?.dateTime! || `${event.end?.date!}T00:00:00.000Z`,
+      timezone: event.start?.timeZone || 'not applicable', // events with no datetime have no timezone
       recurrence: event.recurrence?.[0],
     })),
   })
