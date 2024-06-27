@@ -476,7 +476,10 @@ export default function Header() {
                 key={session.data.user.id}
                 profileButtons={
                   <>
-                    <form action={signOut}>
+                    <form onSubmit={(e) => {
+                      e.preventDefault()
+                      signOut().then(() => setTimeout(() => { location.href = '/' }, 1000)).catch(console.log)
+                    }}>
                       <Button variant="primary" className="p-2 flex-auto w-full">
                         Sign Out
                       </Button>

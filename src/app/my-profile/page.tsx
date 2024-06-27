@@ -1,18 +1,19 @@
 'use client';
 
-import React, { Fragment, useState } from 'react';
-import { Dialog, Transition } from '@headlessui/react';
-import { CheckCircleIcon, ExclamationTriangleIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { ClipboardDocumentIcon} from '@heroicons/react/20/solid';
-import Button from '../../components/Button'
-import { deleteAccount } from '../../actions/delete-account';
-import { signOut, useSession } from 'next-auth/react'
-import LoadingSpinner from '../../components/common/spinner'
-import { useNotification } from '@/app/NotificationsProvider'
+import { useNotification } from '@/app/NotificationsProvider';
 import EventGenerator from '@/components/EventGenerator';
+import protectPage from '@/components/common/auth';
+import { Dialog, Transition } from '@headlessui/react';
+import { ClipboardDocumentIcon } from '@heroicons/react/20/solid';
+import { CheckCircleIcon, ExclamationTriangleIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { signOut, useSession } from 'next-auth/react';
+import React, { Fragment, useState } from 'react';
+import { deleteAccount } from '../../actions/delete-account';
+import Button from '../../components/Button';
+import LoadingSpinner from '../../components/common/spinner';
 
 
-export default function Example() {
+function Profile() {
   const { showNotification, hideNotification } = useNotification()
   const session = useSession()
   const [open, setOpen] = useState(false);
@@ -136,3 +137,5 @@ export default function Example() {
     </>
   );
 }
+
+export default protectPage(Profile)
