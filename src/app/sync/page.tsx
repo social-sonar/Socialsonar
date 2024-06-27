@@ -3,22 +3,23 @@
 export const maxDuration = 300
 export const dynamic = 'force-dynamic'
 
-import React, { useEffect, useState } from 'react'
-import {
-  getGoogleAccounts,
-  editGoogleAccount,
-} from '@/lib/data/getGoogleAccounts'
-import { GoogleAccount, UserGoogleAccount } from '@prisma/client'
 import Button from '@/components/Button'
-import LoadingSpinner from '@/components/common/spinner'
-import { Switch } from '@headlessui/react'
 import Menu from '@/components/GoogleAccountsMenu'
+import protectPage from '@/components/common/auth'
+import LoadingSpinner from '@/components/common/spinner'
+import {
+  editGoogleAccount,
+  getGoogleAccounts,
+} from '@/lib/data/getGoogleAccounts'
+import { Switch } from '@headlessui/react'
+import { GoogleAccount, UserGoogleAccount } from '@prisma/client'
+import React, { useEffect, useState } from 'react'
 
 interface ExtendedUserGoogleAccount extends UserGoogleAccount {
   googleAccount: GoogleAccount
 }
 
-export default function SyncGoogleAccounts() {
+function SyncGoogleAccounts() {
   const [userGoogleAccounts, setUserGoogleAccounts] = useState<
     ExtendedUserGoogleAccount[]
   >([])
@@ -178,3 +179,6 @@ export default function SyncGoogleAccounts() {
     </div>
   )
 }
+
+
+export default protectPage(SyncGoogleAccounts)

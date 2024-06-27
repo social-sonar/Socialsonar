@@ -6,7 +6,11 @@ import { ContactMergeStatus } from '@prisma/client'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(req: NextRequest) {
-  const userId = (await getSession()).user.id
+
+  const session = await getSession()
+  if (!session || !session.user) return NextResponse.json('Unauthorized', {status: 403})
+
+  const userId = session.user.id
   const contacts = await findContacts(userId)
 
   const responseContacts: FlattenContact[] = contacts.map((contact) => {

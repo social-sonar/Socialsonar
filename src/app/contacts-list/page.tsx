@@ -10,11 +10,13 @@ import {
 } from '@heroicons/react/20/solid'
 import countries from 'i18n-iso-countries'
 import countriesEnLang from 'i18n-iso-countries/langs/en.json'
-import { Fragment, useEffect, useState, Suspense } from 'react'
+import { Fragment, Suspense, useEffect, useState } from 'react'
 
 import { useContacts } from '@/app/ContactsProvider'
 import ContactDetail from '@/components/ContactDetail'
+import ContactListSkeleton from '@/components/ContactListSkeleton'
 import DuplicatesScreen from '@/components/DuplicatesScreen'
+import protectPage from '@/components/common/auth'
 import RefreshIcon from '@/images/icons/refresh.svg'
 import UserIcon from '@/images/icons/user.svg'
 import { APP_NAME } from '@/lib/constants'
@@ -23,8 +25,6 @@ import clsx from 'clsx'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import ContentLoader from 'react-content-loader'
-import ContactListSkeleton from '@/components/ContactListSkeleton'
 
 const sortOptions = [
   { name: 'A - Z', href: '#', current: true },
@@ -64,7 +64,7 @@ interface Option {
   checked: boolean
 }
 
-export default function ContactList() {
+function ContactList() {
   countries.registerLocale(countriesEnLang)
   const { getName } = countries
   const { contacts, updateContact, setContacts } = useContacts()
@@ -591,8 +591,8 @@ export default function ContactList() {
                                   >
                                     {section.id == 'location' && option.label
                                       ? getName(option.label, 'en', {
-                                          select: 'alias',
-                                        }) ?? 'No assigned country'
+                                        select: 'alias',
+                                      }) ?? 'No assigned country'
                                       : option.label ?? 'No assigned country'}
                                   </label>
                                 </div>
@@ -662,8 +662,8 @@ export default function ContactList() {
                             {contact.occupations.length == 0
                               ? 'No role found'
                               : contact.occupations
-                                  .map((a: { name: any }) => a.name)
-                                  .join(' | ')}
+                                .map((a: { name: any }) => a.name)
+                                .join(' | ')}
                           </p>
                           {contact.phoneNumbers.length > 0 ? (
                             <p className="mt-1 text-xs leading-5 text-gray-400">
@@ -726,3 +726,5 @@ export default function ContactList() {
     </>
   )
 }
+
+export default protectPage(ContactList)
