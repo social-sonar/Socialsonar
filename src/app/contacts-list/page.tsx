@@ -630,7 +630,7 @@ function ContactList() {
                     filteredContacts.map((contact) => (
                       <li
                         key={contact.id}
-                        className="flex justify-between gap-x-6 py-5"
+                        className="flex justify-between gap-x-6 py-5 hover:cursor-pointer hover:scale-105 duration-300"
                         onClick={(e) => {
                           e.preventDefault()
                           setDetailedContact(contact)
