@@ -141,7 +141,7 @@ function DuplicateContactCard({ optionA, optionB, localDeletionHandler }: Option
 function Contact({ contact, className }: { contact: FlattenContact; className: string }) {
     return (
         <div className={`flex gap-3 p-3 shadow-xl ${className}`}>
-            <img className="h-12 w-12 flex-none rounded-full bg-gray-800" src={contact.photos[0].url} alt="" />
+            <img className="h-12 w-12 flex-none rounded-full bg-gray-800" src={contact.photos[0]?.url || UserIcon.src} alt="contact image" />
             <div className="flex flex-col">
                 <h1 className="text-xl font-bold">{contact.name}</h1>
                 {contact.phoneNumbers &&
