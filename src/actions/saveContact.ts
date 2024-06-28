@@ -3,6 +3,7 @@
 
 'use server'
 
+import { dateString } from '@/lib/utils/dates'
 import prisma from '@/db'
 import {
   getPhoneNumberType,
@@ -11,7 +12,6 @@ import {
 } from '@/lib/data/common'
 import {
   CleanPhoneData,
-  CustomSession,
   FlattenContact,
   PlainFields,
 } from '@/lib/definitions'
