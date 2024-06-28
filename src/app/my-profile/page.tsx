@@ -187,14 +187,6 @@ function Profile() {
           userId={session.data?.user.id!}
         />
         <Button
-          onClick={() => {
-            setOpen(true)
-          }}
-          className="text-red-500"
-        >
-          Delete your account <TrashIcon className="h-4 w-4"></TrashIcon>
-        </Button>
-        <Button
           disabled={isExporting}
           onClick={() => {
             handleExport()
@@ -206,6 +198,14 @@ function Profile() {
           ) : (
             <ArrowDownTrayIcon className="h-4 w-4"></ArrowDownTrayIcon>
           )}
+        </Button>
+        <Button
+          onClick={() => {
+            setOpen(true)
+          }}
+          className="text-red-500"
+        >
+          Delete your account <TrashIcon className="h-4 w-4"></TrashIcon>
         </Button>
       </div>
     </>
