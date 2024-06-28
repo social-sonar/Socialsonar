@@ -1,28 +1,74 @@
-'use client';
+'use client'
 
-import { useNotification } from '@/app/NotificationsProvider';
-import EventGenerator from '@/components/EventGenerator';
-import protectPage from '@/components/common/auth';
-import { Dialog, Transition } from '@headlessui/react';
-import { ClipboardDocumentIcon } from '@heroicons/react/20/solid';
-import { CheckCircleIcon, ExclamationTriangleIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { signOut, useSession } from 'next-auth/react';
-import React, { Fragment, useState } from 'react';
-import { deleteAccount } from '../../actions/delete-account';
-import Button from '../../components/Button';
-import LoadingSpinner from '../../components/common/spinner';
-
+import { useNotification } from '@/app/NotificationsProvider'
+import EventGenerator from '@/components/EventGenerator'
+import protectPage from '@/components/common/auth'
+import { Dialog, Transition } from '@headlessui/react'
+import { ClipboardDocumentIcon } from '@heroicons/react/20/solid'
+import {
+  ArrowDownTrayIcon,
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+  TrashIcon,
+} from '@heroicons/react/24/outline'
+import { signOut, useSession } from 'next-auth/react'
+import React, { Fragment, useState } from 'react'
+import { deleteAccount } from '../../actions/delete-account'
+import Button from '../../components/Button'
+import LoadingSpinner from '../../components/common/spinner'
+import { exportAllContacts } from '@/actions/contacts-bulkactions'
 
 function Profile() {
   const { showNotification, hideNotification } = useNotification()
   const session = useSession()
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
+  const handleExport = async () => {
+    if (isExporting) return
+    setIsExporting(true)
+    try {
+      showNotification(
+        'Exporting your contacts',
+        'All your contacts are being exported. It can take some minutes',
+        LoadingSpinner({ size: 20 }),
+      )
+      let response = await exportAllContacts()
+      const vcardContent = response.exportedArray.join('\r\n')
+
+      const blob = new Blob([vcardContent], { type: 'text/x-vcard' })
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download =
+        session.data?.user.name?.replaceAll(' ', '_') + '_contacts.vcf'
+      document.body.appendChild(link)
+      link.click()
+      showNotification(
+        'Success!',
+        'All your contacts has been exported successfully. Please check your downloads.',
+        <CheckCircleIcon
+          className="h-6 w-6 text-green-400"
+          aria-hidden="true"
+        />,
+      )
+    } catch (error) {
+      showNotification(
+        'Error!',
+        'It was an error exporting your contacts. Please report the admin.',
+        <ExclamationTriangleIcon
+          className="h-6 w-6 text-red-400"
+          aria-hidden="true"
+        ></ExclamationTriangleIcon>,
+      )
+    } finally {
+      setIsExporting(false)
+    }
+  }
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
-    console.log(isSaving, session.data?.user);
 
-    if (!isSaving && session.status == "authenticated") {
+    if (!isSaving && session.status == 'authenticated') {
       setIsSaving(true)
       showNotification(
         'Deleting',
@@ -31,10 +77,7 @@ function Profile() {
       )
       let saveResponse = await deleteAccount()
 
-      if (
-        saveResponse &&
-        saveResponse.errors?.length === 0
-      ) {
+      if (saveResponse && saveResponse.errors?.length === 0) {
         showNotification(
           'Success!',
           'Your account has been deleted successfully.',
@@ -58,7 +101,12 @@ function Profile() {
     }
   }
   const clipBoardNotificationHandler = async () => {
-    showNotification("URL copied to clipboard", "", <ClipboardDocumentIcon className='w-[25px] text-black' />, 'bg-green-500 flex flex-col justify-center')
+    showNotification(
+      'URL copied to clipboard',
+      '',
+      <ClipboardDocumentIcon className="w-[25px] text-black" />,
+      'bg-green-500 flex flex-col justify-center',
+    )
     await new Promise(() => setTimeout(hideNotification, 5000))
   }
   return (
@@ -90,7 +138,10 @@ function Profile() {
                   <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                     <div className="sm:flex sm:items-start">
                       <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                        <ExclamationTriangleIcon className="h-6 w-6 text-red-600" aria-hidden="true" />
+                        <ExclamationTriangleIcon
+                          className="h-6 w-6 text-red-600"
+                          aria-hidden="true"
+                        />
                       </div>
                       <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
                         <h3 className="text-base font-semibold leading-6 text-gray-900">
@@ -98,8 +149,9 @@ function Profile() {
                         </h3>
                         <div className="mt-2">
                           <p className="text-sm text-gray-500">
-                            Are you sure you want to deactivate your account? All of your data will be permanently
-                            removed. This action cannot be undone.
+                            Are you sure you want to deactivate your account?
+                            All of your data will be permanently removed. This
+                            action cannot be undone.
                           </p>
                         </div>
                       </div>
@@ -113,7 +165,6 @@ function Profile() {
                       >
                         Deactivate
                       </button>
-
                     </form>
                     <button
                       type="button"
@@ -131,11 +182,34 @@ function Profile() {
         </Dialog>
       </Transition>
       <div className="flex flex-col items-center justify-center gap-10">
-        <EventGenerator showNotification={clipBoardNotificationHandler} userId={session.data?.user.id!} />
-        <Button onClick={() => { setOpen(true) }} className='text-red-500'>Delete your account <TrashIcon className='w-4 h-4'></TrashIcon></Button>
+        <EventGenerator
+          showNotification={clipBoardNotificationHandler}
+          userId={session.data?.user.id!}
+        />
+        <Button
+          disabled={isExporting}
+          onClick={() => {
+            handleExport()
+          }}
+        >
+          Export all your contacts{' '}
+          {isExporting ? (
+            <LoadingSpinner size={20}></LoadingSpinner>
+          ) : (
+            <ArrowDownTrayIcon className="h-4 w-4"></ArrowDownTrayIcon>
+          )}
+        </Button>
+        <Button
+          onClick={() => {
+            setOpen(true)
+          }}
+          className="text-red-500"
+        >
+          Delete your account <TrashIcon className="h-4 w-4"></TrashIcon>
+        </Button>
       </div>
     </>
-  );
+  )
 }
 
 export default protectPage(Profile)
