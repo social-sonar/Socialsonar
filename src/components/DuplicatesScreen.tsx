@@ -1,7 +1,10 @@
-import { DuplicateContactResolutionPayload, FlattenContact, ResolutionStrategy } from '@/lib/definitions'
-import { Popover, RadioGroup, Transition } from '@headlessui/react'
-import { Fragment, useEffect, useState } from 'react'
-import Button from './Button'
+import UserIcon from '@/images/icons/user.svg';
+import { DuplicateContactResolutionPayload, FlattenContact, ResolutionStrategy } from '@/lib/definitions';
+import { Popover, RadioGroup, Transition } from '@headlessui/react';
+import { XMarkIcon } from '@heroicons/react/20/solid';
+import { Fragment, useEffect, useState } from 'react';
+import Button from './Button';
+
 
 type DuplicatedContacts = {
     contacts: FlattenContact[]
@@ -138,7 +141,7 @@ function DuplicateContactCard({ optionA, optionB, localDeletionHandler }: Option
 function Contact({ contact, className }: { contact: FlattenContact; className: string }) {
     return (
         <div className={`flex gap-3 p-3 shadow-xl ${className}`}>
-            <img className="h-12 w-12 flex-none rounded-full bg-gray-800" src={contact.photos[0].url} alt="" />
+            <img className="h-12 w-12 flex-none rounded-full bg-gray-800" src={contact.photos[0]?.url || UserIcon.src} alt="contact image" />
             <div className="flex flex-col">
                 <h1 className="text-xl font-bold">{contact.name}</h1>
                 {contact.phoneNumbers &&
@@ -149,6 +152,24 @@ function Contact({ contact, className }: { contact: FlattenContact; className: s
                     ))}
             </div>
         </div>
+    )
+}
+
+const DismissableBanner = (): React.ReactElement => {
+    const [closed, close] = useState(false)
+
+    return (
+        <>
+            {
+                !closed &&
+                <div className='w-full flex justify-end md:mt-8 lg:mt-8 mt-4'>
+                    <div className='flex justify-between items-center lg:w-56 md:lg:w-56 w-full p-3 bg-gray-800 border-l-8 border-blue-900 rounded-md'>
+                        <p>No duplicates found</p>
+                        <XMarkIcon className='w-[25px] hover:cursor-pointer text-red-300' title='Close' onClick={() => close(true)} />
+                    </div>
+                </div>
+            }
+        </>
     )
 }
 
@@ -172,13 +193,13 @@ export default function DuplicatesScreen({ contacts }: DuplicatedContacts) {
         setUpdatedContacts(filteredContacts)
     }
 
-    if (updatedContacts.length == 0) return null
+    if (updatedContacts.length == 0) return <DismissableBanner />
 
     return (
         <Popover className="relative my-4 flex justify-normal md:mt-9 md:justify-end lg:mt-10 lg:justify-end">
             {({ open }) => (
                 <>
-                    <Popover.Button className="flex w-full items-center justify-between gap-10 rounded border border-gray-500 bg-gray-800 p-3 md:mt-4 md:w-auto md:justify-normal lg:mt-0 lg:w-auto lg:justify-normal">
+                    <Popover.Button className="flex w-full items-center justify-between gap-10 bg-gray-800 p-3 md:mt-4 md:w-auto md:justify-normal lg:mt-0 lg:w-auto lg:justify-normal border-l-8 border-yellow-600 rounded-md">
                         <div className="flex flex-col items-start">
                             <p>Possible duplicates</p>
                             <p className="text-sm text-yellow-400">

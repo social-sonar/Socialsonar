@@ -1,20 +1,17 @@
-import { Fragment, useEffect, useRef, useState } from 'react'
-import { Popover, Transition, Dialog } from '@headlessui/react'
-import { CircularProgress } from '@nextui-org/progress'
-
+import { pullGoogleContacts } from '@/actions/integrations'
+import { useNotification } from '@/app/NotificationsProvider'
+import { backupFileData } from '@/lib/definitions'
+import { Popover, Transition } from '@headlessui/react'
 import {
   CheckCircleIcon,
-  CheckIcon,
   ChevronDownIcon,
   ExclamationTriangleIcon,
 } from '@heroicons/react/20/solid'
-import { GoogleSyncButton } from './Sync'
-import { pullGoogleContacts } from '@/actions/integrations'
+import { CircularProgress } from '@nextui-org/progress'
+import { useEffect, useRef, useState } from 'react'
 import Button from './Button'
 import GoogleAccountBackup from './GoogleAccountBackup'
 import GoogleAccountRestore from './GoogleAccountRestore'
-import { backupFileData } from '@/lib/definitions'
-import { useNotification } from '@/app/NotificationsProvider'
 import LoadingSpinner from './common/spinner'
 
 export default function Menu({ googleAccountId }: { googleAccountId: string }) {

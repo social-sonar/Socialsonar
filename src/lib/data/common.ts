@@ -1,30 +1,29 @@
+import { requestPeopleAPI } from '@/actions/integrations'
+import prisma from '@/db'
 import {
   ContactMergeStatus,
   GoogleAccount,
   PhoneNumberType,
 } from '@prisma/client'
-import prisma from '@/db'
+import { fuzzy } from 'fast-fuzzy'
+import { google, people_v1 } from 'googleapis'
+import phone from 'phone'
 import {
+  CleanPhoneData,
+  FlattenContact,
   GoogleAddress,
-  GoogleEmail,
   GoogleContactRelation,
-  GoogleResponse,
+  GoogleEmail,
   GoogleOccupation,
   GoogleOrganization,
   GooglePhoneNumber,
   GooglePhoto,
-  CleanPhoneData,
-  FlattenContact,
+  GoogleResponse,
 } from '../definitions'
-import { syncExisting } from './google'
-import { fuzzy } from 'fast-fuzzy'
-import phone from 'phone'
-import { google, people_v1 } from 'googleapis'
 import { getContactIdFromResourceName, getSession } from '../utils/common'
 import { dateObject, dateString } from '../utils/dates'
 import { refreshToken } from '../utils/google'
-import { OAuth2Client } from 'google-auth-library'
-import { requestPeopleAPI } from '@/actions/integrations'
+import { syncExisting } from './google'
 
 export const getPhoneNumberType = (type: string): PhoneNumberType => {
   const typeMap: { [key: string]: PhoneNumberType } = {
@@ -280,8 +279,10 @@ type Duplicate = {
   secondContactId: number
 }
 
-const matches = (sentenceA: string, sentenceB: string): boolean =>
-  sentenceA.trim().split(/\s+/).length === sentenceB.trim().split(/\s+/).length
+const matches = (sentenceA: string, sentenceB: string): boolean =>  (
+    sentenceA.trim().split(/\s+/).length ===
+    sentenceB.trim().split(/\s+/).length
+  )
 
 const findDuplicates = async (userId: string) => {
   const combinations = new Set<string>()
@@ -350,6 +351,7 @@ export const pullAndSyncGoogleContacts = async (
   syncedContactsPromise: Promise<[void, void, void, void, void, void, void]>[]
   createdContactsPromise: Promise<void>[]
 }> => {
+  let counter = 0
   const googleIds = people.map((person) => getContactIdFromResourceName(person))
   const existingGoogleContacts = await findExistingGoogleIds(googleIds, userId)
   const existingGoogleIdsSet = new Set(
@@ -362,20 +364,32 @@ export const pullAndSyncGoogleContacts = async (
     googleIds.filter((id) => !existingGoogleIdsSet.has(id)),
   )
   //  sync of google contacts thasecondContacts.length > 0t already exist and were updated somehow
-  const syncedContactsPromise = await syncExisting(
+  const syncedContactsPromise = syncExisting(
     existingGoogleContacts,
     people.filter(
       (person) => !googleIdsSet.has(getContactIdFromResourceName(person)),
     ),
   )
   let rawContactsPromise: Promise<void>[] = []
-  // creation of non existing google contacts
-  for (const person of people.filter((person) =>
+  const filteredPeople = people.filter((person) =>
     googleIdsSet.has(getContactIdFromResourceName(person)),
-  )) {
-    rawContactsPromise.push(createNewContact(person, userId, googleAccountId))
+  )
+  // Although this function is called from a button click handler, the promises are executed in the server
+  // This was causing an odd behavior regarding the `findDuplicates` function as it always was executed before
+  // any other promises. That is the reason why new items of `rawContactsPromise` are being overwritten to
+  // add extra logic so `findDuplicates` is executed ONLY when the last promise in `rawContactsPromise` is executed
+  for (const person of filteredPeople) {
+    rawContactsPromise.push(
+      new Promise((resolve) => {
+        createNewContact(person, userId, googleAccountId).then(() => {
+          counter++
+          if (counter == filteredPeople.length)
+            findDuplicates(userId).then(() => {})
+          resolve()
+        })
+      }),
+    )
   }
-
   const createdContactsPromise = rawContactsPromise
 
   return {
@@ -455,7 +469,6 @@ async function createNewContact(
     skipDuplicates: true,
   })
 
-  await findDuplicates(userId)
 }
 export const findContacts = async (userId: string) => {
   const userGoogleAccounts = (

@@ -589,7 +589,7 @@ const syncPlainFields = async (
   })
 }
 
-export const syncExisting = async (
+export const syncExisting = (
   existingGoogleContacts: GoogleContactRelation[],
   googlePayload: GoogleResponse[],
 ) => {
