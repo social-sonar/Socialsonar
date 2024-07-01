@@ -1,5 +1,6 @@
 'use server'
 
+import * as Sentry from '@sentry/nextjs'
 import prisma from '@/db'
 import {
   pullAndSyncGoogleContacts,
@@ -143,11 +144,13 @@ export async function pullGoogleContacts(googleAccountId: string) {
         ),
       }
     } else {
+      Sentry.captureException(response)
       console.error('unhandled error', response)
 
       return { msg: 'error from google syncing' }
     }
   } catch (error) {
+    Sentry.captureException(error)
     console.error(error)
 
     return { msg: 'error from google syncing' }
