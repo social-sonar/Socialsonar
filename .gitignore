@@ -43,3 +43,5 @@ postgres_data/
 .env
 
 .next
+# Sentry Config File
+.env.sentry-build-plugin
