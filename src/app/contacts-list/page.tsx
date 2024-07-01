@@ -68,7 +68,7 @@ function ContactList() {
   countries.registerLocale(countriesEnLang)
   const { getName } = countries
   const { contacts, updateContact, setContacts } = useContacts()
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [filters, setFilters] = useState(filtersTemplate)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [sortApplied, setSortApplied] = useState<string | null>(null)
@@ -400,12 +400,13 @@ function ContactList() {
         </Dialog>
       </Transition.Root>
       <main className="mx-auto h-full px-4 sm:px-6 lg:px-8">
-        <DuplicatesScreen
-          contacts={contacts.filter(
-            (contact) => contact.duplicates?.length! > 0 || false,
-          )}
-        />
-
+        {!isLoading &&
+          <DuplicatesScreen
+            contacts={contacts.filter(
+              (contact) => contact.duplicates?.length! > 0 || false,
+            )}
+          />
+        }
         <div className="flex items-center justify-between gap-7 border-b border-gray-200 pb-6 pt-2 md:mt-10 lg:mt-5">
           <h1 className="text-white-900 text-xl font-bold tracking-tight md:text-4xl lg:text-4xl">
             Contact book
@@ -629,7 +630,7 @@ function ContactList() {
                     filteredContacts.map((contact) => (
                       <li
                         key={contact.id}
-                        className="flex justify-between gap-x-6 py-5"
+                        className="flex justify-between gap-x-6 py-5 hover:cursor-pointer hover:scale-105 duration-300"
                         onClick={(e) => {
                           e.preventDefault()
                           setDetailedContact(contact)
