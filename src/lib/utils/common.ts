@@ -18,7 +18,7 @@ export const getContactIdFromResourceName = (
 export const getOAuthClient = async (
   userId: string,
   googleAccount?: GoogleAccount,
-): Promise<OAuth2Client> => {
+): Promise<{oauth2Client: OAuth2Client, googleAccount: GoogleAccount}> => {
   const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
@@ -32,5 +32,5 @@ export const getOAuthClient = async (
     access_token: googleAccount!.accessToken,
   })
 
-  return oauth2Client
+  return {oauth2Client, googleAccount: googleAccount!}
 }

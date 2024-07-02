@@ -7,7 +7,11 @@ import { OAuth2Client } from 'google-auth-library'
 import { calendar_v3, google } from 'googleapis'
 import { tz } from 'moment-timezone'
 import { notFound } from 'next/navigation'
-import { LightEvent, TimeDuration, UserTimeInformation } from '../../../definitions'
+import {
+  LightEvent,
+  TimeDuration,
+  UserTimeInformation,
+} from '../../../definitions'
 import { getDayID, getMinMaxDate } from '../../../utils/dates'
 import { getOAuthClient } from '../../../utils/common'
 
@@ -159,7 +163,7 @@ export const getUserData = async (
   }
 }
 
-export const getCalendarEvents = async (
+const getCalendarEvents = async (
   oauth2Client: OAuth2Client,
   firstSync: boolean,
   syncToken?: string,
@@ -190,13 +194,12 @@ export const getCalendarEvents = async (
   }
 }
 
-export const syncGoogleCalendar = async (
-  userId: string,
+export const getSafeCalendarEvents = async (
+  oauth2Client: OAuth2Client,
+  firstSync: boolean,
   googleAccount?: GoogleAccount,
-  firstSync: boolean = false,
-): Promise<void> => {
+): Promise<CalendarRequestResult> => {
   let results: CalendarRequestResult | null = null
-  const oauth2Client = await getOAuthClient(userId, googleAccount)
   try {
     results = await getCalendarEvents(
       oauth2Client,
@@ -215,7 +218,20 @@ export const syncGoogleCalendar = async (
       throw error
     }
   }
+  return results
+}
 
+export const syncGoogleCalendar = async (
+  userId: string,
+  googleAccount?: GoogleAccount,
+  firstSync: boolean = false,
+): Promise<void> => {
+  const authResult = await getOAuthClient(userId, googleAccount)
+  const results = await getSafeCalendarEvents(
+    authResult.oauth2Client,
+    firstSync,
+    authResult.googleAccount,
+  )
   await prisma.event.createMany({
     data: results.data.map((event) => ({
       userId,
@@ -234,4 +250,35 @@ export const syncGoogleCalendar = async (
       calendarToken: results.syncToken,
     },
   })
+}
+
+export const restoreGoogleEvents = async (
+  userId: string,
+  backedupEvents: calendar_v3.Schema$Event[],
+) => {
+  const { oauth2Client, googleAccount } = await getOAuthClient(userId)
+
+  const calendar = google.calendar({ version: 'v3', auth: oauth2Client })
+
+  const events = await getSafeCalendarEvents(oauth2Client, true, googleAccount)
+
+  console.log('Events to delete: ', events.data.length, googleAccount.email)
+
+  events.data.forEach(
+    async (event) => await calendar.events.delete({ eventId: event.id! }),
+  )
+  backedupEvents.forEach(async (event) => {
+    try {
+      await calendar.events.insert({
+        auth: oauth2Client,
+        calendarId: 'primary',
+        requestBody: event,
+        sendNotifications: true,
+      })
+    } catch (error) {
+      console.log('Error creating event. Cause:', error)
+    }
+  })
+
+  return { processed: backedupEvents.length }
 }
