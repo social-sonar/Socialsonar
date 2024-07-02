@@ -26,6 +26,10 @@ export async function GET(req: NextRequest) {
     const { tokens } = await oauth2Client.getToken(code)
     oauth2Client.setCredentials(tokens)
 
+    if (!tokens.refresh_token) {
+      throw Error('No refresh token during the callback')
+    }
+
     const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client })
     const { data } = await oauth2.userinfo.get()
 
