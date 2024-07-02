@@ -98,7 +98,7 @@ export default function Menu({ googleAccountId }: { googleAccountId: string }) {
     } catch (error) {
       setBackupData(null)
       showRestore(false)
-      console.log('error laoding backup:', error)
+      console.log('Error loading backup:', error)
 
       showNotification(
         'Error!',
@@ -156,7 +156,7 @@ export default function Menu({ googleAccountId }: { googleAccountId: string }) {
           setCreatedCounterTotal(0)
           showNotification(
             'Successfully synced contacts',
-            `Your contacts have be pulled and synced succesfully`,
+            `Your contacts have been pulled and synced succesfully`,
             <CheckCircleIcon
               className="h-6 w-6 text-green-400"
               aria-hidden="true"
@@ -195,7 +195,6 @@ export default function Menu({ googleAccountId }: { googleAccountId: string }) {
           accountId={googleAccountId}
           callClose={async () => showBackup(false)}
           dataGetter={prepareBackup}
-          filenamePrefixField='email'
           title='Backup your google contacts'
         >
           <p className="text-sm text-gray-500">
@@ -226,7 +225,7 @@ export default function Menu({ googleAccountId }: { googleAccountId: string }) {
               <div className="mt-2">
                 <p className="text-sm text-gray-500">
                   Selected backup is from <b>({backupData.email})</b>{' '}
-                  google account made{' '}
+                  google account, created at{' '}
                   <b>{backupData.date.toLocaleString()}</b>. Please
                   note that this will{' '}
                   <b>

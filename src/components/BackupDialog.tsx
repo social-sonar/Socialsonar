@@ -1,19 +1,18 @@
 import { useEffect, useState } from 'react'
 import { Transition, Dialog } from '@headlessui/react'
 import { FolderIcon } from '@heroicons/react/24/outline'
+import { BackupFileData } from '@/lib/definitions'
 
 export default function AccountBackup({
     accountId,
     callClose,
     dataGetter,
-    filenamePrefixField,
     title,
     children
 }: {
     accountId: string,
     callClose: () => void,
-    dataGetter: (accountId: string) => Promise<any>,
-    filenamePrefixField: string,
+    dataGetter: (accountId: string) => Promise<BackupFileData | undefined>,
     title: string,
     children: React.ReactElement
 }) {
@@ -34,7 +33,7 @@ export default function AccountBackup({
         const blob = new Blob([fileData], { type: 'text/plain' })
         const url = URL.createObjectURL(blob)
         const link = document.createElement('a')
-        link.download = `${response?.[filenamePrefixField]}_backup.json`
+        link.download = `${response?.email}_backup.json`
         link.href = url
         link.click()
         setLoading(false)
