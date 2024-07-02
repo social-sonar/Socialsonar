@@ -3,7 +3,7 @@ import GoogleProvider from 'next-auth/providers/google'
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import { prisma } from '@/db'
 import { CustomSession } from '@/lib/definitions'
-import { syncGoogleCalendar } from './lib/data/events'
+import { syncGoogleCalendar } from './lib/data/google/events'
 
 export default NextAuth({
   providers: [

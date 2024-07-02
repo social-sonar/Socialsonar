@@ -7,8 +7,9 @@ import { OAuth2Client } from 'google-auth-library'
 import { calendar_v3, google } from 'googleapis'
 import { tz } from 'moment-timezone'
 import { notFound } from 'next/navigation'
-import { LightEvent, TimeDuration, UserTimeInformation } from '../definitions'
-import { getDayID, getMinMaxDate } from '../utils/dates'
+import { LightEvent, TimeDuration, UserTimeInformation } from '../../../definitions'
+import { getDayID, getMinMaxDate } from '../../../utils/dates'
+import { getOAuthClient } from '../../../utils/common'
 
 type CalendarRequestResult = {
   syncToken: string
@@ -158,7 +159,7 @@ export const getUserData = async (
   }
 }
 
-const getCalendarEvents = async (
+export const getCalendarEvents = async (
   oauth2Client: OAuth2Client,
   firstSync: boolean,
   syncToken?: string,
@@ -195,25 +196,7 @@ export const syncGoogleCalendar = async (
   firstSync: boolean = false,
 ): Promise<void> => {
   let results: CalendarRequestResult | null = null
-  const oauth2Client = new google.auth.OAuth2(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-    process.env.REDIRECT_URL,
-  )
-  if (!googleAccount) {
-    const userGoogleAccount = await prisma.userGoogleAccount.findFirst({
-      where: {
-        userId,
-      },
-      include: {
-        googleAccount: true,
-      },
-    })
-    googleAccount = userGoogleAccount?.googleAccount
-  }
-  oauth2Client.setCredentials({
-    access_token: googleAccount!.accessToken,
-  })
+  const oauth2Client = await getOAuthClient(userId, googleAccount)
   try {
     results = await getCalendarEvents(
       oauth2Client,

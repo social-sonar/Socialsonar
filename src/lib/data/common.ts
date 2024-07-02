@@ -23,7 +23,7 @@ import {
 import { getContactIdFromResourceName, getSession } from '../utils/common'
 import { dateObject, dateString } from '../utils/dates'
 import { refreshToken } from '../utils/google'
-import { syncExisting } from './google'
+import { syncExisting } from '@/lib/data/google/contacts'
 
 export const getPhoneNumberType = (type: string): PhoneNumberType => {
   const typeMap: { [key: string]: PhoneNumberType } = {

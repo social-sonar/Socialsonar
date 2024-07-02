@@ -23,7 +23,7 @@ import {
   MetaParamsMultiProperty,
   PrismaHandlerMultiple,
   PrismaHandlerSingle,
-} from '../definitions'
+} from '@/lib/definitions'
 
 import {
   getAddressIDs,
@@ -33,9 +33,9 @@ import {
   getPhoneNumberIDs,
   getPhoneNumberType,
   getPhotoIDs,
-} from '../data/common'
-import { getContactIdFromResourceName } from '../utils/common'
-import { dateString } from '../utils/dates'
+} from '@/lib/data/common'
+import { getContactIdFromResourceName } from '@/lib/utils/common'
+import { dateString } from '@/lib/utils/dates'
 
 const compareItems = (
   itemA: Record<string, any>,
@@ -656,3 +656,13 @@ export const syncExisting = (
   }
   return promises
 }
+
+export const getGoogleAccount = async (userId: string) =>
+  await prisma.userGoogleAccount.findFirst({
+    where: {
+      userId,
+    },
+    include: {
+      googleAccount: true,
+    },
+  })
