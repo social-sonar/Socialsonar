@@ -7,7 +7,7 @@ import {
   restoreContactsInGoogle,
 } from '@/lib/data/common'
 import {
-  backupFileData,
+  BackupFileData,
   GoogleContactMainResponse,
   GoogleResponse,
 } from '@/lib/definitions'
@@ -187,7 +187,7 @@ export async function prepareBackup(googleAccountId: string) {
       data: encondedText,
       date: new Date(),
       user: session.user.name,
-    } as backupFileData
+    } as BackupFileData
   }
 }
 
