@@ -1,4 +1,4 @@
-import { prepareBackup, pullGoogleContacts, restoreBackup } from '@/actions/integrations'
+import { prepareBackup, pullGoogleContacts, restoreBackup } from '@/actions/google/contacts/integrations'
 import { useNotification } from '@/app/NotificationsProvider'
 import { BackupFileData } from '@/lib/definitions'
 import { Dialog, Popover, Transition } from '@headlessui/react'

@@ -13,7 +13,7 @@ import {
 } from '@/lib/definitions'
 import { refreshToken } from '@/lib/utils/google'
 
-import { getSession } from '../lib/utils/common'
+import { getSession } from '../../../lib/utils/common'
 import { GaxiosResponse } from 'gaxios'
 import { OAuth2Client } from 'google-auth-library'
 import { google } from 'googleapis'

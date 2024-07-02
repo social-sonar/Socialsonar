@@ -1,6 +1,6 @@
 'use client'
 
-import { scheduleEvent } from '@/actions/scheduler';
+import { scheduleEvent } from '@/actions/google/events/scheduler';
 import { DateRange, TimeDuration, UserTimeInformation, Value } from '@/lib/definitions';
 import { getMinMaxDate, localDayNumber, localTime, utcDateWithOffset } from '@/lib/utils/dates';
 import { ArrowLeftIcon, CalendarIcon, CheckCircleIcon, ClockIcon, MapIcon, VideoCameraIcon } from '@heroicons/react/24/outline';

@@ -1,4 +1,4 @@
-import { requestPeopleAPI } from '@/actions/integrations'
+import { requestPeopleAPI } from '@/actions/google/contacts/integrations'
 import prisma from '@/db'
 import {
   ContactMergeStatus,

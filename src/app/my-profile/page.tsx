@@ -13,10 +13,10 @@ import {
 } from '@heroicons/react/24/outline'
 import { signOut, useSession } from 'next-auth/react'
 import React, { Fragment, useState } from 'react'
-import { deleteAccount } from '../../actions/delete-account'
+import { deleteAccount } from '../../actions/common/delete-account'
 import Button from '../../components/Button'
 import LoadingSpinner from '../../components/common/spinner'
-import { exportAllContacts } from '@/actions/contacts-bulkactions'
+import { exportAllContacts } from '@/actions/common/contacts-bulkactions'
 
 function Profile() {
   const { showNotification, hideNotification } = useNotification()
