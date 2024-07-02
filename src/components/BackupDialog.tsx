@@ -10,9 +10,9 @@ export default function AccountBackup({
     title,
     children
 }: {
-    accountId: string,
+    accountId?: string,
     callClose: () => void,
-    dataGetter: (accountId: string) => Promise<BackupFileData | undefined>,
+    dataGetter: (() => Promise<BackupFileData | undefined>) | ((accountId: string) => Promise<BackupFileData | undefined>),
     title: string,
     children: React.ReactElement
 }) {
@@ -28,7 +28,7 @@ export default function AccountBackup({
     async function onClickBackup(event: React.MouseEvent): Promise<void> {
         event.preventDefault()
         setLoading(true)
-        const response = await dataGetter(accountId)
+        const response = await dataGetter(accountId || '')
         const fileData = JSON.stringify(response)
         const blob = new Blob([fileData], { type: 'text/plain' })
         const url = URL.createObjectURL(blob)

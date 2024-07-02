@@ -17,6 +17,7 @@ import { deleteAccount } from '../../actions/common/delete-account'
 import Button from '../../components/Button'
 import LoadingSpinner from '../../components/common/spinner'
 import { exportAllContacts } from '@/actions/common/contacts-bulkactions'
+import CalendarOptionsMenu from '@/components/CalendarActionsMenu'
 
 function Profile() {
   const { showNotification, hideNotification } = useNotification()
@@ -187,6 +188,7 @@ function Profile() {
             showNotification={clipBoardNotificationHandler}
             userId={session.data?.user.id!}
           />
+          <CalendarOptionsMenu />
           <Button
             disabled={isExporting}
             onClick={() => {

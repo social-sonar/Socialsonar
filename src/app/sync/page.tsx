@@ -10,7 +10,7 @@ import LoadingSpinner from '@/components/common/spinner'
 import {
   editGoogleAccount,
   getGoogleAccounts,
-} from '@/lib/data/getGoogleAccounts'
+} from '@/lib/data/google/getGoogleAccounts'
 import { Switch } from '@headlessui/react'
 import { GoogleAccount, UserGoogleAccount } from '@prisma/client'
 import React, { useEffect, useState } from 'react'
