@@ -244,7 +244,7 @@ export const syncGoogleCalendar = async (
   })
   await prisma.googleAccount.update({
     where: {
-      id: googleAccount!.id,
+      id: authResult.googleAccount!.id,
     },
     data: {
       calendarToken: results.syncToken,
