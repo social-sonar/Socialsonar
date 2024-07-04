@@ -1,21 +1,23 @@
+import { syncGoogleCalendar } from '@/actions'
+import { prepareBackup, restoreBackup } from '@/actions/google/events/backupRestore'
 import { useNotification } from '@/app/NotificationsProvider'
 import { BackupFileData } from '@/lib/definitions'
 import { Dialog, Popover, Transition } from '@headlessui/react'
 import {
-  CheckCircleIcon,
   ChevronDownIcon,
+  ClipboardDocumentIcon,
   ExclamationTriangleIcon,
 } from '@heroicons/react/20/solid'
 import { CircularProgress } from '@nextui-org/progress'
 import { useEffect, useRef, useState } from 'react'
-import Button from './Button'
-import LoadingSpinner from './common/spinner'
 import AccountBackup from './BackupDialog'
+import Button from './Button'
+import EventGenerator from './EventGenerator'
 import RestoreDialog from './RestoreDialog'
-import { prepareBackup, restoreBackup } from '@/actions/google/events/backupRestore'
 
-export default function CalendarOptionsMenu() {
-  const { showNotification } = useNotification()
+
+export default function CalendarOptionsMenu({ userId }: { userId: string }) {
+  const { showNotification, hideNotification } = useNotification()
 
   const [syncing] = useState(false)
 
@@ -27,6 +29,7 @@ export default function CalendarOptionsMenu() {
   const [syncedCounter, setSyncedCounter] = useState<number>(0)
   const [syncedCounterTotal, setSyncedCounterTotal] = useState<number>(0)
 
+  const [generator, showGenerator] = useState(false)
   const [backup, showBackup] = useState(false)
   const [restore, showRestore] = useState(false)
 
@@ -111,6 +114,16 @@ export default function CalendarOptionsMenu() {
     }
   }
 
+  const clipBoardNotificationHandler = async () => {
+    showNotification(
+      'URL copied to clipboard',
+      '',
+      <ClipboardDocumentIcon className="w-[25px] text-black" />,
+      'bg-green-500 flex flex-col justify-center',
+    )
+    await new Promise(() => setTimeout(hideNotification, 5000))
+  }
+
   return (
     <>
       <input
@@ -120,6 +133,15 @@ export default function CalendarOptionsMenu() {
         accept="application/json"
         onChange={handleFileInput}
       ></input>
+      {generator && (
+        <EventGenerator
+          showNotification={clipBoardNotificationHandler}
+          userId={userId}
+          callClose={() => {
+            showGenerator(false)
+          }}
+        />
+      )}
       {backup && (
         <AccountBackup
           callClose={async () => showBackup(false)}
@@ -183,8 +205,19 @@ export default function CalendarOptionsMenu() {
             leaveFrom="opacity-100 translate-y-0"
             leaveTo="opacity-0 translate-y-1"
           >
-            <Popover.Panel className="absolute z-10 mt-5 flex w-screen max-w-max -translate-x-1/2 px-4">
+            <Popover.Panel className="absolute z-10 flex w-screen max-w-max px-4">
               <div className="flex-auto rounded-3xl bg-white p-4 text-left text-sm leading-6 shadow-lg ring-1 ring-gray-900/5">
+                <div className="pb-4">
+                  <Button
+                    onClick={async () => {
+                      showGenerator(true)
+                      await syncGoogleCalendar(userId, undefined, false)
+                    }}
+                    className="w-full"
+                  >
+                    Generate event URL
+                  </Button>
+                </div>
                 <div className="pb-4">
                   <Button
                     onClick={() => {

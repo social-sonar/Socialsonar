@@ -1,10 +1,8 @@
 'use client'
 
 import { useNotification } from '@/app/NotificationsProvider'
-import EventGenerator from '@/components/EventGenerator'
 import protectPage from '@/components/common/auth'
 import { Dialog, Transition } from '@headlessui/react'
-import { ClipboardDocumentIcon } from '@heroicons/react/20/solid'
 import {
   ArrowDownTrayIcon,
   CheckCircleIcon,
@@ -20,7 +18,7 @@ import { exportAllContacts } from '@/actions/common/contacts-bulkactions'
 import CalendarOptionsMenu from '@/components/CalendarActionsMenu'
 
 function Profile() {
-  const { showNotification, hideNotification } = useNotification()
+  const { showNotification } = useNotification()
   const session = useSession()
   const [open, setOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -101,15 +99,7 @@ function Profile() {
       setIsSaving(false)
     }
   }
-  const clipBoardNotificationHandler = async () => {
-    showNotification(
-      'URL copied to clipboard',
-      '',
-      <ClipboardDocumentIcon className="w-[25px] text-black" />,
-      'bg-green-500 flex flex-col justify-center',
-    )
-    await new Promise(() => setTimeout(hideNotification, 5000))
-  }
+
   return (
     <div className='w-full flex justify-center'>
       <div>
@@ -184,11 +174,7 @@ function Profile() {
           </Dialog>
         </Transition>
         <div className="flex flex-col items-center justify-center gap-10 w-fit mt-5">
-          <EventGenerator
-            showNotification={clipBoardNotificationHandler}
-            userId={session.data?.user.id!}
-          />
-          <CalendarOptionsMenu />
+          <CalendarOptionsMenu userId={session.data?.user.id!} />
           <Button
             disabled={isExporting}
             onClick={() => {
