@@ -1,21 +1,22 @@
 'use client'
 
+import { exportAllContacts } from '@/actions/common/contacts-bulkactions'
 import { useNotification } from '@/app/NotificationsProvider'
+import CalendarOptionsMenu from '@/components/CalendarActionsMenu'
 import protectPage from '@/components/common/auth'
 import { Dialog, Transition } from '@headlessui/react'
+import { UserIcon } from '@heroicons/react/20/solid'
 import {
   ArrowDownTrayIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
-  TrashIcon,
+  TrashIcon
 } from '@heroicons/react/24/outline'
 import { signOut, useSession } from 'next-auth/react'
 import React, { Fragment, useState } from 'react'
 import { deleteAccount } from '../../actions/common/delete-account'
 import Button from '../../components/Button'
 import LoadingSpinner from '../../components/common/spinner'
-import { exportAllContacts } from '@/actions/common/contacts-bulkactions'
-import CalendarOptionsMenu from '@/components/CalendarActionsMenu'
 
 function Profile() {
   const { showNotification } = useNotification()
@@ -174,6 +175,9 @@ function Profile() {
           </Dialog>
         </Transition>
         <div className="flex flex-col items-center justify-center gap-10 w-fit mt-5">
+          <Button className="w-52">
+            <span>About me</span> <UserIcon className="w-5" />
+          </Button>
           <CalendarOptionsMenu userId={session.data?.user.id!} />
           <Button
             disabled={isExporting}
@@ -184,9 +188,9 @@ function Profile() {
           >
             Export all your contacts{' '}
             {isExporting ? (
-              <LoadingSpinner size={20}></LoadingSpinner>
+              <LoadingSpinner size={20} />
             ) : (
-              <ArrowDownTrayIcon className="h-4 w-4"></ArrowDownTrayIcon>
+              <ArrowDownTrayIcon className="w-4" />
             )}
           </Button>
           <Button
@@ -195,7 +199,7 @@ function Profile() {
             }}
             className="dark:bg-red-700 dark:enabled:hover:bg-red-800 text-gray-500 w-52"
           >
-            <span>Delete your account</span> <TrashIcon className="h-4 w-4"/>
+            <span>Delete your account</span> <TrashIcon className="w-4" />
           </Button>
         </div>
       </div>
