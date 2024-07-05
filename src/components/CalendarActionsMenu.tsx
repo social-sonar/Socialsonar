@@ -4,7 +4,7 @@ import { useNotification } from '@/app/NotificationsProvider'
 import { BackupFileData } from '@/lib/definitions'
 import { Dialog, Popover, Transition } from '@headlessui/react'
 import {
-  ChevronDownIcon,
+  ChevronUpDownIcon,
   ClipboardDocumentIcon,
   ExclamationTriangleIcon,
   CheckBadgeIcon
@@ -165,20 +165,24 @@ export default function CalendarOptionsMenu({ userId }: { userId: string }) {
       )}
       {fileInput && (
         <Popover className="relative">
-          <Popover.Button className="text-white-900 inline-flex items-center gap-x-1 text-lg font-semibold leading-6">
-            <span>Calendar actions</span>
-            <ChevronDownIcon className="h-5 w-5" aria-hidden="true" />
+          <Popover.Button className="text-white-900 items-center">
+            <Button
+              className="w-52"
+            >
+              <span>Calendar actions</span>
+              <ChevronUpDownIcon className="w-5" aria-hidden="true" />
+            </Button>
           </Popover.Button>
 
           <Transition
             enter="transition ease-out duration-200"
-            enterFrom="opacity-0 translate-y-1"
-            enterTo="opacity-100 translate-y-0"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
             leave="transition ease-in duration-150"
-            leaveFrom="opacity-100 translate-y-0"
-            leaveTo="opacity-0 translate-y-1"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
           >
-            <Popover.Panel className="absolute z-10 flex w-screen max-w-max px-4 left-10">
+            <Popover.Panel className="absolute z-10 flex w-screen max-w-max px-4 left-10 top-14">
               <div className="flex flex-col rounded-3xl bg-white p-4 text-left text-sm leading-6 shadow-lg ring-1 ring-gray-900/5 gap-3">
                 <div>
                   <Button className="w-full"

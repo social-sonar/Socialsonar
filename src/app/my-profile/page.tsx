@@ -193,9 +193,9 @@ function Profile() {
             onClick={() => {
               setOpen(true)
             }}
-            className="text-red-500 w-52"
+            className="dark:bg-red-700 dark:enabled:hover:bg-red-800 text-gray-500 w-52"
           >
-            Delete your account <TrashIcon className="h-4 w-4"></TrashIcon>
+            <span>Delete your account</span> <TrashIcon className="h-4 w-4"/>
           </Button>
         </div>
       </div>
