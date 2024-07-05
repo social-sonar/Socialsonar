@@ -7,56 +7,29 @@ import {
   ChevronDownIcon,
   ClipboardDocumentIcon,
   ExclamationTriangleIcon,
+  CheckBadgeIcon
 } from '@heroicons/react/20/solid'
-import { CircularProgress } from '@nextui-org/progress'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import AccountBackup from './BackupDialog'
 import Button from './Button'
 import EventGenerator from './EventGenerator'
 import RestoreDialog from './RestoreDialog'
+import LoadingSpinner from './common/spinner'
 
 
 export default function CalendarOptionsMenu({ userId }: { userId: string }) {
   const { showNotification, hideNotification } = useNotification()
 
-  const [syncing] = useState(false)
+  const [syncing, setSyncing] = useState(false)
 
   const fileInput = useRef<HTMLInputElement>(null)
   const [backupData, setBackupData] = useState<BackupFileData | null>(null)
-
-  const [createdCounter, setCreatedCounter] = useState<number>(0)
-  const [createdCounterTotal, setCreatedCounterTotal] = useState<number>(0)
-  const [syncedCounter, setSyncedCounter] = useState<number>(0)
-  const [syncedCounterTotal, setSyncedCounterTotal] = useState<number>(0)
 
   const [generator, showGenerator] = useState(false)
   const [backup, showBackup] = useState(false)
   const [restore, showRestore] = useState(false)
 
   let fileReader: FileReader
-
-  useEffect(() => {
-    if (syncing) {
-      showNotification(
-        'Sync process',
-        `Your contacts will be pulled and sync in the following minutes`,
-        <CircularProgress
-          aria-label="Loading..."
-          size="lg"
-          value={createdCounter + syncedCounter}
-          maxValue={createdCounterTotal + syncedCounterTotal}
-          className="text-sm text-green-600"
-          showValueLabel={true}
-        />,
-      )
-    }
-    console.log(
-      'createdCounter, syncedCounter',
-      createdCounter,
-      syncedCounter,
-      syncing,
-    )
-  }, [createdCounter, syncedCounter])
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return
@@ -205,9 +178,31 @@ export default function CalendarOptionsMenu({ userId }: { userId: string }) {
             leaveFrom="opacity-100 translate-y-0"
             leaveTo="opacity-0 translate-y-1"
           >
-            <Popover.Panel className="absolute z-10 flex w-screen max-w-max px-4">
-              <div className="flex-auto rounded-3xl bg-white p-4 text-left text-sm leading-6 shadow-lg ring-1 ring-gray-900/5">
-                <div className="pb-4">
+            <Popover.Panel className="absolute z-10 flex w-screen max-w-max px-4 left-10">
+              <div className="flex flex-col rounded-3xl bg-white p-4 text-left text-sm leading-6 shadow-lg ring-1 ring-gray-900/5 gap-3">
+                <div>
+                  <Button className="w-full"
+                    disabled={syncing}
+                    onClick={async () => {
+                      setSyncing(true)
+                      await syncGoogleCalendar(userId, undefined, false)
+                      setSyncing(false)
+                      showNotification(
+                        'Done',
+                        `Your events were pulled and sync successfully`,
+                        <CheckBadgeIcon
+                          className="text-sm text-green-600 w-[25px]"
+                        />,
+                      )
+                    }}>
+                    {
+                      syncing &&
+                      <LoadingSpinner size={24} />
+                    }
+                    <span>Sync calendar</span>
+                  </Button>
+                </div>
+                <div>
                   <Button
                     onClick={async () => {
                       showGenerator(true)
@@ -218,7 +213,7 @@ export default function CalendarOptionsMenu({ userId }: { userId: string }) {
                     Generate event URL
                   </Button>
                 </div>
-                <div className="pb-4">
+                <div>
                   <Button
                     onClick={() => {
                       showBackup(true)
@@ -228,7 +223,7 @@ export default function CalendarOptionsMenu({ userId }: { userId: string }) {
                     Backup events
                   </Button>
                 </div>
-                <div className="">
+                <div>
                   <Button
                     disabled={false}
                     onClick={() => {
