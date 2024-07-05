@@ -20,6 +20,11 @@ type CalendarRequestResult = {
   data: calendar_v3.Schema$Event[]
 }
 
+type SyncedEvents = {
+  toUpdate: calendar_v3.Schema$Event[]
+  toCreate: calendar_v3.Schema$Event[]
+}
+
 type Recurrence = {
   freq?: string
   until?: string | Date
@@ -232,8 +237,23 @@ export const syncGoogleCalendar = async (
     firstSync,
     authResult.googleAccount,
   )
+
+  const syncData = await getEventsSyncData(results.data)
+
+  syncData.toUpdate.forEach(async (event) => await prisma.event.updateMany({
+    where: {
+      googleEventId: event.id!
+    },
+    data: {
+      start: event.start?.dateTime || `${event.start?.date!}T00:00:00.000Z`,
+      end: event.end?.dateTime! || `${event.end?.date!}T00:00:00.000Z`,
+      timezone: event.start?.timeZone || 'not applicable', // events with no datetime have no timezone
+      recurrence: event.recurrence?.[0],
+    }
+  }))
+
   await prisma.event.createMany({
-    data: results.data.map((event) => ({
+    data: syncData.toCreate.map(event => ({
       userId,
       googleEventId: event.id,
       start: event.start?.dateTime || `${event.start?.date!}T00:00:00.000Z`,
@@ -250,6 +270,42 @@ export const syncGoogleCalendar = async (
       calendarToken: results.syncToken,
     },
   })
+}
+
+export const getEventsSyncData = async (
+  syncResults: calendar_v3.Schema$Event[],
+): Promise<SyncedEvents> => {
+  const eventsIds = syncResults.map((event) => event.id!)
+  const existingEvents = await prisma.event.findMany({
+    where: {
+      googleEventId: {
+        in: eventsIds,
+      },
+    },
+    select: {
+      id: true,
+      googleEventId: true,
+    },
+  })
+  const existingEventsIdsSet = new Set(
+    existingEvents.map((dbEvent) => dbEvent.googleEventId),
+  )
+  return syncResults.reduce(
+    (acc, syncEvent) => {
+      if (existingEventsIdsSet.has(syncEvent.id!)) {
+        // existing events IDs
+        acc.toUpdate.push(syncEvent)
+      } else {
+        // non existing events IDs
+        acc.toCreate.push(syncEvent)
+      }
+      return acc
+    },
+    {
+      toUpdate: [],
+      toCreate: [],
+    } as SyncedEvents,
+  )
 }
 
 export const restoreGoogleEvents = async (
