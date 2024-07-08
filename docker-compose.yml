@@ -1,14 +1,43 @@
 name: contacts-sync
-version: '3.8'  #specifies docker compose version
 services:
   db:
     image: postgres
     restart: always
     volumes:
-    - './postgres_data:/var/lib/postgresql/data'
+      - './postgres_data:/var/lib/postgresql/data'
     environment:
       POSTGRES_USER: myuser
       POSTGRES_PASSWORD: mypassword
       POSTGRES_DB: contacts-sync
     ports:
-      - "5432:5432"
+      - '5432:5432'
+
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    volumes:
+      - ./pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini
+      - ./userlist.txt:/etc/pgbouncer/userlist.txt
+    ports:
+      - '6432:6432'
+    environment:
+      DATABASE_URL: postgres://myuser:mypassword@db:5432/contacts-sync
+    depends_on:
+      - db
+    restart: always
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '3000:3000'
+    environment:
+      NEXT_AUTH_DEBUG: 'true'
+      POSTGRES_PRISMA_URL: 'postgresql://myuser:34819d7beeabb9260a5c854bc85b3e44@pgbouncer:6432/contacts-sync?schema=public&pgbouncer=true&connect_timeout=15'
+      POSTGRES_URL_NON_POOLING: 'postgresql://myuser:mypassword@db:5432/contacts-sync?schema=public'
+    depends_on:
+      - pgbouncer
+    restart: always
+
+volumes:
+  postgres_data:
