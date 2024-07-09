@@ -93,7 +93,10 @@ async function fetchGoogleContacts(
     process.env.REDIRECT_URL,
   )
 
-  oauth2Client.setCredentials({ access_token: googleAccount.accessToken })
+  oauth2Client.setCredentials({
+    access_token: googleAccount.accessToken,
+    refresh_token: googleAccount.refreshToken,
+  })
 
   // Fetch the user's Google Contacts
   let response: PeopleRequestResult

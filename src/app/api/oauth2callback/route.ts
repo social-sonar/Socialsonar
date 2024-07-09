@@ -1,4 +1,6 @@
 // src/app/api/oauth2callback/route.ts
+
+import * as Sentry from '@sentry/nextjs'
 import { NextRequest, NextResponse } from 'next/server'
 import { google } from 'googleapis'
 import prisma from '@/db'
@@ -28,45 +30,68 @@ export async function GET(req: NextRequest) {
 
     if (!tokens.refresh_token) {
       throw Error('No refresh token during the callback')
+    } else {
+      Sentry.captureMessage(
+        'tokens.refresh_token' + tokens.refresh_token,
+        'debug',
+      )
     }
 
     const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client })
     const { data } = await oauth2.userinfo.get()
 
-    await prisma.googleAccount.upsert({
-      where: { googleId: data.id! },
-      update: {
-        email: data.email!,
-        accessToken: tokens.access_token,
-        refreshToken: tokens.refresh_token,
-        users: {
-          connectOrCreate: {
-            create: {
-              userId: session.user.id,
-            },
-            where: {
-              id: session.user.id,
-            },
-          },
-        },
-      },
-      create: {
-        googleId: data.id!,
-        email: data.email!,
-        accessToken: tokens.access_token!,
-        refreshToken: tokens.refresh_token!,
-        users: {
-          connectOrCreate: {
-            create: {
-              userId: session.user.id,
-            },
-            where: {
-              id: session.user.id,
+    let existingGoogleAccount = null
+
+    if (data.id) {
+      existingGoogleAccount = await prisma.googleAccount.findUnique({
+        where: { googleId: data.id },
+      })
+
+      if (!existingGoogleAccount) {
+        await prisma.googleAccount.create({
+          data: {
+            googleId: data.id,
+            email: data.email!,
+            accessToken: tokens.access_token!,
+            refreshToken: tokens.refresh_token!,
+            users: {
+              connect: { id: session.user.id },
             },
           },
-        },
-      },
-    })
+        })
+      } else {
+        console.log(
+          'Linking existing google account to user',
+          session.user.email,
+          existingGoogleAccount.email,
+        )
+        
+        await prisma.googleAccount.update({
+          where: { googleId: data.id },
+          data: {
+            email: data.email!,
+            accessToken: tokens.access_token!,
+            refreshToken: tokens.refresh_token!,
+          },
+        })
+
+        let userGoogleAccount = await prisma.userGoogleAccount.findFirst({
+          where: {
+            googleAccountId: existingGoogleAccount.id,
+            userId: session.user.id,
+          },
+        })
+
+        if (!userGoogleAccount) {
+          await prisma.userGoogleAccount.create({
+            data: {
+              googleAccountId: existingGoogleAccount.id,
+              userId: session.user.id,
+            },
+          })
+        }
+      }
+    }
 
     return NextResponse.redirect(
       `${process.env.NEXT_PUBLIC_SITE_URL}/sync?success`,

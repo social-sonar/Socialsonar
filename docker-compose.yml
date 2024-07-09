@@ -32,12 +32,15 @@ services:
     ports:
       - '3000:3000'
     environment:
+      NEXT_WEBPACK_USEPOLLING: 'true'
       NEXT_AUTH_DEBUG: 'true'
       POSTGRES_PRISMA_URL: 'postgresql://myuser:34819d7beeabb9260a5c854bc85b3e44@pgbouncer:6432/contacts-sync?schema=public&pgbouncer=true&connect_timeout=15'
       POSTGRES_URL_NON_POOLING: 'postgresql://myuser:mypassword@db:5432/contacts-sync?schema=public'
     depends_on:
       - pgbouncer
     restart: always
+    volumes:
+      - ./src:/app/src
 
 volumes:
   postgres_data:

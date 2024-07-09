@@ -49,7 +49,7 @@ export async function deleteAccount(): State {
                 include: { contacts: true },
               })
             } catch (error) {
-              console.log(error)
+              throw new Error('Error deleting google account')
             }
           } else {
             prisma.googleAccount.update({
@@ -65,7 +65,7 @@ export async function deleteAccount(): State {
       }
       return { message: 'Success', errors: [] }
     } catch (error) {
-      console.log(error)
+      console.error(error)
       return {
         message: 'there was an error',
         errors: [error],
