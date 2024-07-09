@@ -66,8 +66,22 @@ model User {
   updatedAt      DateTime            @updatedAt
   Contact        Contact[]
   events         Event[]
+  homeBases      HomeBase[]
 
   @@map("user")
+}
+
+model HomeBase {
+  id        String    @id @default(cuid())
+  location  String
+  coords    String    // Assuming coords are stored as a string (e.g., "latitude,longitude")
+  timezone  String    // Store timezone identifier (e.g., "America/New_York")
+  active    Boolean
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+
+  @@map("home_base")
 }
 
 model Event {
