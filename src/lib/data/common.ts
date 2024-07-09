@@ -1,4 +1,4 @@
-import { requestPeopleAPI } from '@/actions/integrations'
+import { requestPeopleAPI } from '@/actions/google/contacts/integrations'
 import prisma from '@/db'
 import {
   ContactMergeStatus,
@@ -23,7 +23,7 @@ import {
 import { getContactIdFromResourceName, getSession } from '../utils/common'
 import { dateObject, dateString } from '../utils/dates'
 import { refreshToken } from '../utils/google'
-import { syncExisting } from './google'
+import { syncExisting } from '@/lib/data/google/contacts'
 
 export const getPhoneNumberType = (type: string): PhoneNumberType => {
   const typeMap: { [key: string]: PhoneNumberType } = {

@@ -7,12 +7,22 @@ import { OAuth2Client } from 'google-auth-library'
 import { calendar_v3, google } from 'googleapis'
 import { tz } from 'moment-timezone'
 import { notFound } from 'next/navigation'
-import { LightEvent, TimeDuration, UserTimeInformation } from '../definitions'
-import { getDayID, getMinMaxDate } from '../utils/dates'
+import {
+  LightEvent,
+  TimeDuration,
+  UserTimeInformation,
+} from '../../../definitions'
+import { getDayID, getMinMaxDate } from '../../../utils/dates'
+import { getOAuthClient } from '../../../utils/common'
 
 type CalendarRequestResult = {
   syncToken: string
   data: calendar_v3.Schema$Event[]
+}
+
+type SyncedEvents = {
+  toUpdate: calendar_v3.Schema$Event[]
+  toCreate: calendar_v3.Schema$Event[]
 }
 
 type Recurrence = {
@@ -189,31 +199,12 @@ const getCalendarEvents = async (
   }
 }
 
-export const syncGoogleCalendar = async (
-  userId: string,
+export const getSafeCalendarEvents = async (
+  oauth2Client: OAuth2Client,
+  firstSync: boolean,
   googleAccount?: GoogleAccount,
-  firstSync: boolean = false,
-): Promise<void> => {
+): Promise<CalendarRequestResult> => {
   let results: CalendarRequestResult | null = null
-  const oauth2Client = new google.auth.OAuth2(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-    process.env.REDIRECT_URL,
-  )
-  if (!googleAccount) {
-    const userGoogleAccount = await prisma.userGoogleAccount.findFirst({
-      where: {
-        userId,
-      },
-      include: {
-        googleAccount: true,
-      },
-    })
-    googleAccount = userGoogleAccount?.googleAccount
-  }
-  oauth2Client.setCredentials({
-    access_token: googleAccount!.accessToken,
-  })
   try {
     results = await getCalendarEvents(
       oauth2Client,
@@ -232,9 +223,37 @@ export const syncGoogleCalendar = async (
       throw error
     }
   }
+  return results
+}
+
+export const syncGoogleCalendar = async (
+  userId: string,
+  googleAccount?: GoogleAccount,
+  firstSync: boolean = false,
+): Promise<void> => {
+  const authResult = await getOAuthClient(userId, googleAccount)
+  const results = await getSafeCalendarEvents(
+    authResult.oauth2Client,
+    firstSync,
+    authResult.googleAccount,
+  )
+
+  const syncData = await getEventsSyncData(results.data)
+
+  syncData.toUpdate.forEach(async (event) => await prisma.event.updateMany({
+    where: {
+      googleEventId: event.id!
+    },
+    data: {
+      start: event.start?.dateTime || `${event.start?.date!}T00:00:00.000Z`,
+      end: event.end?.dateTime! || `${event.end?.date!}T00:00:00.000Z`,
+      timezone: event.start?.timeZone || 'not applicable', // events with no datetime have no timezone
+      recurrence: event.recurrence?.[0],
+    }
+  }))
 
   await prisma.event.createMany({
-    data: results.data.map((event) => ({
+    data: syncData.toCreate.map(event => ({
       userId,
       googleEventId: event.id,
       start: event.start?.dateTime || `${event.start?.date!}T00:00:00.000Z`,
@@ -245,10 +264,77 @@ export const syncGoogleCalendar = async (
   })
   await prisma.googleAccount.update({
     where: {
-      id: googleAccount!.id,
+      id: authResult.googleAccount!.id,
     },
     data: {
       calendarToken: results.syncToken,
     },
   })
+}
+
+export const getEventsSyncData = async (
+  syncResults: calendar_v3.Schema$Event[],
+): Promise<SyncedEvents> => {
+  const eventsIds = syncResults.map((event) => event.id!)
+  const existingEvents = await prisma.event.findMany({
+    where: {
+      googleEventId: {
+        in: eventsIds,
+      },
+    },
+    select: {
+      id: true,
+      googleEventId: true,
+    },
+  })
+  const existingEventsIdsSet = new Set(
+    existingEvents.map((dbEvent) => dbEvent.googleEventId),
+  )
+  return syncResults.reduce(
+    (acc, syncEvent) => {
+      if (existingEventsIdsSet.has(syncEvent.id!)) {
+        // existing events IDs
+        acc.toUpdate.push(syncEvent)
+      } else {
+        // non existing events IDs
+        acc.toCreate.push(syncEvent)
+      }
+      return acc
+    },
+    {
+      toUpdate: [],
+      toCreate: [],
+    } as SyncedEvents,
+  )
+}
+
+export const restoreGoogleEvents = async (
+  userId: string,
+  backedupEvents: calendar_v3.Schema$Event[],
+) => {
+  const { oauth2Client, googleAccount } = await getOAuthClient(userId)
+
+  const calendar = google.calendar({ version: 'v3', auth: oauth2Client })
+
+  const events = await getSafeCalendarEvents(oauth2Client, true, googleAccount)
+
+  console.log('Events to delete: ', events.data.length, googleAccount.email)
+
+  events.data.forEach(
+    async (event) => await calendar.events.delete({ eventId: event.id! }),
+  )
+  backedupEvents.forEach(async (event) => {
+    try {
+      await calendar.events.insert({
+        auth: oauth2Client,
+        calendarId: 'primary',
+        requestBody: event,
+        sendNotifications: true,
+      })
+    } catch (error) {
+      console.log('Error creating event. Cause:', error)
+    }
+  })
+
+  return { processed: backedupEvents.length }
 }

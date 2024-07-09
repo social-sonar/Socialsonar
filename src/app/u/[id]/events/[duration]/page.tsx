@@ -1,5 +1,5 @@
 import EventDatePicker from "@/components/EventDatePicker"
-import { getUserData } from "@/lib/data/events"
+import { getUserData } from "@/lib/data/google/events/"
 import { TimeDuration } from "@/lib/definitions"
 
 type EventsProps = {

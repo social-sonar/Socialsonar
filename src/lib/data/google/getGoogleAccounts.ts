@@ -2,7 +2,7 @@
 
 import prisma from '@/db'
 import { GoogleAccount } from '@prisma/client'
-import { getSession } from '../utils/common'
+import { getSession } from '@/lib/utils/common'
 
 export async function getGoogleAccounts() {
   const session = await getSession()
