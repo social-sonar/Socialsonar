@@ -5,7 +5,7 @@ import { useNotification } from '@/app/NotificationsProvider'
 import CalendarOptionsMenu from '@/components/CalendarActionsMenu'
 import protectPage from '@/components/common/auth'
 import { Dialog, Transition } from '@headlessui/react'
-import { UserIcon, MapPinIcon } from '@heroicons/react/20/solid'
+import { UserIcon, MapPinIcon, ArrowLeftIcon } from '@heroicons/react/20/solid'
 import {
   ArrowDownTrayIcon,
   CheckCircleIcon,
@@ -13,11 +13,44 @@ import {
   TrashIcon
 } from '@heroicons/react/24/outline'
 import { signOut, useSession } from 'next-auth/react'
-import React, { Fragment, useState } from 'react'
+import React, { Fragment, useEffect, useState } from 'react'
 import { deleteAccount } from '../../actions/common/delete-account'
 import Button from '../../components/Button'
 import LoadingSpinner from '../../components/common/spinner'
 import LocationPicker from '@/components/LocationPicker'
+import { HomeBase } from '@prisma/client'
+import { userHomeBases } from '@/lib/data/common'
+
+
+type HomeBasesManagerProps = {
+  homeBases: Pick<HomeBase, 'location' | 'active'>[],
+  closeAction: () => void
+}
+
+const HomeBasesManager = ({ homeBases, closeAction }: HomeBasesManagerProps) => {
+  const maxHomeBases = homeBases.length === 2
+  const noHomeBases = homeBases.length === 0
+  const [showLocationPicker, setShowLocationPicker] = useState(false)
+
+  return (
+    <div className='flex flex-col gap-5 justify-center items-center'>
+      {/* layout does not matter here as the LocationPicker is a modal */}
+      {showLocationPicker && <LocationPicker callClose={() => setShowLocationPicker(false)} />}
+      <button onClick={closeAction}><ArrowLeftIcon className='w-10' /></button>
+      <div className='flex flex-col gap-3 justify-center items-center'>
+        {noHomeBases &&
+          <p>No home bases have been set yet</p>
+        }
+        {!maxHomeBases &&
+          <Button className="flex gap-2 justify-center items-center " onClick={() => setShowLocationPicker(true)}>
+            Set home base
+          </Button>
+        }
+      </div>
+    </div>
+
+  )
+}
 
 function Profile() {
   const { showNotification } = useNotification()
@@ -25,7 +58,18 @@ function Profile() {
   const [open, setOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
-  const [showLocationPicker, setShowLocationPicker] = useState(false)
+  const [showHomeBasesManager, setShowHomeBasesManager] = useState(false)
+
+  const [homeBases, setHomeBases] = useState<Pick<HomeBase, 'location' | 'active'>[]>([])
+
+  useEffect(() => {
+    const fetchData = async () => {
+      let response = await userHomeBases(session.data?.user.id!)
+      setHomeBases(response)
+    }
+    fetchData()
+  }, [])
+
   const handleExport = async () => {
     if (isExporting) return
     setIsExporting(true)
@@ -176,39 +220,43 @@ function Profile() {
             </div>
           </Dialog>
         </Transition>
-        {showLocationPicker && <LocationPicker callClose={() => setShowLocationPicker(false)} />}
-        <div className="flex flex-col items-center justify-center gap-10 w-fit mt-5">
-          <Button className="w-52 flex gap-2" onClick={() => setShowLocationPicker(true)}>
-            <span>Set location</span>
-            <MapPinIcon className='w-5'/>
-          </Button>
-          <Button className="w-52">
-            <span>About me</span> <UserIcon className="w-5" />
-          </Button>
-          <CalendarOptionsMenu userId={session.data?.user.id!} />
-          <Button
-            disabled={isExporting}
-            onClick={() => {
-              handleExport()
-            }}
-            className='w-52'
-          >
-            Export all your contacts{' '}
-            {isExporting ? (
-              <LoadingSpinner size={20} />
-            ) : (
-              <ArrowDownTrayIcon className="w-4" />
-            )}
-          </Button>
-          <Button
-            onClick={() => {
-              setOpen(true)
-            }}
-            className="dark:enabled:bg-red-700 dark:hover:enabled:bg-red-800 dark:active:enabled:bg-red-800 w-52"
-          >
-            <span>Delete your account</span> <TrashIcon className="w-4" />
-          </Button>
-        </div>
+        {showHomeBasesManager ?
+          <HomeBasesManager closeAction={() => setShowHomeBasesManager(false)} homeBases={homeBases} /> :
+          <div className="flex flex-col items-center justify-center gap-10 w-fit mt-5">
+            <Button className="w-52 flex gap-2" onClick={() => setShowHomeBasesManager(true)}>
+              <span>Manage home bases</span>
+              <MapPinIcon className='w-5' />
+            </Button>
+            <Button className="w-52">
+              <span>About me</span> <UserIcon className="w-5" />
+            </Button>
+            <CalendarOptionsMenu userId={session.data?.user.id!} />
+            <Button
+              disabled={isExporting}
+              onClick={() => {
+                handleExport()
+              }}
+              className='w-52'
+            >
+              Export all your contacts{' '}
+              {isExporting ? (
+                <LoadingSpinner size={20} />
+              ) : (
+                <ArrowDownTrayIcon className="w-4" />
+              )}
+            </Button>
+            <Button
+              onClick={() => {
+                setOpen(true)
+              }}
+              className="dark:enabled:bg-red-700 dark:hover:enabled:bg-red-800 dark:active:enabled:bg-red-800 w-52"
+            >
+              <span>Delete your account</span> <TrashIcon className="w-4" />
+            </Button>
+          </div>
+
+        }
+
       </div>
     </div>
   )

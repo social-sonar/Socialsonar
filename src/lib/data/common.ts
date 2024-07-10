@@ -1,8 +1,11 @@
+'use server'
+
 import { requestPeopleAPI } from '@/actions/google/contacts/integrations'
 import prisma from '@/db'
 import {
   ContactMergeStatus,
   GoogleAccount,
+  HomeBase,
   PhoneNumberType,
 } from '@prisma/client'
 import { fuzzy } from 'fast-fuzzy'
@@ -1060,3 +1063,14 @@ export const restoreContactsInGoogle = async (
 
   return { processed: processedBackupedContacts.length }
 }
+
+export const userHomeBases = async (userId: string): Promise<Pick<HomeBase, 'location' | 'active'>[]> => 
+  await prisma.homeBase.findMany({
+    where: {
+      userId
+    },
+    select: {
+      location: true,
+      active: true
+    }
+  }) 
