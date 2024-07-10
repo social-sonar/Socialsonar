@@ -5,7 +5,7 @@ import { useNotification } from '@/app/NotificationsProvider'
 import CalendarOptionsMenu from '@/components/CalendarActionsMenu'
 import protectPage from '@/components/common/auth'
 import { Dialog, Transition } from '@headlessui/react'
-import { UserIcon } from '@heroicons/react/20/solid'
+import { UserIcon, MapPinIcon } from '@heroicons/react/20/solid'
 import {
   ArrowDownTrayIcon,
   CheckCircleIcon,
@@ -17,6 +17,7 @@ import React, { Fragment, useState } from 'react'
 import { deleteAccount } from '../../actions/common/delete-account'
 import Button from '../../components/Button'
 import LoadingSpinner from '../../components/common/spinner'
+import LocationPicker from '@/components/LocationPicker'
 
 function Profile() {
   const { showNotification } = useNotification()
@@ -24,6 +25,7 @@ function Profile() {
   const [open, setOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
+  const [showLocationPicker, setShowLocationPicker] = useState(false)
   const handleExport = async () => {
     if (isExporting) return
     setIsExporting(true)
@@ -174,7 +176,12 @@ function Profile() {
             </div>
           </Dialog>
         </Transition>
+        {showLocationPicker && <LocationPicker callClose={() => setShowLocationPicker(false)} />}
         <div className="flex flex-col items-center justify-center gap-10 w-fit mt-5">
+          <Button className="w-52 flex gap-2" onClick={() => setShowLocationPicker(true)}>
+            <span>Set location</span>
+            <MapPinIcon className='w-5'/>
+          </Button>
           <Button className="w-52">
             <span>About me</span> <UserIcon className="w-5" />
           </Button>
@@ -197,7 +204,7 @@ function Profile() {
             onClick={() => {
               setOpen(true)
             }}
-            className="dark:bg-red-700 dark:enabled:hover:bg-red-800 text-gray-500 w-52"
+            className="dark:enabled:bg-red-700 dark:hover:enabled:bg-red-800 dark:active:enabled:bg-red-800 w-52"
           >
             <span>Delete your account</span> <TrashIcon className="w-4" />
           </Button>
