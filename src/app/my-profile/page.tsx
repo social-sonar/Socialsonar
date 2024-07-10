@@ -19,7 +19,7 @@ import Button from '../../components/Button'
 import LoadingSpinner from '../../components/common/spinner'
 import LocationPicker from '@/components/LocationPicker'
 import { HomeBase } from '@prisma/client'
-import { userHomeBases } from '@/lib/data/common'
+import { userHomeBases } from '@/lib/data/safeQueries'
 
 
 type HomeBasesManagerProps = {
