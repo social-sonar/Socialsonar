@@ -1,4 +1,4 @@
-import { pullGoogleContacts } from '@/actions/integrations'
+import { pullGmailContacts, pullGoogleContacts } from '@/actions/integrations'
 import { useNotification } from '@/app/NotificationsProvider'
 import { backupFileData } from '@/lib/definitions'
 import { Popover, Transition } from '@headlessui/react'
@@ -19,6 +19,7 @@ export default function Menu({ googleAccountId }: { googleAccountId: string }) {
   const [open, setOpen] = useState(true)
 
   const [syncing, setSyncing] = useState(false)
+  const [syncingGmail, setSyncingGmail] = useState(false)
 
   const fileInput = useRef<HTMLInputElement>(null)
   const [backupData, setBackupData] = useState<backupFileData | null>(null)
@@ -182,6 +183,33 @@ export default function Menu({ googleAccountId }: { googleAccountId: string }) {
     }
   }
 
+  const handleSyncGmailButton = async (event: React.FormEvent) => {
+    event.preventDefault()
+    setSyncingGmail(true)
+
+    try {
+      showNotification(
+        'Called sync Gmail process',
+        `Your contacts will be pulled and sync in the following minutes`,
+        <LoadingSpinner size={30}></LoadingSpinner>,
+      )
+      const response = await pullGmailContacts(googleAccountId)
+
+      showNotification(
+        'Successfully synced Gmail messages',
+        `Your contacts have be pulled and synced from Gmail succesfully`,
+        <CheckCircleIcon
+          className="h-6 w-6 text-green-400"
+          aria-hidden="true"
+        />,
+      )
+      setSyncingGmail(false)
+    } catch (error) {
+      setSyncingGmail(false)
+      console.log('ERROR:', error)
+    }
+  }
+
   return (
     <>
       <input
@@ -224,6 +252,19 @@ export default function Menu({ googleAccountId }: { googleAccountId: string }) {
           >
             <Popover.Panel className="absolute z-10 mt-5 flex w-screen max-w-max -translate-x-1/2 px-4">
               <div className="flex-auto rounded-3xl bg-white p-4 text-left text-sm leading-6 shadow-lg ring-1 ring-gray-900/5">
+                <div className="pb-4">
+                  <Button
+                    onClick={handleSyncGmailButton}
+                    disabled={syncingGmail}
+                    className="w-full"
+                  >
+                    {syncingGmail ? (
+                      <LoadingSpinner size={24}></LoadingSpinner>
+                    ) : (
+                      'Sync GMAIL contacts'
+                    )}
+                  </Button>
+                </div>
                 <div className="pb-4">
                   <Button
                     onClick={handleSyncButton}
