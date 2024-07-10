@@ -8,6 +8,7 @@ import {
   Photo,
   Address,
   Email,
+  HomeBase,
 } from '@prisma/client'
 import { people_v1 } from 'googleapis'
 import { Session } from 'next-auth'
@@ -203,4 +204,9 @@ export type LightEvent = {
   start: Date,
   end: Date,
   recurrence: string
+}
+
+export type LocationSetData = {
+  createData?: Omit<HomeBase, 'id'>
+  updateData?: Partial<Omit<HomeBase, 'id'>> & { homeBaseId: string }
 }
