@@ -168,7 +168,7 @@ function MobileNavigation(
                 </MobileNavItem>
                 <MobileNavItem href="/contacts-list?add-new-contact">Add new contact</MobileNavItem>
                 <MobileNavItem href="/sync">Sync contacts</MobileNavItem>
-                <MobileNavItem href="/my-profile">My profile info</MobileNavItem>
+                <MobileNavItem href="/my-profile">My profile</MobileNavItem>
                 <MobileNavItem href="/speaking">
                   Request someone&apos;s contact info
                 </MobileNavItem>
@@ -269,8 +269,8 @@ function DesktopNavigation({ profileItem, ...props }: NavProps) {
         <NavItem href="/contacts-list">Contacts list</NavItem>
         <NavItem href="/contacts-list?add-new-contact">Add new contact</NavItem>
         <NavItem href="/sync">Sync contacts</NavItem>
-        <NavItem href="/my-profile">My profile info</NavItem>
-        <NavItem href="/uses">Request someone&apos;s contact info</NavItem>
+        <NavItem href="/my-profile">My profile</NavItem>
+        <NavItem href="#">Request someone&apos;s contact info</NavItem>
         <li>{profileItem}</li>
       </ul>
     </nav>

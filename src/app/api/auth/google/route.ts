@@ -17,6 +17,7 @@ export async function GET() {
   }
   const scopes = [
     'https://www.googleapis.com/auth/contacts',
+    'https://www.googleapis.com/auth/calendar',
     'https://www.googleapis.com/auth/userinfo.email',
     'https://www.googleapis.com/auth/userinfo.profile',
   ]
@@ -24,6 +25,7 @@ export async function GET() {
   const url = oauth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: scopes,
+    prompt : 'consent'
   })
 
   return NextResponse.redirect(url)

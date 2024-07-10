@@ -1,7 +1,12 @@
-import { pullGmailContacts, pullGoogleContacts } from '@/actions/integrations'
+import {
+  prepareBackup,
+  pullGmailContacts,
+  pullGoogleContacts,
+  restoreBackup,
+} from '@/actions/google/contacts/integrations'
 import { useNotification } from '@/app/NotificationsProvider'
-import { backupFileData } from '@/lib/definitions'
-import { Popover, Transition } from '@headlessui/react'
+import { BackupFileData } from '@/lib/definitions'
+import { Dialog, Popover, Transition } from '@headlessui/react'
 import {
   CheckCircleIcon,
   ChevronDownIcon,
@@ -10,19 +15,18 @@ import {
 import { CircularProgress } from '@nextui-org/progress'
 import { useEffect, useRef, useState } from 'react'
 import Button from './Button'
-import GoogleAccountBackup from './GoogleAccountBackup'
-import GoogleAccountRestore from './GoogleAccountRestore'
 import LoadingSpinner from './common/spinner'
+import AccountBackup from './BackupDialog'
+import RestoreDialog from './RestoreDialog'
 
 export default function Menu({ googleAccountId }: { googleAccountId: string }) {
-  const { showNotification, hideNotification } = useNotification()
-  const [open, setOpen] = useState(true)
+  const { showNotification } = useNotification()
 
   const [syncing, setSyncing] = useState(false)
   const [syncingGmail, setSyncingGmail] = useState(false)
 
   const fileInput = useRef<HTMLInputElement>(null)
-  const [backupData, setBackupData] = useState<backupFileData | null>(null)
+  const [backupData, setBackupData] = useState<BackupFileData | null>(null)
 
   const [createdCounter, setCreatedCounter] = useState<number>(0)
   const [createdCounterTotal, setCreatedCounterTotal] = useState<number>(0)
@@ -69,7 +73,7 @@ export default function Menu({ googleAccountId }: { googleAccountId: string }) {
     const content = fileReader.result
     try {
       const parsedData = JSON.parse(content!.toString())
-      let data: backupFileData = {
+      let data: BackupFileData = {
         email: '',
         data: '',
         date: new Date(),
@@ -100,7 +104,7 @@ export default function Menu({ googleAccountId }: { googleAccountId: string }) {
     } catch (error) {
       setBackupData(null)
       showRestore(false)
-      console.log('error laoding backup:', error)
+      console.log('Error loading backup:', error)
 
       showNotification(
         'Error!',
@@ -158,7 +162,7 @@ export default function Menu({ googleAccountId }: { googleAccountId: string }) {
           setCreatedCounterTotal(0)
           showNotification(
             'Successfully synced contacts',
-            `Your contacts have be pulled and synced succesfully`,
+            `Your contacts have been pulled and synced succesfully`,
             <CheckCircleIcon
               className="h-6 w-6 text-green-400"
               aria-hidden="true"
@@ -193,7 +197,7 @@ export default function Menu({ googleAccountId }: { googleAccountId: string }) {
         `Your contacts will be pulled and sync in the following minutes`,
         <LoadingSpinner size={30}></LoadingSpinner>,
       )
-      const response = await pullGmailContacts(googleAccountId)
+      await pullGmailContacts(googleAccountId)
 
       showNotification(
         'Successfully synced Gmail messages',
@@ -220,20 +224,48 @@ export default function Menu({ googleAccountId }: { googleAccountId: string }) {
         onChange={handleFileInput}
       ></input>
       {backup && (
-        <GoogleAccountBackup
-          googleAccountId={googleAccountId}
+        <AccountBackup
+          accountId={googleAccountId}
           callClose={async () => showBackup(false)}
-        ></GoogleAccountBackup>
+          dataGetter={prepareBackup}
+          title="Backup your google contacts"
+        >
+          <p className="text-sm text-gray-500">
+            Create a backup of your google contacts by clicking the button
+            below. This will download all your contacts in a JSON encrypted file
+            to allow you to restore them later if necessary.
+          </p>
+        </AccountBackup>
       )}
       {restore && (
-        <GoogleAccountRestore
-          googleAccountId={googleAccountId}
+        <RestoreDialog
           callClose={async () => {
             showRestore(false)
             setBackupData(null)
           }}
           backupData={backupData}
-        ></GoogleAccountRestore>
+          restoreFunction={restoreBackup}
+        >
+          {(backupData) => (
+            <>
+              <Dialog.Title
+                as="h3"
+                className="text-base font-semibold leading-6 text-gray-900"
+              >
+                Restore your google contacts backup
+              </Dialog.Title>
+              <div className="mt-2">
+                <p className="text-sm text-gray-500">
+                  Selected backup is from <b>({backupData.email})</b> google
+                  account, created at <b>{backupData.date.toLocaleString()}</b>.
+                  Please note that this will{' '}
+                  <b>overwrite all your current contacts in Google Contacts</b>.
+                  So be extremely careful while restoring your contacts.
+                </p>
+              </div>
+            </>
+          )}
+        </RestoreDialog>
       )}
       {fileInput && (
         <Popover className="relative">

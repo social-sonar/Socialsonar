@@ -7,13 +7,13 @@ import {
   restoreContactsInGoogle,
 } from '@/lib/data/common'
 import {
-  backupFileData,
+  BackupFileData,
   GoogleContactMainResponse,
   GoogleResponse,
 } from '@/lib/definitions'
 import { refreshToken } from '@/lib/utils/google'
 
-import { getSession } from '../lib/utils/common'
+import { getSession } from '../../../lib/utils/common'
 import { GaxiosResponse } from 'gaxios'
 import { OAuth2Client } from 'google-auth-library'
 import { google } from 'googleapis'
@@ -93,7 +93,10 @@ async function fetchGoogleContacts(
     process.env.REDIRECT_URL,
   )
 
-  oauth2Client.setCredentials({ access_token: googleAccount.accessToken })
+  oauth2Client.setCredentials({
+    access_token: googleAccount.accessToken,
+    refresh_token: googleAccount.refreshToken,
+  })
 
   // Fetch the user's Google Contacts
   let response: PeopleRequestResult
@@ -365,7 +368,7 @@ export async function prepareBackup(googleAccountId: string) {
       data: encondedText,
       date: new Date(),
       user: session.user.name,
-    } as backupFileData
+    } as BackupFileData
   }
 }
 

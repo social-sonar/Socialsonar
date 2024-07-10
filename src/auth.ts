@@ -1,9 +1,11 @@
+export const maxDuration = 60
+
 import NextAuth from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import { prisma } from '@/db'
 import { CustomSession } from '@/lib/definitions'
-import { syncGoogleCalendar } from './lib/data/events'
+import { syncGoogleCalendar } from './lib/data/google/events'
 
 export default NextAuth({
   providers: [
@@ -21,6 +23,7 @@ export default NextAuth({
     }),
   ],
   secret: process.env.AUTH_SECRET,
+  debug: process.env.NEXT_AUTH_DEBUG === 'true',
   adapter: PrismaAdapter(prisma),
   session: {
     strategy: 'jwt',
