@@ -69,13 +69,20 @@ const PlaceAutocomplete = ({ onPlaceSelect }: PlaceAutocompleteProps) => {
 
 type LocationPickerProps = {
     callClose: () => void,
-    onLocationSet: (locationData: LocationSetData) => Promise<void>
+    onLocationSet: (locationData: LocationSetData) => Promise<void>,
+    position?: string
 }
 
-export default function LocationPicker({ callClose, onLocationSet }: LocationPickerProps) {
+export default function LocationPicker({ callClose, onLocationSet, position }: LocationPickerProps) {
     const [selectedPlace, setSelectedPlace] = useState<google.maps.places.PlaceResult | null>(null);
     const [markerRef, marker] = useAdvancedMarkerRef();
     const [open, setOpen] = useState(true)
+    
+    let coords: { lat: number; lng: number } | undefined = undefined
+    if (position) {
+        const [lat, lng] = position.split(',').map(Number)
+        coords = { lat, lng }
+    }
 
     useEffect(() => {
         if (!open) {
@@ -123,12 +130,12 @@ export default function LocationPicker({ callClose, onLocationSet }: LocationPic
                         >
                             <Dialog.Panel className="relative rounded-lg  bg-white p-5 flex flex-col gap-5">
                                 <APIProvider
-                                    apiKey=''
+                                    apiKey={process.env.NEXT_PUBLIC_MAP_API_KEY || ''}
                                     solutionChannel='GMP_devsite_samples_v3_rgmautocomplete'>
                                     <Map
                                         mapId={'bf51a910020fa25a'}
-                                        defaultZoom={3}
-                                        defaultCenter={{ lat: 22.54992, lng: 0 }}
+                                        defaultZoom={coords ? 10 : 3}
+                                        defaultCenter={coords || { lat: 22.54992, lng: 0 }}
                                         gestureHandling={'greedy'}
                                         disableDefaultUI={true}
                                         className='w-[500px] h-[500px]'
@@ -138,7 +145,7 @@ export default function LocationPicker({ callClose, onLocationSet }: LocationPic
                                                 <PlaceAutocomplete onPlaceSelect={setSelectedPlace} />
                                             </div>
                                         </MapControl>
-                                        <AdvancedMarker ref={markerRef} position={null} />
+                                        <AdvancedMarker ref={markerRef} position={coords} />
                                     </Map>
                                     <MapHandler place={selectedPlace} marker={marker} />
                                 </APIProvider>

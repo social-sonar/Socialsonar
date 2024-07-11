@@ -7,7 +7,7 @@ import { getSession } from '../utils/common'
 
 export const userHomeBases = async (
   userId: string,
-): Promise<Pick<HomeBase, 'id' | 'location' | 'active'>[]> =>
+): Promise<Pick<HomeBase, 'id' | 'location' | 'active' | 'coords'>[]> =>
   await prisma.homeBase.findMany({
     where: {
       userId,
@@ -16,6 +16,7 @@ export const userHomeBases = async (
       id: true,
       location: true,
       active: true,
+      coords: true,
     },
   })
 
@@ -23,7 +24,7 @@ export const upsertLocation = async ({
   data,
   homeBaseId,
 }: LocationSetData): Promise<
-  Pick<HomeBase, 'id' | 'location' | 'active'> | undefined
+  Pick<HomeBase, 'id' | 'location' | 'active' | 'coords'> | undefined
 > => {
   if (homeBaseId) {
     return await prisma.homeBase.update({
@@ -32,12 +33,13 @@ export const upsertLocation = async ({
       },
       data: {
         ...data,
-        active: false // After updating, the new location must be set to 'not in use'
+        active: false, // After updating, the new location must be set to 'not in use'
       },
       select: {
         id: true,
         location: true,
         active: true,
+        coords: true,
       },
     })
   } else {
@@ -51,6 +53,7 @@ export const upsertLocation = async ({
         id: true,
         location: true,
         active: true,
+        coords: true,
       },
     })
   }

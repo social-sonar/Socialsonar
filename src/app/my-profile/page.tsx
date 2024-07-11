@@ -25,10 +25,10 @@ import LoadingSpinner from '../../components/common/spinner'
 
 
 type HomeBasesManagerProps = {
-  homeBases: Pick<HomeBase, 'id' | 'location' | 'active'>[],
-  updateHomeBases: (homeBases: Pick<HomeBase, 'id' | 'location' | 'active'>[]) => void,
+  homeBases: Pick<HomeBase, 'id' | 'location' | 'active' | 'coords'>[],
+  updateHomeBases: (homeBases: Pick<HomeBase, 'id' | 'location' | 'active' | 'coords'>[]) => void,
   closeAction: () => void,
-  onLocationSet: (locationData: LocationSetData, localUpdater: (newData: Pick<HomeBase, 'id' | 'location' | 'active'>[]) => void) => Promise<void>
+  onLocationSet: (locationData: LocationSetData, localUpdater: (newData: Pick<HomeBase, 'id' | 'location' | 'active' | 'coords'>[]) => void) => Promise<void>
 }
 
 type AddressToggleProps = {
@@ -68,9 +68,11 @@ const HomeBasesManager = ({ homeBases, closeAction, onLocationSet, updateHomeBas
   const [showLocationPicker, setShowLocationPicker] = useState<boolean>(false)
   const [activeBaseId, setActiveBaseId] = useState<string>('')
   const [editingHomeBaseId, setEditingHomeBaseId] = useState<string>('')
-  const [localHomeBases, setLocalHomeBases] = useState<Pick<HomeBase, 'id' | 'location' | 'active'>[]>(homeBases)
+  const [localHomeBases, setLocalHomeBases] = useState<Pick<HomeBase, 'id' | 'location' | 'active' | 'coords'>[]>(homeBases)
+  const [coords, setCoords] = useState<string>('')
 
-  const onHomeBaseSelection = async (homeBase: Pick<HomeBase, 'id' | 'location' | 'active'>, isActive: boolean) => {
+
+  const onHomeBaseSelection = async (homeBase: Pick<HomeBase, 'id' | 'location' | 'active' | 'coords'>, isActive: boolean) => {
     if (isActive) {
       const newData = localHomeBases.map(localHomeBase => ({ ...localHomeBase, active: localHomeBase.id === homeBase.id }))
       setLocalHomeBases(newData)
@@ -84,7 +86,7 @@ const HomeBasesManager = ({ homeBases, closeAction, onLocationSet, updateHomeBas
     await changeHomeBaseStatus(homeBase.id, isActive)
   }
 
-  const localUpdater = (newData: Pick<HomeBase, 'id' | 'location' | 'active'>[]) => setLocalHomeBases(newData)
+  const localUpdater = (newData: Pick<HomeBase, 'id' | 'location' | 'active' | 'coords'>[]) => setLocalHomeBases(newData)
 
   useEffect(() => {
     updateHomeBases(localHomeBases)
@@ -101,7 +103,9 @@ const HomeBasesManager = ({ homeBases, closeAction, onLocationSet, updateHomeBas
             onLocationSet({ ...locationData, homeBaseId: editingHomeBaseId }, localUpdater)
             setEditingHomeBaseId('')
             setActiveBaseId('')
+            setCoords('')
           }}
+          position={coords}
         />
       }
       <button onClick={closeAction}><ArrowLeftIcon className='w-10' /></button>
@@ -137,6 +141,7 @@ const HomeBasesManager = ({ homeBases, closeAction, onLocationSet, updateHomeBas
                       onClick={() => {
                         setEditingHomeBaseId(homebase.id)
                         setShowLocationPicker(true)
+                        setCoords(homebase.coords)
                       }}
                     />
                   </td>
@@ -160,7 +165,14 @@ const HomeBasesManager = ({ homeBases, closeAction, onLocationSet, updateHomeBas
           </table>
         }
         {!maxHomeBases &&
-          <Button className="justify-center items-center rounded-xl" onClick={() => setShowLocationPicker(true)}>
+          <Button
+            className="justify-center items-center rounded-xl"
+            onClick={() => {
+              setCoords('')
+              setEditingHomeBaseId('')
+              setShowLocationPicker(true)
+            }}
+          >
             <span>Add home base</span>
             <PlusIcon className='w-[25px] text-blue-500' />
           </Button>
@@ -179,7 +191,7 @@ function Profile() {
   const [isExporting, setIsExporting] = useState(false)
   const [showHomeBasesManager, setShowHomeBasesManager] = useState(false)
 
-  const [homeBases, setHomeBases] = useState<Pick<HomeBase, 'id' | 'location' | 'active'>[]>([])
+  const [homeBases, setHomeBases] = useState<Pick<HomeBase, 'id' | 'location' | 'active' | 'coords'>[]>([])
 
   const fetchData = async () => {
     let response = await userHomeBases(session.data?.user.id!)
@@ -190,10 +202,10 @@ function Profile() {
     fetchData()
   }, [])
 
-  const onLocationSet = async (locationData: LocationSetData, localUpdater: (newData: Pick<HomeBase, 'id' | 'location' | 'active'>[]) => void) => {
+  const onLocationSet = async (locationData: LocationSetData, localUpdater: (newData: Pick<HomeBase, 'id' | 'location' | 'active' | 'coords'>[]) => void) => {
     const result = await upsertLocation(locationData)
     if (result) {
-      let updatedData: Pick<HomeBase, 'id' | 'location' | 'active'>[] = []
+      let updatedData: Pick<HomeBase, 'id' | 'location' | 'active' | 'coords'>[] = []
 
       if (locationData.homeBaseId)
         updatedData = [...homeBases.filter(homebase => result.id !== homebase.id), result]
