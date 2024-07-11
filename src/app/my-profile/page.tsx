@@ -123,17 +123,27 @@ const HomeBasesManager = ({ homeBases, closeAction, onLocationSet, updateHomeBas
                   </td>
                   <td>
                     <AddressToggle
+                      // The first condition ensures that the active home base is rendered as active on component creation
                       isEnabled={homebase.active || activeBaseId === homebase.id}
-                      onChange={(active: boolean) => onHomeBaseSelection(homebase, active)} />
+                      onChange={(active: boolean) => onHomeBaseSelection(homebase, active)}
+                    />
                   </td>
                   <td>
                     <PencilIcon className='w-[20px] text-green-200 cursor-pointer' />
                   </td>
                   <td className='flex justify-center'>
-                    <TrashIcon className='w-[20px] text-red-500 cursor-pointer' onClick={() => {
-                      removeHomeBase(homebase.id)
-                      setLocalHomeBases(localHomeBases.filter(localHomeBase => localHomeBase.id !== homebase.id))
-                    }} />
+                    <button
+                      disabled={homebase.active || activeBaseId === homebase.id}
+                      className='cursor-pointer disabled:opacity-50 disabled:cursor-default'
+                      title={`${(homebase.active || activeBaseId === homebase.id) ? 'You cannot delete an active home base' : ''}`}>
+                      <TrashIcon
+                        className='w-[20px] text-red-500'
+                        onClick={() => {
+                          removeHomeBase(homebase.id)
+                          setLocalHomeBases(localHomeBases.filter(localHomeBase => localHomeBase.id !== homebase.id))
+                        }}
+                      />
+                    </button>
                   </td>
                 </tr>
               )}
