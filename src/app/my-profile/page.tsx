@@ -4,23 +4,24 @@ import { exportAllContacts } from '@/actions/common/contacts-bulkactions'
 import { useNotification } from '@/app/NotificationsProvider'
 import CalendarOptionsMenu from '@/components/CalendarActionsMenu'
 import protectPage from '@/components/common/auth'
+import LocationPicker from '@/components/LocationPicker'
+import { changeHomeBaseStatus, removeHomeBase, upsertLocation, userHomeBases } from '@/lib/data/safeQueries'
+import { LocationSetData } from '@/lib/definitions'
 import { Dialog, Switch, Transition } from '@headlessui/react'
-import { UserIcon, MapPinIcon, ArrowLeftIcon } from '@heroicons/react/20/solid'
+import { ArrowLeftIcon, MapPinIcon, UserIcon } from '@heroicons/react/20/solid'
 import {
   ArrowDownTrayIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
+  PencilIcon,
   TrashIcon
 } from '@heroicons/react/24/outline'
+import { HomeBase } from '@prisma/client'
 import { signOut, useSession } from 'next-auth/react'
 import React, { Fragment, useEffect, useState } from 'react'
 import { deleteAccount } from '../../actions/common/delete-account'
 import Button from '../../components/Button'
 import LoadingSpinner from '../../components/common/spinner'
-import LocationPicker from '@/components/LocationPicker'
-import { HomeBase } from '@prisma/client'
-import { changeHomeBaseStatus, upsertLocation, userHomeBases } from '@/lib/data/safeQueries'
-import { LocationSetData } from '@/lib/definitions'
 
 
 type HomeBasesManagerProps = {
@@ -64,10 +65,9 @@ const AddressToggle = ({ isEnabled, onChange }: AddressToggleProps) => {
 const HomeBasesManager = ({ homeBases, closeAction, onLocationSet, updateHomeBases }: HomeBasesManagerProps) => {
   const maxHomeBases = homeBases.length === 2
   const noHomeBases = homeBases.length === 0
-  const [showLocationPicker, setShowLocationPicker] = useState(false)
+  const [showLocationPicker, setShowLocationPicker] = useState<boolean>(false)
   const [activeBaseId, setActiveBaseId] = useState<string>('')
   const [localHomeBases, setLocalHomeBases] = useState<Pick<HomeBase, 'id' | 'location' | 'active'>[]>(homeBases)
-
 
   const onHomeBaseSelection = async (homeBase: Pick<HomeBase, 'id' | 'location' | 'active'>, isActive: boolean) => {
     if (isActive) {
@@ -101,6 +101,8 @@ const HomeBasesManager = ({ homeBases, closeAction, onLocationSet, updateHomeBas
               <tr className='*:p-3'>
                 <th className='border-b border-slate-600'>Address</th>
                 <th className='border-b border-slate-600'>Status</th>
+                <th className='border-b border-slate-600'>Edit</th>
+                <th className='border-b border-slate-600'>Remove</th>
               </tr>
             </thead>
             <tbody>
@@ -115,6 +117,15 @@ const HomeBasesManager = ({ homeBases, closeAction, onLocationSet, updateHomeBas
                       isEnabled={homebase.active || activeBaseId === homebase.id}
                       onChange={(active: boolean) => onHomeBaseSelection(homebase, active)} />
                   </td>
+                  <td>
+                    <PencilIcon className='w-[20px] text-green-200 cursor-pointer' />
+                  </td>
+                  <td className='flex justify-center'>
+                    <TrashIcon className='w-[20px] text-red-500 cursor-pointer' onClick={() => {
+                      removeHomeBase(homebase.id)
+                      setLocalHomeBases(localHomeBases.filter(localHomeBase => localHomeBase.id !== homebase.id))
+                    }} />
+                  </td>
                 </tr>
               )}
             </tbody>
@@ -122,7 +133,7 @@ const HomeBasesManager = ({ homeBases, closeAction, onLocationSet, updateHomeBas
         }
         {!maxHomeBases &&
           <Button className="flex gap-2 justify-center items-center " onClick={() => setShowLocationPicker(true)}>
-            Set home base
+            Add home base
           </Button>
         }
       </div>

@@ -80,3 +80,10 @@ export const changeHomeBaseStatus = async (
     },
   })
 }
+
+export const removeHomeBase = async (homeBaseId: string) =>
+  await prisma.homeBase.delete({
+    where: {
+      id: homeBaseId,
+    },
+  })
