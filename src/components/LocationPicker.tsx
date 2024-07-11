@@ -86,8 +86,7 @@ export default function LocationPicker({ callClose, onLocationSet }: LocationPic
     const onClick = async () => {
         if (selectedPlace) {
             await onLocationSet({
-                createData: {
-                    active: false,
+                data: {
                     coords: `${selectedPlace?.geometry?.location?.lat()},${selectedPlace?.geometry?.location?.lng()}`,
                     location: selectedPlace.formatted_address || '',
                     timezone: 'pending' // TODO: get timezone from coords

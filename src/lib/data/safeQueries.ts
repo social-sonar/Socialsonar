@@ -20,19 +20,19 @@ export const userHomeBases = async (
   })
 
 export const upsertLocation = async ({
-  createData,
-  updateData,
+  data,
+  homeBaseId,
 }: LocationSetData): Promise<
   Pick<HomeBase, 'id' | 'location' | 'active'> | undefined
 > => {
-  if (updateData) {
-    const { homeBaseId, ...rest } = updateData
+  if (homeBaseId) {
     return await prisma.homeBase.update({
       where: {
         id: homeBaseId,
       },
       data: {
-        ...rest,
+        ...data,
+        active: false // After updating, the new location must be set to 'not in use'
       },
       select: {
         id: true,
@@ -40,11 +40,11 @@ export const upsertLocation = async ({
         active: true,
       },
     })
-  } else if (createData) {
+  } else {
     const session = await getSession()
     return await prisma.homeBase.create({
       data: {
-        ...createData,
+        ...data,
         userId: session.user.id,
       },
       select: {

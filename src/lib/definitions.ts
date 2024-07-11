@@ -207,6 +207,6 @@ export type LightEvent = {
 }
 
 export type LocationSetData = {
-  createData?: Omit<HomeBase, 'id' | 'userId'>
-  updateData?: Partial<Omit<HomeBase, 'id'>> & { homeBaseId: string }
+  data: Omit<HomeBase, 'id' | 'userId' | 'active'>,
+  homeBaseId?: string 
 }

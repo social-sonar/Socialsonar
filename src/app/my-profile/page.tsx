@@ -8,7 +8,7 @@ import LocationPicker from '@/components/LocationPicker'
 import { changeHomeBaseStatus, removeHomeBase, upsertLocation, userHomeBases } from '@/lib/data/safeQueries'
 import { LocationSetData } from '@/lib/definitions'
 import { Dialog, Switch, Transition } from '@headlessui/react'
-import { ArrowLeftIcon, MapPinIcon, UserIcon } from '@heroicons/react/20/solid'
+import { ArrowLeftIcon, MapPinIcon, UserIcon, PlusIcon } from '@heroicons/react/20/solid'
 import {
   ArrowDownTrayIcon,
   CheckCircleIcon,
@@ -67,6 +67,7 @@ const HomeBasesManager = ({ homeBases, closeAction, onLocationSet, updateHomeBas
   const noHomeBases = homeBases.length === 0
   const [showLocationPicker, setShowLocationPicker] = useState<boolean>(false)
   const [activeBaseId, setActiveBaseId] = useState<string>('')
+  const [editingHomeBaseId, setEditingHomeBaseId] = useState<string>('')
   const [localHomeBases, setLocalHomeBases] = useState<Pick<HomeBase, 'id' | 'location' | 'active'>[]>(homeBases)
 
   const onHomeBaseSelection = async (homeBase: Pick<HomeBase, 'id' | 'location' | 'active'>, isActive: boolean) => {
@@ -97,14 +98,16 @@ const HomeBasesManager = ({ homeBases, closeAction, onLocationSet, updateHomeBas
         <LocationPicker
           callClose={() => setShowLocationPicker(false)}
           onLocationSet={async (locationData: LocationSetData) => {
-            onLocationSet(locationData, localUpdater)
+            onLocationSet({ ...locationData, homeBaseId: editingHomeBaseId }, localUpdater)
+            setEditingHomeBaseId('')
+            setActiveBaseId('')
           }}
         />
       }
       <button onClick={closeAction}><ArrowLeftIcon className='w-10' /></button>
       <div className='flex flex-col gap-3 justify-center items-center'>
         {noHomeBases ?
-          <p>No home bases have been set yet</p> :
+          <p className='text-xl'>No home bases have been set yet</p> :
           <table className='table-auto border-collapse text-left border-slate-500'>
             <thead>
               <tr className='*:p-3'>
@@ -129,7 +132,13 @@ const HomeBasesManager = ({ homeBases, closeAction, onLocationSet, updateHomeBas
                     />
                   </td>
                   <td>
-                    <PencilIcon className='w-[20px] text-green-200 cursor-pointer' />
+                    <PencilIcon
+                      className='w-[20px] text-green-200 cursor-pointer'
+                      onClick={() => {
+                        setEditingHomeBaseId(homebase.id)
+                        setShowLocationPicker(true)
+                      }}
+                    />
                   </td>
                   <td className='flex justify-center'>
                     <button
@@ -151,8 +160,9 @@ const HomeBasesManager = ({ homeBases, closeAction, onLocationSet, updateHomeBas
           </table>
         }
         {!maxHomeBases &&
-          <Button className="flex gap-2 justify-center items-center " onClick={() => setShowLocationPicker(true)}>
-            Add home base
+          <Button className="justify-center items-center rounded-xl" onClick={() => setShowLocationPicker(true)}>
+            <span>Add home base</span>
+            <PlusIcon className='w-[25px] text-blue-500' />
           </Button>
         }
       </div>
@@ -183,8 +193,14 @@ function Profile() {
   const onLocationSet = async (locationData: LocationSetData, localUpdater: (newData: Pick<HomeBase, 'id' | 'location' | 'active'>[]) => void) => {
     const result = await upsertLocation(locationData)
     if (result) {
-      setHomeBases([...homeBases, result])
-      localUpdater([...homeBases, result])
+      let updatedData: Pick<HomeBase, 'id' | 'location' | 'active'>[] = []
+
+      if (locationData.homeBaseId)
+        updatedData = [...homeBases.filter(homebase => result.id !== homebase.id), result]
+      else updatedData = [...homeBases, result]
+
+      localUpdater(updatedData)
+      setHomeBases(updatedData)
     }
   }
 
