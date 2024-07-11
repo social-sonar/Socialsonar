@@ -1,3 +1,4 @@
+import { LocationSetData } from '@/lib/definitions';
 import { Dialog, Transition } from '@headlessui/react';
 import {
     AdvancedMarker,
@@ -61,24 +62,40 @@ const PlaceAutocomplete = ({ onPlaceSelect }: PlaceAutocompleteProps) => {
 
     return (
         <div className="autocomplete-container text-black">
-            <input ref={inputRef} />
+            <input ref={inputRef} className='rounded-md' />
         </div>
     );
 };
 
-export default function LocationPicker({ callClose }: { callClose: () => void }) {
-    const [selectedPlace, setSelectedPlace] =
-        useState<google.maps.places.PlaceResult | null>(null);
+type LocationPickerProps = {
+    callClose: () => void,
+    onLocationSet: (locationData: LocationSetData) => Promise<void>
+}
+
+export default function LocationPicker({ callClose, onLocationSet }: LocationPickerProps) {
+    const [selectedPlace, setSelectedPlace] = useState<google.maps.places.PlaceResult | null>(null);
     const [markerRef, marker] = useAdvancedMarkerRef();
     const [open, setOpen] = useState(true)
-
-    console.log(`Lat: ${selectedPlace?.geometry?.location?.lat()} - Lng: ${selectedPlace?.geometry?.location?.lng()}`);
 
     useEffect(() => {
         if (!open) {
             callClose()
         }
     }, [open])
+
+    const onClick = async () => {
+        if (selectedPlace) {
+            await onLocationSet({
+                createData: {
+                    active: false,
+                    coords: `${selectedPlace?.geometry?.location?.lat()},${selectedPlace?.geometry?.location?.lng()}`,
+                    location: selectedPlace.formatted_address || '',
+                    timezone: 'pending' // TODO: get timezone from coords
+                }
+            })
+        }
+        setOpen(false)
+    }
 
     return (
 
@@ -105,7 +122,7 @@ export default function LocationPicker({ callClose }: { callClose: () => void })
                             leaveFrom="opacity-100 translate-y-0 sm:scale-100"
                             leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                         >
-                            <Dialog.Panel className="relative  rounded-lg  ">
+                            <Dialog.Panel className="relative rounded-lg  bg-white p-5 flex flex-col gap-5">
                                 <APIProvider
                                     apiKey=''
                                     solutionChannel='GMP_devsite_samples_v3_rgmautocomplete'>
@@ -126,6 +143,17 @@ export default function LocationPicker({ callClose }: { callClose: () => void })
                                     </Map>
                                     <MapHandler place={selectedPlace} marker={marker} />
                                 </APIProvider>
+
+                                <div className="flex justify-end">
+                                    <button
+                                        type="button"
+                                        className="bg-gray-600 p-2 rounded-lg"
+                                        onClick={onClick}
+                                        data-autofocus
+                                    >
+                                        Choose location
+                                    </button>
+                                </div>
                             </Dialog.Panel>
                         </Transition.Child>
                     </div>
