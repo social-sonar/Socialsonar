@@ -28,7 +28,7 @@ type HomeBasesManagerProps = {
   homeBases: Pick<HomeBase, 'id' | 'location' | 'active'>[],
   updateHomeBases: (homeBases: Pick<HomeBase, 'id' | 'location' | 'active'>[]) => void,
   closeAction: () => void,
-  onLocationSet: (locationData: LocationSetData) => Promise<void>
+  onLocationSet: (locationData: LocationSetData, localUpdater: (newData: Pick<HomeBase, 'id' | 'location' | 'active'>[]) => void) => Promise<void>
 }
 
 type AddressToggleProps = {
@@ -83,6 +83,8 @@ const HomeBasesManager = ({ homeBases, closeAction, onLocationSet, updateHomeBas
     await changeHomeBaseStatus(homeBase.id, isActive)
   }
 
+  const localUpdater = (newData: Pick<HomeBase, 'id' | 'location' | 'active'>[]) => setLocalHomeBases(newData)
+
   useEffect(() => {
     updateHomeBases(localHomeBases)
   }, [closeAction, localHomeBases])
@@ -91,7 +93,14 @@ const HomeBasesManager = ({ homeBases, closeAction, onLocationSet, updateHomeBas
   return (
     <div className='flex flex-col gap-5 justify-center items-center'>
       {/* layout does not matter here as the LocationPicker is a modal */}
-      {showLocationPicker && <LocationPicker callClose={() => setShowLocationPicker(false)} onLocationSet={onLocationSet} />}
+      {showLocationPicker &&
+        <LocationPicker
+          callClose={() => setShowLocationPicker(false)}
+          onLocationSet={async (locationData: LocationSetData) => {
+            onLocationSet(locationData, localUpdater)
+          }}
+        />
+      }
       <button onClick={closeAction}><ArrowLeftIcon className='w-10' /></button>
       <div className='flex flex-col gap-3 justify-center items-center'>
         {noHomeBases ?
@@ -161,10 +170,12 @@ function Profile() {
     fetchData()
   }, [])
 
-  const onLocationSet = async (locationData: LocationSetData) => {
+  const onLocationSet = async (locationData: LocationSetData, localUpdater: (newData: Pick<HomeBase, 'id' | 'location' | 'active'>[]) => void) => {
     const result = await upsertLocation(locationData)
-    if (result)
+    if (result) {
       setHomeBases([...homeBases, result])
+      localUpdater([...homeBases, result])
+    }
   }
 
   const handleExport = async () => {
