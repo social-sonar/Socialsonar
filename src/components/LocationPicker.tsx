@@ -95,8 +95,7 @@ export default function LocationPicker({ callClose, onLocationSet, position }: L
             await onLocationSet({
                 data: {
                     coords: `${selectedPlace?.geometry?.location?.lat()},${selectedPlace?.geometry?.location?.lng()}`,
-                    location: selectedPlace.formatted_address || '',
-                    timezone: 'pending' // TODO: get timezone from coords
+                    location: selectedPlace.formatted_address || ''
                 }
             })
         }

@@ -201,12 +201,12 @@ export interface BackupFileData {
 }
 
 export type LightEvent = {
-  start: Date,
-  end: Date,
+  start: Date
+  end: Date
   recurrence: string
 }
 
 export type LocationSetData = {
-  data: Omit<HomeBase, 'id' | 'userId' | 'active'>,
-  homeBaseId?: string 
+  data: Pick<HomeBase, 'location' | 'coords'>
+  homeBaseId?: string
 }

@@ -1,6 +1,7 @@
 'use server'
 
 import prisma from '@/db'
+import tzlookup from '@photostructure/tz-lookup'
 import { HomeBase } from '@prisma/client'
 import { LocationSetData } from '../definitions'
 import { getSession } from '../utils/common'
@@ -26,6 +27,8 @@ export const upsertLocation = async ({
 }: LocationSetData): Promise<
   Pick<HomeBase, 'id' | 'location' | 'active' | 'coords'> | undefined
 > => {
+  const [lat, lon] = data.coords.split(',').map(Number)
+  const timezone = tzlookup(lat, lon)
   if (homeBaseId) {
     return await prisma.homeBase.update({
       where: {
@@ -34,6 +37,7 @@ export const upsertLocation = async ({
       data: {
         ...data,
         active: false, // After updating, the new location must be set to 'not in use'
+        timezone,
       },
       select: {
         id: true,
@@ -48,6 +52,7 @@ export const upsertLocation = async ({
       data: {
         ...data,
         userId: session.user.id,
+        timezone,
       },
       select: {
         id: true,
