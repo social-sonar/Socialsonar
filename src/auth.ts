@@ -15,7 +15,7 @@ export default NextAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       authorization: {
         params: {
-          scope: googleScopes.join(' ')
+          scope: googleScopes.join(' '),
           prompt: 'select_account',
           access_type: 'offline',
         },
