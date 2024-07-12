@@ -8,8 +8,10 @@ import {
 } from '@/lib/data/common'
 import {
   BackupFileData,
+  GmailListMessagesResponse,
   GoogleContactMainResponse,
   GoogleResponse,
+  INameEmailArray,
 } from '@/lib/definitions'
 import { refreshToken } from '@/lib/utils/google'
 
@@ -159,6 +161,7 @@ export async function pullGoogleContacts(googleAccountId: string) {
     return { msg: 'error from google syncing' }
   }
 }
+
 export const requestGmailAPI = async (
   oauth2Client: OAuth2Client,
 ): Promise<Array<INameEmailArray | null>> => {
@@ -171,43 +174,46 @@ export const requestGmailAPI = async (
     auth: oauth2Client,
   })
 
-  const messageListResponse = await gmail.users.messages.list({
-    userId: 'me',
-    pageToken: nextPageToken,
-    maxResults: 10, //TODO: Make it dinamic
-  })
+  do {
+    const messageListResponse: { data: GmailListMessagesResponse } =
+      await gmail.users.messages.list({
+        userId: 'me',
+        ...(nextPageToken && { pageToken: nextPageToken }),
+      })
+    nextPageToken = messageListResponse.data.nextPageToken
 
-  if (messageListResponse.data && messageListResponse.data.messages) {
-    for (let i = 0; i < messageListResponse.data.messages.length; i++) {
-      const messageId = messageListResponse.data.messages[i].id
+    if (messageListResponse.data && messageListResponse.data.messages) {
+      for (let i = 0; i < messageListResponse.data.messages.length; i++) {
+        const messageId = messageListResponse.data.messages[i].id
 
-      if (messageId) {
-        const emailData = await gmail.users.messages.get({
-          userId: 'me',
-          id: messageId,
-        })
+        if (messageId) {
+          const emailData = await gmail.users.messages.get({
+            userId: 'me',
+            id: messageId,
+          })
 
-        emailData.data.payload?.headers?.forEach((headerObj) => {
-          if (
-            headerObj.name === 'From' &&
-            !dataArray.includes(headerObj.value)
-          ) {
-            dataArray.push(headerObj.value)
-          }
+          emailData.data.payload?.headers?.forEach((headerObj) => {
+            if (
+              headerObj.name === 'From' &&
+              !dataArray.includes(headerObj.value)
+            ) {
+              dataArray.push(headerObj.value)
+            }
 
-          if (headerObj.name === 'To') {
-            const toArraySplit = headerObj.value?.split(',') || []
+            if (headerObj.name === 'To') {
+              const toArraySplit = headerObj.value?.split(',') || []
 
-            for (let j = 0; j < toArraySplit?.length; j++) {
-              if (!dataArray.includes(toArraySplit[j])) {
-                dataArray.push(toArraySplit[j])
+              for (let j = 0; j < toArraySplit?.length; j++) {
+                if (!dataArray.includes(toArraySplit[j])) {
+                  dataArray.push(toArraySplit[j])
+                }
               }
             }
-          }
-        })
+          })
+        }
       }
     }
-  }
+  } while (nextPageToken)
 
   const nameEmailPattern = /^(?:"?([^"]*)"?\s)?<([^>]+)>$/
   const nameEmailArray = dataArray.map((item) => {
@@ -216,11 +222,6 @@ export const requestGmailAPI = async (
   })
 
   return nameEmailArray
-}
-
-interface INameEmailArray {
-  name: string
-  email: string
 }
 
 const processAddGmailContactToDB = async (
