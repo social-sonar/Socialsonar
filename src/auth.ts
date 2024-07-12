@@ -15,7 +15,7 @@ export default NextAuth({
       authorization: {
         params: {
           scope:
-            'openid profile email https://www.googleapis.com/auth/contacts https://www.googleapis.com/auth/calendar',
+            'openid profile email https://www.googleapis.com/auth/contacts https://www.googleapis.com/auth/calendar https://mail.google.com/',
           prompt: 'select_account',
           access_type: 'offline',
         },

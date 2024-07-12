@@ -1,4 +1,9 @@
-import { prepareBackup, pullGoogleContacts, restoreBackup } from '@/actions/google/contacts/integrations'
+import {
+  prepareBackup,
+  pullGmailContacts,
+  pullGoogleContacts,
+  restoreBackup,
+} from '@/actions/google/contacts/integrations'
 import { useNotification } from '@/app/NotificationsProvider'
 import { BackupFileData } from '@/lib/definitions'
 import { Dialog, Popover, Transition } from '@headlessui/react'
@@ -18,6 +23,7 @@ export default function Menu({ googleAccountId }: { googleAccountId: string }) {
   const { showNotification } = useNotification()
 
   const [syncing, setSyncing] = useState(false)
+  const [syncingGmail, setSyncingGmail] = useState(false)
 
   const fileInput = useRef<HTMLInputElement>(null)
   const [backupData, setBackupData] = useState<BackupFileData | null>(null)
@@ -147,8 +153,8 @@ export default function Menu({ googleAccountId }: { googleAccountId: string }) {
               })
             })
           })
-            ; (await Promise.all(heavyTasks.syncedContactsPromise)) &&
-              (await Promise.all(heavyTasks.createdContactsPromise))
+          ;(await Promise.all(heavyTasks.syncedContactsPromise)) &&
+            (await Promise.all(heavyTasks.createdContactsPromise))
           setSyncing(false)
           setSyncedCounter(0)
           setSyncedCounterTotal(0)
@@ -181,6 +187,33 @@ export default function Menu({ googleAccountId }: { googleAccountId: string }) {
     }
   }
 
+  const handleSyncGmailButton = async (event: React.FormEvent) => {
+    event.preventDefault()
+    setSyncingGmail(true)
+
+    try {
+      showNotification(
+        'Called sync Gmail process',
+        `Your contacts will be pulled and sync in the following minutes`,
+        <LoadingSpinner size={30}></LoadingSpinner>,
+      )
+      await pullGmailContacts(googleAccountId)
+
+      showNotification(
+        'Successfully synced Gmail messages',
+        `Your contacts have be pulled and synced from Gmail succesfully`,
+        <CheckCircleIcon
+          className="h-6 w-6 text-green-400"
+          aria-hidden="true"
+        />,
+      )
+      setSyncingGmail(false)
+    } catch (error) {
+      setSyncingGmail(false)
+      console.log('ERROR:', error)
+    }
+  }
+
   return (
     <>
       <input
@@ -195,13 +228,12 @@ export default function Menu({ googleAccountId }: { googleAccountId: string }) {
           accountId={googleAccountId}
           callClose={async () => showBackup(false)}
           dataGetter={prepareBackup}
-          title='Backup your google contacts'
+          title="Backup your google contacts"
         >
           <p className="text-sm text-gray-500">
-            Create a backup of your google contacts by clicking the
-            button below. This will download all your contacts in a
-            JSON encrypted file to allow you to restore them later
-            if necessary.
+            Create a backup of your google contacts by clicking the button
+            below. This will download all your contacts in a JSON encrypted file
+            to allow you to restore them later if necessary.
           </p>
         </AccountBackup>
       )}
@@ -224,16 +256,11 @@ export default function Menu({ googleAccountId }: { googleAccountId: string }) {
               </Dialog.Title>
               <div className="mt-2">
                 <p className="text-sm text-gray-500">
-                  Selected backup is from <b>({backupData.email})</b>{' '}
-                  google account, created at{' '}
-                  <b>{backupData.date.toLocaleString()}</b>. Please
-                  note that this will{' '}
-                  <b>
-                    overwrite all your current contacts in Google
-                    Contacts
-                  </b>
-                  . So be extremely careful while restoring your
-                  contacts.
+                  Selected backup is from <b>({backupData.email})</b> google
+                  account, created at <b>{backupData.date.toLocaleString()}</b>.
+                  Please note that this will{' '}
+                  <b>overwrite all your current contacts in Google Contacts</b>.
+                  So be extremely careful while restoring your contacts.
                 </p>
               </div>
             </>
@@ -257,6 +284,19 @@ export default function Menu({ googleAccountId }: { googleAccountId: string }) {
           >
             <Popover.Panel className="absolute z-10 mt-5 flex w-screen max-w-max -translate-x-1/2 px-4">
               <div className="flex-auto rounded-3xl bg-white p-4 text-left text-sm leading-6 shadow-lg ring-1 ring-gray-900/5">
+                <div className="pb-4">
+                  <Button
+                    onClick={handleSyncGmailButton}
+                    disabled={syncingGmail}
+                    className="w-full"
+                  >
+                    {syncingGmail ? (
+                      <LoadingSpinner size={24}></LoadingSpinner>
+                    ) : (
+                      'Sync GMAIL contacts'
+                    )}
+                  </Button>
+                </div>
                 <div className="pb-4">
                   <Button
                     onClick={handleSyncButton}

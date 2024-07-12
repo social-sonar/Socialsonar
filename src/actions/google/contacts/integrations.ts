@@ -8,8 +8,10 @@ import {
 } from '@/lib/data/common'
 import {
   BackupFileData,
+  GmailListMessagesResponse,
   GoogleContactMainResponse,
   GoogleResponse,
+  INameEmailArray,
 } from '@/lib/definitions'
 import { refreshToken } from '@/lib/utils/google'
 
@@ -157,6 +159,183 @@ export async function pullGoogleContacts(googleAccountId: string) {
     console.error(error)
 
     return { msg: 'error from google syncing' }
+  }
+}
+
+export const requestGmailAPI = async (
+  oauth2Client: OAuth2Client,
+): Promise<Array<INameEmailArray | null>> => {
+  let nextPageToken: string | undefined | null = ''
+
+  let dataArray: any[] = []
+
+  const gmail = google.gmail({
+    version: 'v1',
+    auth: oauth2Client,
+  })
+
+  do {
+    const messageListResponse: { data: GmailListMessagesResponse } =
+      await gmail.users.messages.list({
+        userId: 'me',
+        ...(nextPageToken && { pageToken: nextPageToken }),
+      })
+    nextPageToken = messageListResponse.data.nextPageToken
+
+    if (messageListResponse.data && messageListResponse.data.messages) {
+      for (let i = 0; i < messageListResponse.data.messages.length; i++) {
+        const messageId = messageListResponse.data.messages[i].id
+
+        if (messageId) {
+          const emailData = await gmail.users.messages.get({
+            userId: 'me',
+            id: messageId,
+          })
+
+          emailData.data.payload?.headers?.forEach((headerObj) => {
+            if (
+              headerObj.name === 'From' &&
+              !dataArray.includes(headerObj.value)
+            ) {
+              dataArray.push(headerObj.value)
+            }
+
+            if (headerObj.name === 'To') {
+              const toArraySplit = headerObj.value?.split(',') || []
+
+              for (let j = 0; j < toArraySplit?.length; j++) {
+                if (!dataArray.includes(toArraySplit[j])) {
+                  dataArray.push(toArraySplit[j])
+                }
+              }
+            }
+          })
+        }
+      }
+    }
+  } while (nextPageToken)
+
+  const nameEmailPattern = /^(?:"?([^"]*)"?\s)?<([^>]+)>$/
+  const nameEmailArray = dataArray.map((item) => {
+    const match = item.match(nameEmailPattern)
+    return match ? { name: match[1]?.trim() || '', email: match[2] } : null
+  })
+
+  return nameEmailArray
+}
+
+const processAddGmailContactToDB = async (
+  nameEmailArray: Array<INameEmailArray | null>,
+  userId: string,
+  googleAccountId: string,
+  userEmail: string | null | undefined,
+) => {
+  for (let i = 0; i < nameEmailArray.length; i++) {
+    const element = nameEmailArray[i]
+
+    if (element && element.email !== userEmail) {
+      const resp = await prisma.contact.findFirst({
+        where: { name: element.name },
+      })
+
+      if (!resp) {
+        const newContact = await prisma.contact.create({
+          data: {
+            name: element.name,
+            nickName: null,
+            birthday: null,
+            userId: userId,
+            googleAccountId,
+          },
+        })
+
+        let emailId: number
+        const existEmail = await prisma.email.findFirst({
+          where: { address: element.email },
+        })
+
+        if (!existEmail) {
+          const emailResult = await prisma.email.create({
+            data: { address: element.email },
+          })
+          emailId = emailResult.id
+        } else {
+          emailId = existEmail.id
+        }
+
+        await prisma.contactEmail.create({
+          data: {
+            contactId: newContact.id,
+            emailId,
+          },
+        })
+      }
+    }
+  }
+}
+async function fetchGmailContacts(googleAccountId: string) {
+  const session = await getSession()
+
+  const userId = session.user.id
+
+  const userGoogleAccount = await prisma.userGoogleAccount.findFirst({
+    where: {
+      googleAccountId,
+      userId,
+    },
+    include: {
+      googleAccount: true,
+    },
+  })
+
+  if (!userGoogleAccount) {
+    throw new Error(`Google Account not found ${googleAccountId}`)
+  }
+
+  const googleAccount = userGoogleAccount.googleAccount
+
+  const oauth2Client = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    process.env.REDIRECT_URL,
+  )
+
+  oauth2Client.setCredentials({ access_token: googleAccount.accessToken })
+
+  // Fetch the user's Google Contacts
+  let response: Array<INameEmailArray | null>
+  try {
+    response = await requestGmailAPI(oauth2Client)
+  } catch (error: unknown) {
+    try {
+      await refreshToken(googleAccount, oauth2Client)
+      response = await requestGmailAPI(oauth2Client)
+    } catch (error: unknown) {
+      console.error('catched error 2 level', error)
+
+      throw error
+    }
+    console.error('catched error 1 level', error)
+  }
+
+  await processAddGmailContactToDB(
+    response,
+    userId,
+    googleAccountId,
+    session.user.email,
+  )
+
+  return response
+}
+export async function pullGmailContacts(googleAccountId: string) {
+  try {
+    const response = await fetchGmailContacts(googleAccountId)
+    return response
+  } catch (error) {
+    Sentry.captureException(error)
+    console.error(error)
+
+    return { msg: 'error from Gmail syncing' }
   }
 }
 

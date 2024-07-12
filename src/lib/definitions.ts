@@ -9,7 +9,7 @@ import {
   Address,
   Email,
 } from '@prisma/client'
-import { people_v1 } from 'googleapis'
+import { people_v1, gmail_v1 } from 'googleapis'
 import { Session } from 'next-auth'
 
 interface PhoneValidResult {
@@ -200,7 +200,14 @@ export interface BackupFileData {
 }
 
 export type LightEvent = {
-  start: Date,
-  end: Date,
+  start: Date
+  end: Date
   recurrence: string
+}
+
+export type GmailListMessagesResponse = gmail_v1.Schema$ListMessagesResponse
+
+export interface INameEmailArray {
+  name: string
+  email: string
 }
