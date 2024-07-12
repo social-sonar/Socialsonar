@@ -114,9 +114,8 @@ async function fetchGoogleContacts(
         oauth2Client,
         ignoreSyncToken ? null : googleAccount.token,
       )
-    } catch (error: unknown) {
+    } catch (error: unknown) { 
       console.error('catched error 2 level', error)
-
       throw error
     }
     console.error('catched error 1 level', error)
@@ -152,13 +151,22 @@ export async function pullGoogleContacts(googleAccountId: string) {
       Sentry.captureException(response)
       console.error('unhandled error', response)
 
-      return { msg: 'error from google syncing' }
+      return { msg: 'error from google syncing 1' }
     }
-  } catch (error) {
+  } catch (error : any) {
     Sentry.captureException(error)
     console.error(error)
 
-    return { msg: 'error from google syncing' }
+    if (error.response && error.response.data && error.response.data.error) {
+      if (error.response.data.error.code == 403) {
+        return { msg: 'Insufficient Permissions, please add again your google account' }        
+      } else if (error.response.data.error.code > 400 ) {
+        return { msg: 'Error from Google' }
+      }
+        
+      }
+
+    return { msg: 'error from google syncing process' }
   }
 }
 
