@@ -115,7 +115,12 @@ const HomeBasesManager = ({ homeBases, closeAction, onLocationSet, updateHomeBas
           <table className='table-auto border-collapse text-left border-slate-500'>
             <thead>
               <tr className='*:p-3'>
-                <th className='border-b border-slate-600'>Address</th>
+                <th className='border-b border-slate-600'>
+                  <div className='flex gap-2 items-center'>
+                    <span>Address</span>
+                    <MapPinIcon className='w-[20px] text-red-500' />
+                  </div>
+                </th>
                 <th className='border-b border-slate-600'>Status</th>
                 <th className='border-b border-slate-600'>Edit</th>
                 <th className='border-b border-slate-600'>Remove</th>
@@ -124,10 +129,7 @@ const HomeBasesManager = ({ homeBases, closeAction, onLocationSet, updateHomeBas
             <tbody>
               {localHomeBases.map((homebase) =>
                 <tr key={homebase.id} className='*:p-3'>
-                  <td className='flex gap-1'>
-                    <MapPinIcon className='w-[20px] text-red-500' />
-                    <span>{homebase.location}</span>
-                  </td>
+                  <td>{homebase.location}</td>
                   <td>
                     <AddressToggle
                       // The first condition ensures that the active home base is rendered as active on component creation
