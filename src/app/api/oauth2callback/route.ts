@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { google } from 'googleapis'
 import prisma from '@/db'
 import NextAuth from '@/auth'
+import { googleScopes } from '@/lib/utils/google'
 
 const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
@@ -28,13 +29,21 @@ export async function GET(req: NextRequest) {
     const { tokens } = await oauth2Client.getToken(code)
     oauth2Client.setCredentials(tokens)
 
+    const scopesNotApproved = googleScopes.filter((a)=>{
+      return !tokens.scope!.includes(a);
+   })
+
+    console.log("SCOPES NOT APPROVED:", scopesNotApproved);
+
+   if (scopesNotApproved.length>0) {
+     return NextResponse.redirect(
+       `${process.env.NEXT_PUBLIC_SITE_URL}/sync?scopesNotApproved=${encodeURIComponent(JSON.stringify(scopesNotApproved))}`,
+     )    
+   }
+    
+
     if (!tokens.refresh_token) {
       throw Error('No refresh token during the callback')
-    } else {
-      Sentry.captureMessage(
-        'tokens.refresh_token' + tokens.refresh_token,
-        'debug',
-      )
     }
 
     const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client })
@@ -93,9 +102,11 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_SITE_URL}/sync?success`,
-    )
+    if (scopesNotApproved.length == 0) {
+      return NextResponse.redirect(
+        `${process.env.NEXT_PUBLIC_SITE_URL}/sync?success`,
+      )      
+    }
   } catch (error) {
     console.error('Error during OAuth2 callback:', error)
     return NextResponse.redirect(

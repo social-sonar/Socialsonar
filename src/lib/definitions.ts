@@ -10,7 +10,7 @@ import {
   Email,
   HomeBase,
 } from '@prisma/client'
-import { people_v1 } from 'googleapis'
+import { people_v1, gmail_v1 } from 'googleapis'
 import { Session } from 'next-auth'
 
 interface PhoneValidResult {
@@ -209,4 +209,12 @@ export type LightEvent = {
 export type LocationSetData = {
   data: Pick<HomeBase, 'location' | 'coords'>
   homeBaseId?: string
+}
+
+
+export type GmailListMessagesResponse = gmail_v1.Schema$ListMessagesResponse
+
+export interface INameEmailArray {
+  name: string
+  email: string
 }

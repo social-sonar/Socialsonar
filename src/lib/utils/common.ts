@@ -34,3 +34,8 @@ export const getOAuthClient = async (
 
   return {oauth2Client, googleAccount: googleAccount!}
 }
+
+
+export function classNames(...classes: string[]) {
+  return classes.filter(Boolean).join(' ')
+}

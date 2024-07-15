@@ -6,6 +6,7 @@ import { PrismaAdapter } from '@auth/prisma-adapter'
 import { prisma } from '@/db'
 import { CustomSession } from '@/lib/definitions'
 import { syncGoogleCalendar } from './lib/data/google/events'
+import { googleScopes } from './lib/utils/google'
 
 export default NextAuth({
   providers: [
@@ -14,8 +15,7 @@ export default NextAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       authorization: {
         params: {
-          scope:
-            'openid profile email https://www.googleapis.com/auth/contacts https://www.googleapis.com/auth/calendar',
+          scope: googleScopes.join(' '),
           prompt: 'select_account',
           access_type: 'offline',
         },
@@ -79,17 +79,17 @@ export default NextAuth({
       return feededSession
     },
     async signIn({ user }) {
-      const userGoogleAccount = await prisma.userGoogleAccount.findFirst({
-        where: {
-          userId: user.id,
-        },
-        include: {
-          googleAccount: true,
-        },
-      })
-      if (userGoogleAccount)
-        await syncGoogleCalendar(user.id!, userGoogleAccount!.googleAccount)
-      return true
+        const userGoogleAccount = await prisma.userGoogleAccount.findFirst({
+          where: {
+            userId: user.id,
+          },
+          include: {
+            googleAccount: true,
+          },
+        })
+        if (userGoogleAccount)
+          await syncGoogleCalendar(user.id!, userGoogleAccount!.googleAccount)
+        return true        
     },
   },
 })

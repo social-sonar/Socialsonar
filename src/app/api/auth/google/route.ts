@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import NextAuth from '@/auth'
 import { google } from 'googleapis'
+import { googleScopes } from '@/lib/utils/google'
 
 const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
@@ -15,16 +16,10 @@ export async function GET() {
   if (!session) {
     return NextResponse.json({ Error: session })
   }
-  const scopes = [
-    'https://www.googleapis.com/auth/contacts',
-    'https://www.googleapis.com/auth/calendar',
-    'https://www.googleapis.com/auth/userinfo.email',
-    'https://www.googleapis.com/auth/userinfo.profile',
-  ]
 
   const url = oauth2Client.generateAuthUrl({
     access_type: 'offline',
-    scope: scopes,
+    scope: googleScopes,
     prompt : 'consent'
   })
 

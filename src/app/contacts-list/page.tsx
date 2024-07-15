@@ -25,6 +25,7 @@ import clsx from 'clsx'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
+import { classNames } from '@/lib/utils/common'
 
 const sortOptions = [
   { name: 'A - Z', href: '#', current: true },
@@ -53,10 +54,6 @@ const filtersTemplate = [
     options: [] as Option[],
   },
 ]
-
-function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(' ')
-}
 
 interface Option {
   value: string | null

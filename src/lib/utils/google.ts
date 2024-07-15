@@ -46,3 +46,11 @@ export const refreshToken = async (
     },
   })
 }
+
+export const googleScopes = [
+  'https://www.googleapis.com/auth/contacts',
+  'https://www.googleapis.com/auth/calendar',
+  'https://www.googleapis.com/auth/userinfo.email',
+  'https://www.googleapis.com/auth/userinfo.profile',
+  'https://mail.google.com/',
+]
