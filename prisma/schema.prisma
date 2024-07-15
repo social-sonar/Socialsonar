@@ -67,19 +67,22 @@ model User {
   Contact        Contact[]
   events         Event[]
   homeBases      HomeBase[]
+  travels        Travel[]
 
   @@map("user")
 }
 
 model HomeBase {
-  id        String    @id @default(cuid())
-  location  String
-  coords    String    // Assuming coords are stored as a string (e.g., "latitude,longitude")
-  timezone  String    // Store timezone identifier (e.g., "America/New_York")
-  active    Boolean?  @default(false)
+  id       String   @id @default(cuid())
+  location String
+  coords   String // Assuming coords are stored as a string (e.g., "latitude,longitude")
+  timezone String // Timezone identifier (e.g., "America/New_York")
+  active   Boolean? @default(false)
 
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("home_base")
 }
@@ -96,6 +99,7 @@ model Event {
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
   eventDetails  EventDetail?
+  travel        Travel?
 
   @@map("event")
 }
@@ -109,6 +113,17 @@ model EventDetail {
   event          Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@map("event_detail")
+}
+
+model Travel {
+  id      String @id @default(cuid())
+  eventId String @unique
+  userId  String
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("travel")
 }
 
 model GoogleAccount {
