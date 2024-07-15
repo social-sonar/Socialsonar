@@ -180,64 +180,59 @@ export default function CalendarOptionsMenu({ userId }: { userId: string }) {
           >
             <Popover.Panel className="absolute z-10 flex w-screen max-w-max px-4 left-10 top-14">
               <div className="flex flex-col rounded-3xl bg-white p-4 text-left text-sm leading-6 shadow-lg ring-1 ring-gray-900/5 gap-3">
-                <div>
-                  <Button className="w-full"
-                    disabled={syncing}
-                    onClick={async () => {
-                      setSyncing(true)
-                      await syncGoogleCalendar(userId, undefined, false)
-                      setSyncing(false)
-                      showNotification(
-                        'Done',
-                        `Your events were pulled and sync successfully`,
-                        <CheckBadgeIcon
-                          className="text-sm text-green-600 w-[25px]"
-                        />,
-                      )
-                    }}>
-                    {
-                      syncing &&
-                      <LoadingSpinner size={24} />
+                <Button className="w-full"
+                  disabled={syncing}
+                  onClick={async () => {
+                    setSyncing(true)
+                    await syncGoogleCalendar(userId, undefined, false)
+                    setSyncing(false)
+                    showNotification(
+                      'Done',
+                      `Your events were pulled and sync successfully`,
+                      <CheckBadgeIcon
+                        className="text-sm text-green-600 w-[25px]"
+                      />,
+                    )
+                  }}>
+                  {
+                    syncing &&
+                    <LoadingSpinner size={24} />
+                  }
+                  <span>Sync calendar</span>
+                </Button>
+                <Button>
+                  Register travel
+                </Button>
+                <Button
+                  onClick={async () => {
+                    showGenerator(true)
+                    await syncGoogleCalendar(userId, undefined, false)
+                  }}
+                  className="w-full"
+                >
+                  Generate event URL
+                </Button>
+                <Button
+                  onClick={() => {
+                    showBackup(true)
+                  }}
+                  className="w-full"
+                >
+                  Backup events
+                </Button>
+                <Button
+                  disabled={false}
+                  onClick={() => {
+                    if (fileInput.current) {
+                      fileInput.current.value = ''
+                      setBackupData(null)
+                      fileInput.current?.click()
                     }
-                    <span>Sync calendar</span>
-                  </Button>
-                </div>
-                <div>
-                  <Button
-                    onClick={async () => {
-                      showGenerator(true)
-                      await syncGoogleCalendar(userId, undefined, false)
-                    }}
-                    className="w-full"
-                  >
-                    Generate event URL
-                  </Button>
-                </div>
-                <div>
-                  <Button
-                    onClick={() => {
-                      showBackup(true)
-                    }}
-                    className="w-full"
-                  >
-                    Backup events
-                  </Button>
-                </div>
-                <div>
-                  <Button
-                    disabled={false}
-                    onClick={() => {
-                      if (fileInput.current) {
-                        fileInput.current.value = ''
-                        setBackupData(null)
-                        fileInput.current?.click()
-                      }
-                    }}
-                    className="w-full"
-                  >
-                    Restore events
-                  </Button>
-                </div>
+                  }}
+                  className="w-full"
+                >
+                  Restore events
+                </Button>
               </div>
             </Popover.Panel>
           </Transition>
