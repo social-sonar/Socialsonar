@@ -127,7 +127,7 @@ export default function LocationPicker({ callClose, onLocationSet, position }: L
                             leaveFrom="opacity-100 translate-y-0 sm:scale-100"
                             leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                         >
-                            <Dialog.Panel className="relative rounded-lg  bg-white p-5 flex flex-col gap-5">
+                            <Dialog.Panel className="relative rounded-lg bg-white p-5 flex flex-col gap-5">
                                 <APIProvider
                                     apiKey={process.env.NEXT_PUBLIC_MAP_API_KEY || ''}
                                     solutionChannel='GMP_devsite_samples_v3_rgmautocomplete'>
@@ -137,7 +137,7 @@ export default function LocationPicker({ callClose, onLocationSet, position }: L
                                         defaultCenter={coords || { lat: 22.54992, lng: 0 }}
                                         gestureHandling={'greedy'}
                                         disableDefaultUI={true}
-                                        className='w-[500px] h-[500px]'
+                                        className='md:w-[500px] md:h-[500px] lg:w-[500px] lg:h-[500px] w-[300px] h-[300px]'
                                     >
                                         <MapControl position={ControlPosition.TOP_CENTER}>
                                             <div className="autocomplete-control text-black p-3">
