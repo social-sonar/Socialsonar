@@ -11,7 +11,7 @@ import {
 } from '@heroicons/react/20/solid'
 import { useRef, useState } from 'react'
 import AccountBackup from './BackupDialog'
-import Button from './Button'
+import Button, { predefinedStyle } from './Button'
 import EventGenerator from './EventGenerator'
 import RestoreDialog from './RestoreDialog'
 import LoadingSpinner from './common/spinner'
@@ -165,13 +165,9 @@ export default function CalendarOptionsMenu({ userId }: { userId: string }) {
       )}
       {fileInput && (
         <Popover className="relative">
-          <Popover.Button className="text-white-900 items-center">
-            <Button
-              className="w-52"
-            >
-              <span>Calendar actions</span>
-              <ChevronUpDownIcon className="w-5" aria-hidden="true" />
-            </Button>
+          <Popover.Button className={`text-white-900 items-center flex w-52 ${predefinedStyle()}`}>
+            <span>Calendar actions</span>
+            <ChevronUpDownIcon className="w-5" aria-hidden="true" />
           </Popover.Button>
 
           <Transition
