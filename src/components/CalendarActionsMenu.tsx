@@ -15,6 +15,7 @@ import Button, { predefinedStyle } from './Button'
 import EventGenerator from './EventGenerator'
 import RestoreDialog from './RestoreDialog'
 import LoadingSpinner from './common/spinner'
+import TravelManager from './TravelManager'
 
 
 export default function CalendarOptionsMenu({ userId }: { userId: string }) {
@@ -24,8 +25,8 @@ export default function CalendarOptionsMenu({ userId }: { userId: string }) {
 
   const fileInput = useRef<HTMLInputElement>(null)
   const [backupData, setBackupData] = useState<BackupFileData | null>(null)
-
   const [generator, showGenerator] = useState(false)
+  const [travel, showTravel] = useState(false)
   const [backup, showBackup] = useState(false)
   const [restore, showRestore] = useState(false)
 
@@ -106,6 +107,14 @@ export default function CalendarOptionsMenu({ userId }: { userId: string }) {
         accept="application/json"
         onChange={handleFileInput}
       ></input>
+      {travel &&
+        <TravelManager
+          showNotification={clipBoardNotificationHandler}
+          userId={userId}
+          callClose={() => {
+            showTravel(false)
+          }}
+        />}
       {generator && (
         <EventGenerator
           showNotification={clipBoardNotificationHandler}
@@ -200,7 +209,11 @@ export default function CalendarOptionsMenu({ userId }: { userId: string }) {
                   }
                   <span>Sync calendar</span>
                 </Button>
-                <Button>
+                <Button
+                  onClick={() => {
+                    showTravel(true)
+                  }}
+                >
                   Register travel
                 </Button>
                 <Button
