@@ -24,15 +24,16 @@ type CreateEventSchemaFormState = {
 }
 
 type EventData = {
-  userId: string
-  requesterName: string
-  requesterEmail: string
-  startDate: string
-  endDate: string
-  timezone: string
+  requesterName?: string
+  requesterEmail?: string
+  startDate?: string
+  endDate?: string
+  timezone?: string
   guests?: string[]
-  description: string
+  description?: string
 }
+
+type BuilderEventData = EventData & { username: string; email: string }
 
 const send = async (
   event: calendar_v3.Schema$Event,
@@ -40,12 +41,13 @@ const send = async (
 ) => {
   const calendar = google.calendar({ version: 'v3', auth: oauth2Client })
   try {
-    await calendar.events.insert({
+    const result = await calendar.events.insert({
       auth: oauth2Client,
       calendarId: 'primary',
       requestBody: event,
       sendNotifications: true,
     })
+    return result.data.id
   } catch (error) {
     if (error instanceof Error)
       throw new Error(
@@ -54,16 +56,11 @@ const send = async (
   }
 }
 
-const sendEventNotification = async ({
-  userId,
-  requesterName,
-  requesterEmail,
-  startDate,
-  endDate,
-  timezone,
-  guests,
-  description,
-}: EventData): Promise<void> => {
+export const sendEventNotification = async (
+  userId: string,
+  eventBuilder: (data: BuilderEventData) => calendar_v3.Schema$Event,
+  data?: EventData,
+) => {
   const user = await prisma.user.findUnique({
     where: {
       id: userId,
@@ -73,31 +70,11 @@ const sendEventNotification = async ({
       email: true,
     },
   })
-  const event: calendar_v3.Schema$Event = {
-    summary: `${user!.name} and ${requesterName}`,
-    location: 'Organizer will send a meeting URL if needed',
-    description: `${description} event`,
-    organizer: { email: user?.email! },
-    start: {
-      dateTime: startDate,
-      timeZone: timezone,
-    },
-    end: {
-      dateTime: endDate,
-      timeZone: timezone,
-    },
-    attendees: [user?.email!, requesterEmail, ...(guests || [])].map(
-      (email) => ({ email }),
-    ),
-    reminders: {
-      useDefault: false,
-      overrides: [
-        { method: 'email', minutes: 24 * 60 },
-        { method: 'popup', minutes: 10 },
-      ],
-    },
-  }
-
+  const event = eventBuilder({
+    ...data,
+    username: user?.name!,
+    email: user?.email!,
+  })
   const userGoogleAccount = await prisma.userGoogleAccount.findFirst({
     where: {
       userId,
@@ -118,11 +95,11 @@ const sendEventNotification = async ({
     access_token: userGoogleAccount.googleAccount.accessToken,
   })
   try {
-    await send(event, oauth2Client)
+    return await send(event, oauth2Client)
   } catch (error: unknown) {
     try {
       await refreshToken(userGoogleAccount.googleAccount, oauth2Client)
-      await send(event, oauth2Client)
+      return await send(event, oauth2Client)
     } catch (error) {
       throw error
     }
@@ -166,16 +143,44 @@ export const scheduleEvent = async (
         },
       },
     })
-    await sendEventNotification({
+    await sendEventNotification(
       userId,
-      requesterName: result.data.name,
-      requesterEmail: result.data.email,
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-      timezone,
-      guests,
-      description: repr,
-    })
+      (data) => ({
+        summary: `${data.username} and ${data.requesterName}`,
+        location: 'Organizer will send a meeting URL if needed',
+        description: `${data.description} event`,
+        organizer: { email: data.email },
+        start: {
+          dateTime: data.startDate,
+          timeZone: data.timezone,
+        },
+        end: {
+          dateTime: data.endDate,
+          timeZone: data.timezone,
+        },
+        attendees: [
+          data.email!,
+          data.requesterEmail,
+          ...(data.guests || []),
+        ].map((email) => ({ email })),
+        reminders: {
+          useDefault: false,
+          overrides: [
+            { method: 'email', minutes: 24 * 60 },
+            { method: 'popup', minutes: 10 },
+          ],
+        },
+      }),
+      {
+        requesterName: result.data.name,
+        requesterEmail: result.data.email,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        timezone,
+        guests,
+        description: repr,
+      },
+    )
   } catch (err) {
     if (err instanceof Error) {
       return {
