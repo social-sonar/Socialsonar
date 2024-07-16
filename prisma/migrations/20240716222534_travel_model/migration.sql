@@ -11,6 +11,8 @@ ADD COLUMN     "updatedAt" TIMESTAMP(3) NOT NULL;
 -- CreateTable
 CREATE TABLE "travel" (
     "id" TEXT NOT NULL,
+    "location" TEXT NOT NULL,
+    "timezone" TEXT NOT NULL,
     "eventId" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
 

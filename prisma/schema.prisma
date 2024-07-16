@@ -116,9 +116,11 @@ model EventDetail {
 }
 
 model Travel {
-  id      String @id @default(cuid())
-  eventId String @unique
-  userId  String
+  id       String @id @default(cuid())
+  location String
+  timezone String
+  eventId  String @unique
+  userId   String
 
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
