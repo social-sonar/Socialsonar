@@ -17,7 +17,8 @@ type MapHandlerProps = {
     marker: google.maps.marker.AdvancedMarkerElement | null;
 }
 type PlaceAutocompleteProps = {
-    onPlaceSelect: (place: google.maps.places.PlaceResult | null) => void;
+    onPlaceSelect: (place: google.maps.places.PlaceResult | null) => void
+    placeholder?: string
 }
 
 const MapHandler = ({ place, marker }: MapHandlerProps) => {
@@ -36,7 +37,7 @@ const MapHandler = ({ place, marker }: MapHandlerProps) => {
 };
 
 
-const PlaceAutocomplete = ({ onPlaceSelect }: PlaceAutocompleteProps) => {
+const PlaceAutocompleteLocal = ({ onPlaceSelect, placeholder }: PlaceAutocompleteProps) => {
     const [placeAutocomplete, setPlaceAutocomplete] =
         useState<google.maps.places.Autocomplete | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -62,10 +63,19 @@ const PlaceAutocomplete = ({ onPlaceSelect }: PlaceAutocompleteProps) => {
 
     return (
         <div className="autocomplete-container text-black">
-            <input ref={inputRef} className='rounded-md' />
+            <input ref={inputRef} className='rounded-md' placeholder={placeholder} />
         </div>
     );
 };
+
+export const PlaceAutocomplete = (data: PlaceAutocompleteProps) =>
+    <APIProvider
+        apiKey={process.env.NEXT_PUBLIC_MAP_API_KEY || ''}
+        solutionChannel='GMP_devsite_samples_v3_rgmautocomplete'
+    >
+        <PlaceAutocompleteLocal {...data} />
+    </APIProvider>
+
 
 type LocationPickerProps = {
     callClose: () => void,
@@ -73,11 +83,11 @@ type LocationPickerProps = {
     position?: string
 }
 
-export default function LocationPicker({ callClose, onLocationSet, position }: LocationPickerProps) {
+export const LocationPicker = ({ callClose, onLocationSet, position }: LocationPickerProps) => {
     const [selectedPlace, setSelectedPlace] = useState<google.maps.places.PlaceResult | null>(null);
     const [markerRef, marker] = useAdvancedMarkerRef();
     const [open, setOpen] = useState(true)
-    
+
     let coords: { lat: number; lng: number } | undefined = undefined
     if (position) {
         const [lat, lng] = position.split(',').map(Number)
@@ -141,7 +151,7 @@ export default function LocationPicker({ callClose, onLocationSet, position }: L
                                     >
                                         <MapControl position={ControlPosition.TOP_CENTER}>
                                             <div className="autocomplete-control text-black p-3">
-                                                <PlaceAutocomplete onPlaceSelect={setSelectedPlace} />
+                                                <PlaceAutocompleteLocal onPlaceSelect={setSelectedPlace} />
                                             </div>
                                         </MapControl>
                                         <AdvancedMarker ref={markerRef} position={coords} />
