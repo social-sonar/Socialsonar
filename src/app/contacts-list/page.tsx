@@ -25,7 +25,7 @@ import clsx from 'clsx'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { classNames } from '@/lib/utils/common'
+import { classNames } from '@/lib/utils/common_client'
 
 const sortOptions = [
   { name: 'A - Z', href: '#', current: true },

@@ -12,7 +12,7 @@ import {
 } from '@heroicons/react/20/solid'
 import { useEffect } from 'react'
 import { RedirectType } from 'next/navigation'
-import { classNames } from '@/lib/utils/common'
+import { classNames } from '@/lib/utils/common_client'
 export default function ScopesNotApprovedDialog(props: {
   permissions: string[]
   message?: string | undefined

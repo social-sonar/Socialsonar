@@ -1,3 +1,4 @@
+'use server'
 import nextAuth from '@/auth'
 import { CustomSession } from '@/lib/definitions'
 import { GoogleAccount } from '@prisma/client'
@@ -33,9 +34,4 @@ export const getOAuthClient = async (
   })
 
   return {oauth2Client, googleAccount: googleAccount!}
-}
-
-
-export function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(' ')
 }

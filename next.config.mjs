@@ -7,18 +7,18 @@ import remarkGfm from 'remark-gfm'
 const nextConfig = {
   webpack: (config, { isServer }) => {
     if (!isServer) {
-      config.resolve.fallback = {
-        net: false,
-        fs: false,
-        child_process: false,
-        http2: false,
-        tls: false,
-        dns: false
-      }
+      // config.resolve.fallback = {
+      //   net: false,
+      //   fs: false,
+      //   child_process: false,
+      //   http2: false,
+      //   tls: false,
+      //   dns: false,
+      // }
     }
-
     return config
   },
+
   // webpack: (config, context) => {
   //   // Enable polling based on env variable being set
   //   if (process.env.NEXT_WEBPACK_USEPOLLING) {
@@ -29,7 +29,6 @@ const nextConfig = {
   //   }
   //   return config
   // },
-
   pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'mdx'],
   images: {
     remotePatterns: [{ hostname: 'lh3.googleusercontent.com' }],

@@ -16,7 +16,7 @@ import { GoogleAccount, UserGoogleAccount } from '@prisma/client'
 import { useSearchParams } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import ScopesNotApprovedDialog from '@/components/ScopesNotApprovedDialog'
-import { classNames } from '@/lib/utils/common'
+import { classNames } from '@/lib/utils/common_client'
 
 interface ExtendedUserGoogleAccount extends UserGoogleAccount {
   googleAccount: GoogleAccount
@@ -27,13 +27,12 @@ function SyncGoogleAccounts() {
   useEffect(() => {
     if (searchParams.has('scopesNotApproved')) {
       const parsedScopes = JSON.parse(searchParams.get('scopesNotApproved')!)
-      setScopesNotApproved(parsedScopes);
+      setScopesNotApproved(parsedScopes)
     }
   }, [searchParams])
 
-  const [scopesNotApproved,setScopesNotApproved] = useState<string[]>([]);
+  const [scopesNotApproved, setScopesNotApproved] = useState<string[]>([])
 
-  
   const [userGoogleAccounts, setUserGoogleAccounts] = useState<
     ExtendedUserGoogleAccount[]
   >([])
@@ -68,7 +67,8 @@ function SyncGoogleAccounts() {
       userGoogleAccounts[indexOfChange].googleAccount,
     )
   }
-  return scopesNotApproved.length == 0 ?(<div className="">
+  return scopesNotApproved.length == 0 ? (
+    <div className="">
       <div className="">
         {userGoogleAccounts.length > 0 ? (
           <div className="">
@@ -185,10 +185,15 @@ function SyncGoogleAccounts() {
           <LoadingSpinner size={100} className="mx-auto" />
         )}
       </div>
-    </div>): 
-    ( <div className="flex justify-center items-center h-screen">
-      <ScopesNotApprovedDialog permissions={scopesNotApproved} setPermissions={setScopesNotApproved}></ScopesNotApprovedDialog>
-    </div>)}
-
+    </div>
+  ) : (
+    <div className="flex h-screen items-center justify-center">
+      <ScopesNotApprovedDialog
+        permissions={scopesNotApproved}
+        setPermissions={setScopesNotApproved}
+      ></ScopesNotApprovedDialog>
+    </div>
+  )
+}
 
 export default protectPage(SyncGoogleAccounts)
