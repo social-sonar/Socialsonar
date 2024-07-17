@@ -7,7 +7,8 @@ import {
   ChevronUpDownIcon,
   ClipboardDocumentIcon,
   ExclamationTriangleIcon,
-  CheckBadgeIcon
+  CheckBadgeIcon,
+  CheckCircleIcon
 } from '@heroicons/react/20/solid'
 import { useRef, useState } from 'react'
 import AccountBackup from './BackupDialog'
@@ -98,6 +99,15 @@ export default function CalendarOptionsMenu({ userId }: { userId: string }) {
     await new Promise(() => setTimeout(hideNotification, 5000))
   }
 
+  const registerEventNotificationHandler = async () => {
+    showNotification(
+      'Travel successfully registered',
+      '',
+      <CheckCircleIcon className="w-[25px] text-green-400" />,
+    )
+    await new Promise(() => setTimeout(hideNotification, 5000))
+  }
+
   return (
     <>
       <input
@@ -109,7 +119,7 @@ export default function CalendarOptionsMenu({ userId }: { userId: string }) {
       ></input>
       {travel &&
         <TravelManager
-          showNotification={clipBoardNotificationHandler}
+          showNotification={registerEventNotificationHandler}
           userId={userId}
           callClose={() => {
             showTravel(false)
