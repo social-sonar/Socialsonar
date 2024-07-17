@@ -1,13 +1,13 @@
 'use server'
 
 import prisma from '@/db'
-import { sendEventNotification } from './scheduler'
 import tzlookup from '@photostructure/tz-lookup'
+import { sendEventNotification } from './scheduler'
 
 type TravelData = {
   userId: string
   location: string
-  coords: string // expected to be latitude,longitude
+  coords: { lat: number; lon: number } // expected to be latitude,longitude
   startDate: string // expected to have the yyyy-mm-dd format
   endDate: string // expected to have the yyyy-mm-dd format
 }
@@ -19,17 +19,17 @@ export const registerTravel = async ({
   startDate,
   endDate,
 }: TravelData) => {
-  const [lat, lon] = coords.split(',').map(Number)
+  const { lat, lon } = coords
   const googleEventId = await sendEventNotification(userId, (data) => ({
     summary: `Travel to ${location}`,
     location,
     description: `All day event`,
     organizer: { email: data.email },
     start: {
-      date: data.startDate,
+      date: startDate,
     },
     end: {
-      date: data.endDate,
+      date: endDate,
     },
     reminders: {
       useDefault: false,

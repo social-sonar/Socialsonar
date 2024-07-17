@@ -1,11 +1,13 @@
 'use client'
 
-import { Value } from '@/lib/definitions';
+import { registerTravel } from '@/actions/google/events/travels';
+import { RangeValue, Value } from '@/lib/definitions';
 import { Dialog, Transition } from '@headlessui/react';
 import { MapIcon } from '@heroicons/react/20/solid';
 import { useEffect, useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import LoadingSpinner from './common/spinner';
 import { PlaceAutocomplete } from './Location';
 
 type TravelManagerProps = {
@@ -18,12 +20,32 @@ export default function TravelManager({ showNotification, userId, callClose }: T
     const [selectedPlace, setSelectedPlace] = useState<google.maps.places.PlaceResult | null>(null);
     const [open, setOpen] = useState<boolean>(true)
     const [value, onChange] = useState<Value | null>(null);
+    const [registering, setRegistering] = useState<boolean>(false)
 
     useEffect(() => {
         if (!open) {
             callClose()
         }
     }, [open])
+
+    const onClick = async () => {
+        setRegistering(true)
+        // at this point, `value` WILL have non null values
+        const [startDate, endDate] = (value as RangeValue)!
+        await registerTravel({
+            userId,
+            location: selectedPlace?.formatted_address!,
+            coords: {
+                lat: selectedPlace?.geometry?.location?.lat()!,
+                lon: selectedPlace?.geometry?.location?.lng()!
+            },
+            startDate: startDate!.toISOString().split('T')[0], // yyyy-mm-dd format
+            endDate: endDate!.toISOString().split('T')[0], // yyyy-mm-dd format
+        })
+        setRegistering(false)
+        showNotification()
+        setOpen(false)
+    }
 
     return (
         <Transition show={open}>
@@ -76,13 +98,16 @@ export default function TravelManager({ showNotification, userId, callClose }: T
                                     </div>
                                     <div className="flex justify-end">
                                         <button
-                                            disabled={!value || !selectedPlace}
+                                            disabled={!value || !selectedPlace || registering}
                                             type="button"
-                                            className="bg-blue-800 disabled:opacity-50 p-2 rounded-lg"
-                                            onClick={() => setOpen(false)}
+                                            className="bg-blue-800 disabled:opacity-50 p-2 rounded-lg flex gap-2 justify-center items-center"
+                                            onClick={onClick}
                                             data-autofocus
                                         >
-                                            Register
+                                            {registering &&
+                                                <LoadingSpinner size={20} />
+                                            }
+                                            <span>{registering ? 'Registering' : 'Register'}</span>
                                         </button>
                                     </div>
                                 </div>
