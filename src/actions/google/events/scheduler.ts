@@ -45,7 +45,7 @@ const send = async (
       auth: oauth2Client,
       calendarId: 'primary',
       requestBody: event,
-      sendNotifications: true,
+      sendUpdates: 'all',
     })
     return result.data.id
   } catch (error) {
@@ -127,7 +127,8 @@ export const scheduleEvent = async (
   }
   try {
     const endDate = new Date(startDate.getTime() + timedelta)
-    const guests = result.data.guests?.split('\r\n')
+    const guests =
+      result.data.guests === '' ? undefined : result.data.guests?.split('\r\n')
     await prisma.event.create({
       data: {
         userId,
@@ -147,9 +148,7 @@ export const scheduleEvent = async (
       userId,
       (data) => ({
         summary: `${data.username} and ${data.requesterName}`,
-        location: 'Organizer will send a meeting URL if needed',
-        description: `${data.description} event`,
-        organizer: { email: data.email },
+        description: `${data.description} event - Organizer will share a meeting URL if needed`,
         start: {
           dateTime: data.startDate,
           timeZone: data.timezone,
@@ -162,7 +161,11 @@ export const scheduleEvent = async (
           data.email!,
           data.requesterEmail,
           ...(data.guests || []),
-        ].map((email) => ({ email })),
+        ].map((email, idx) =>
+          idx === 0
+            ? { email, organizer: true, responseStatus: 'accepted' }
+            : { email },
+        ),
         reminders: {
           useDefault: false,
           overrides: [
