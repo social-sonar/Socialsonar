@@ -68,7 +68,7 @@ function ContactList() {
   const [isLoading, setIsLoading] = useState(true)
   const [filters, setFilters] = useState(filtersTemplate)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
-  const [sortApplied, setSortApplied] = useState<string | null>(null)
+  const [sortApplied, setSortApplied] = useState<string | undefined>("AZ")
   const [filteredContacts, setFilteredContacts] = useState<FlattenContact[]>([])
   const [selectedSource, setSelectedSource] = useState<string>('all')
   const [hideFilterAdvice, setHideFilterAdvice] = useState(true)
@@ -114,7 +114,9 @@ function ContactList() {
   }
 
   useEffect(() => {
-    fetchContacts()
+    if (session.status == 'authenticated') {
+      fetchContacts()
+    }
   }, [session.status])
 
   const handleSourceChange = (source: string) => {
@@ -159,24 +161,6 @@ function ContactList() {
       console.log('ERROR LOADING CATEGORIES')
     }
   }, [contacts])
-
-  useEffect(() => {
-    let newFilteredContacts = contacts
-
-    if (selectedSource !== 'all') {
-      if (selectedSource == 'favorites') {
-        newFilteredContacts = newFilteredContacts.filter(
-          (person) => person.favorite,
-        )
-      } else {
-        newFilteredContacts = newFilteredContacts.filter((person) =>
-          person.source?.includes(selectedSource),
-        )
-      }
-    }
-
-    setFilteredContacts(newFilteredContacts)
-  }, [filters, selectedSource, contacts])
 
   const handleFilterChange = (
     sectionId: string,
@@ -237,22 +221,29 @@ function ContactList() {
       )
     }
 
-    setFilteredContacts(newFilteredContacts)
-  }, [filters, contacts])
-
-  useEffect(() => {
-    if (sortApplied == undefined) {
-      return
+    if (selectedSource !== 'all') {
+      if (selectedSource == 'favorites') {
+        newFilteredContacts = newFilteredContacts.filter(
+          (person) => person.favorite,
+        )
+      } else {
+        newFilteredContacts = newFilteredContacts.filter((person) =>
+          person.source?.includes(selectedSource),
+        )
+      }
     }
 
-    setFilteredContacts(
-      filteredContacts.sort((a, b) => {
+    if (sortApplied) {
+      const filtered = newFilteredContacts.sort((a, b) => {
         return sortApplied == 'AZ'
-          ? b.name.localeCompare(a.name)
-          : a.name.localeCompare(b.name)
-      }),
-    )
-  }, [sortApplied, contacts, filteredContacts])
+          ? a.name.localeCompare(b.name)
+          : b.name.localeCompare(a.name)
+      })
+      setFilteredContacts([...filtered])
+    } else {
+      setFilteredContacts([...newFilteredContacts])
+    }
+  }, [filters, contacts, sortApplied, selectedSource])
 
   return (
     <>
