@@ -21,6 +21,7 @@ export default function TravelManager({ showNotification, userId, callClose }: T
     const [open, setOpen] = useState<boolean>(true)
     const [value, onChange] = useState<Value | null>(null);
     const [registering, setRegistering] = useState<boolean>(false)
+    const [calendarAction, performCalendarAction] = useState<boolean>(true)
 
     useEffect(() => {
         if (!open) {
@@ -41,6 +42,7 @@ export default function TravelManager({ showNotification, userId, callClose }: T
             },
             startDate: startDate!.toISOString().split('T')[0], // yyyy-mm-dd format
             endDate: endDate!.toISOString().split('T')[0], // yyyy-mm-dd format
+            calendarAction
         })
         setRegistering(false)
         showNotification()
@@ -96,7 +98,16 @@ export default function TravelManager({ showNotification, userId, callClose }: T
                                             }
                                         </div>
                                     </div>
-                                    <div className="flex justify-end">
+                                    <div className="flex justify-end gap-5 items-center">
+                                        <label className='cursor-pointer'>
+                                            <input
+                                                type="checkbox"
+                                                className='focus:ring-0 ring-0 border-0 mr-2 cursor-pointer'
+                                                onChange={(event) => performCalendarAction(event.target.checked)}
+                                                checked={calendarAction}
+                                            />
+                                            Add to calendar
+                                        </label>
                                         <button
                                             disabled={!value || !selectedPlace || registering}
                                             type="button"
