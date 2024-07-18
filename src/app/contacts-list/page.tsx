@@ -390,6 +390,7 @@ function ContactList() {
       <main className="mx-auto h-full px-4 sm:px-6 lg:px-8">
         {!isLoading &&
           <DuplicatesScreen
+            showBanner={contacts.length > 0}
             contacts={contacts.filter(
               (contact) => contact.duplicates?.length! > 0 || false,
             )}
