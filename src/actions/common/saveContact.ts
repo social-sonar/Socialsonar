@@ -10,11 +10,7 @@ import {
   normalizeContact,
   updateContactInGoogle,
 } from '@/lib/data/common'
-import {
-  CleanPhoneData,
-  FlattenContact,
-  PlainFields,
-} from '@/lib/definitions'
+import { CleanPhoneData, FlattenContact, PlainFields } from '@/lib/definitions'
 import { Address, Email, Occupation, Organization } from '@prisma/client'
 import { Session } from 'next-auth/types'
 
@@ -146,9 +142,27 @@ export async function saveContact(
         skipDuplicates: true,
       })
     }
+
+    if (contact.favorite) {
+      await prisma.contactUserFav.createMany({
+        data: [{
+          contactId: upsertedContact.id,
+          userId: session!.user!.id!,
+        }],
+        skipDuplicates: true,
+      })
+    } else {
+      await prisma.contactUserFav.deleteMany({
+        where: { contactId: upsertedContact.id, userId: session!.user!.id! },
+      })
+    }
+
     const contactUpdatedRaw = await prisma.contact.findFirst({
-      where: { id: upsertedContact.id },
+      where: {
+        id: upsertedContact.id,
+      },
       include: {
+        contactUserFav: { select: { userId: true } },
         organizations: { select: { organization: { select: { name: true } } } },
         phoneNumbers: {
           select: { phoneNumber: { select: { number: true, type: true } } },
@@ -161,7 +175,7 @@ export async function saveContact(
         emails: { select: { email: { select: { address: true } } } },
         googleContacts: { select: { googleContactId: true } },
       },
-    })
+    })    
 
     const actualContact = normalizeContact(contactUpdatedRaw!)
 

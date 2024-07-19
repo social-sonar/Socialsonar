@@ -3,8 +3,9 @@ import { Dialog, Transition } from '@headlessui/react'
 import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
+  StarIcon
 } from '@heroicons/react/24/outline'
-import { MinusIcon, PlusIcon, UserCircleIcon } from '@heroicons/react/24/solid'
+import { MinusIcon, PlusIcon, UserCircleIcon, StarIcon as SolidStarIcon } from '@heroicons/react/24/solid'
 import ContactDetailAddress from './ContactDetailAddress'
 import { FlattenContact } from '@/lib/definitions'
 import { useContacts } from '@/app/ContactsProvider'
@@ -141,6 +142,14 @@ export default function ContactDetail(props: ContactDetailProps) {
                             </div>
                             <div className="sm:col-span-3">
                               <div className="float-right flex items-center">
+                                <div className='text-yellow-400 cursor-pointer' onClick={() => {
+                                  setContact({
+                                    ...contact,
+                                    favorite: !contact.favorite,
+                                  })
+                                }}>
+                                  {contact?.favorite ? <SolidStarIcon className='w-8'></SolidStarIcon> : <StarIcon className='w-8'></StarIcon>}
+                                </div>
                                 {contact?.photos && contact.photos[0] ? (
                                   <img
                                     className="h-20 w-20 flex-none rounded-full bg-gray-800"

@@ -23,8 +23,8 @@ export async function GET(req: NextRequest) {
 
     return normalizedContact
   })
-
-  return NextResponse.json(responseContacts)
+  
+  return NextResponse.json({contacts: responseContacts, count: contacts.length})
 }
 
 export async function POST(req: Request) {
