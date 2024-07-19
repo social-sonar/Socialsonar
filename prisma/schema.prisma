@@ -67,6 +67,7 @@ model User {
   contacts        Contact[]
   events         Event[]
   contactUserFav ContactUserFav[]
+  homeBases      HomeBase[]
 
   @@map("user")
 }
@@ -338,7 +339,7 @@ model ContactUserFav {
   contactId Int
   userId    String
   contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
