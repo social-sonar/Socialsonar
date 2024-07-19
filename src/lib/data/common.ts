@@ -279,10 +279,8 @@ type Duplicate = {
   secondContactId: number
 }
 
-const matches = (sentenceA: string, sentenceB: string): boolean =>  (
-    sentenceA.trim().split(/\s+/).length ===
-    sentenceB.trim().split(/\s+/).length
-  )
+const matches = (sentenceA: string, sentenceB: string): boolean =>
+  sentenceA.trim().split(/\s+/).length === sentenceB.trim().split(/\s+/).length
 
 const findDuplicates = async (userId: string) => {
   const combinations = new Set<string>()
@@ -319,9 +317,9 @@ const findDuplicates = async (userId: string) => {
             combinations.add([contact.id, innerContact.id].sort().toString())
           }
         }
-        const contactPhoneNumber = contact.phoneNumbers[0]?.phoneNumber
+        const contactPhoneNumber = contact.phoneNumbers[0]?.phoneNumber.number
         const innerContactPhoneNumber =
-          innerContact.phoneNumbers[0]?.phoneNumber
+          innerContact.phoneNumbers[0]?.phoneNumber.number
         if (
           contactPhoneNumber &&
           innerContactPhoneNumber &&
@@ -468,7 +466,6 @@ async function createNewContact(
     })),
     skipDuplicates: true,
   })
-
 }
 export const findContacts = async (userId: string) => {
   const userGoogleAccounts = (
