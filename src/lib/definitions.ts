@@ -8,6 +8,7 @@ import {
   Photo,
   Address,
   Email,
+  HomeBase,
 } from '@prisma/client'
 import { people_v1, gmail_v1 } from 'googleapis'
 import { Session } from 'next-auth'
@@ -204,6 +205,12 @@ export type LightEvent = {
   end: Date
   recurrence: string
 }
+
+export type LocationSetData = {
+  data: Pick<HomeBase, 'location' | 'coords'>
+  homeBaseId?: string
+}
+
 
 export type GmailListMessagesResponse = gmail_v1.Schema$ListMessagesResponse
 

@@ -4,19 +4,186 @@ import { exportAllContacts } from '@/actions/common/contacts-bulkactions'
 import { useNotification } from '@/app/NotificationsProvider'
 import CalendarOptionsMenu from '@/components/CalendarActionsMenu'
 import protectPage from '@/components/common/auth'
-import { Dialog, Transition } from '@headlessui/react'
-import { UserIcon } from '@heroicons/react/20/solid'
+import LocationPicker from '@/components/LocationPicker'
+import { changeHomeBaseStatus, removeHomeBase, upsertLocation, userHomeBases } from '@/lib/data/safeQueries'
+import { LocationSetData } from '@/lib/definitions'
+import { Dialog, Switch, Transition } from '@headlessui/react'
+import { ArrowLeftIcon, MapPinIcon, UserIcon, PlusIcon } from '@heroicons/react/20/solid'
 import {
   ArrowDownTrayIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
+  PencilIcon,
   TrashIcon
 } from '@heroicons/react/24/outline'
+import { HomeBase } from '@prisma/client'
 import { signOut, useSession } from 'next-auth/react'
-import React, { Fragment, useState } from 'react'
+import React, { Fragment, useEffect, useState } from 'react'
 import { deleteAccount } from '../../actions/common/delete-account'
 import Button from '../../components/Button'
 import LoadingSpinner from '../../components/common/spinner'
+
+
+type HomeBasesManagerProps = {
+  homeBases: Pick<HomeBase, 'id' | 'location' | 'active' | 'coords'>[],
+  updateHomeBases: (homeBases: Pick<HomeBase, 'id' | 'location' | 'active' | 'coords'>[]) => void,
+  closeAction: () => void,
+  onLocationSet: (locationData: LocationSetData, localUpdater: (newData: Pick<HomeBase, 'id' | 'location' | 'active' | 'coords'>[]) => void) => Promise<void>
+}
+
+type AddressToggleProps = {
+  isEnabled: boolean,
+  onChange: (active: boolean) => void
+}
+
+const AddressToggle = ({ isEnabled, onChange }: AddressToggleProps) => {
+  const [enabled, setEnabled] = useState(isEnabled)
+
+  useEffect(() => {
+    setEnabled(isEnabled)
+  }, [isEnabled])
+
+  return (
+    <Switch
+      checked={enabled}
+      onChange={(checked) => {
+        setEnabled(checked)
+        onChange(checked)
+      }}
+      className={`${enabled ? 'bg-teal-900' : 'bg-gray-500'}
+          relative inline-flex h-[30px] w-[50px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2  focus-visible:ring-white/75`}
+      title={`${enabled ? 'Deactivate home base' : 'Set as your home base'}`}>
+      <span
+        aria-hidden="true"
+        className={`${enabled ? 'translate-x-4' : 'translate-x-0'}
+            pointer-events-none inline-block h-[26px] w-[30px] transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out`}
+      />
+    </Switch>
+  )
+}
+
+const HomeBasesManager = ({ homeBases, closeAction, onLocationSet, updateHomeBases }: HomeBasesManagerProps) => {
+  const maxHomeBases = homeBases.length === 2
+  const noHomeBases = homeBases.length === 0
+  const [showLocationPicker, setShowLocationPicker] = useState<boolean>(false)
+  const [activeBaseId, setActiveBaseId] = useState<string>('')
+  const [editingHomeBaseId, setEditingHomeBaseId] = useState<string>('')
+  const [localHomeBases, setLocalHomeBases] = useState<Pick<HomeBase, 'id' | 'location' | 'active' | 'coords'>[]>(homeBases)
+  const [coords, setCoords] = useState<string>('')
+
+
+  const onHomeBaseSelection = async (homeBase: Pick<HomeBase, 'id' | 'location' | 'active' | 'coords'>, isActive: boolean) => {
+    if (isActive) {
+      const newData = localHomeBases.map(localHomeBase => ({ ...localHomeBase, active: localHomeBase.id === homeBase.id }))
+      setLocalHomeBases(newData)
+      setActiveBaseId(homeBase.id)
+    }
+    else {
+      homeBase.active = false
+      setLocalHomeBases([...localHomeBases])
+      setActiveBaseId('')
+    }
+    await changeHomeBaseStatus(homeBase.id, isActive)
+  }
+
+  const localUpdater = (newData: Pick<HomeBase, 'id' | 'location' | 'active' | 'coords'>[]) => setLocalHomeBases(newData)
+
+  useEffect(() => {
+    updateHomeBases(localHomeBases)
+  }, [closeAction, localHomeBases])
+
+
+  return (
+    <div className='flex flex-col gap-5 justify-center items-center'>
+      {/* layout does not matter here as the LocationPicker is a modal */}
+      {showLocationPicker &&
+        <LocationPicker
+          callClose={() => setShowLocationPicker(false)}
+          onLocationSet={async (locationData: LocationSetData) => {
+            onLocationSet({ ...locationData, homeBaseId: editingHomeBaseId }, localUpdater)
+            setEditingHomeBaseId('')
+            setActiveBaseId('')
+            setCoords('')
+          }}
+          position={coords}
+        />
+      }
+      <button onClick={closeAction}><ArrowLeftIcon className='w-10' /></button>
+      <div className='flex flex-col gap-3 justify-center items-center'>
+        {noHomeBases ?
+          <p className='text-xl'>No home bases have been set yet</p> :
+          <table className='table-auto border-collapse text-left border-slate-500'>
+            <thead>
+              <tr className='*:p-3'>
+                <th className='border-b border-slate-600'>
+                  <div className='flex gap-2 items-center'>
+                    <span>Address</span>
+                    <MapPinIcon className='w-[20px] text-red-500' />
+                  </div>
+                </th>
+                <th className='border-b border-slate-600'>Status</th>
+                <th className='border-b border-slate-600'>Edit</th>
+                <th className='border-b border-slate-600'>Remove</th>
+              </tr>
+            </thead>
+            <tbody>
+              {localHomeBases.map((homebase) =>
+                <tr key={homebase.id} className='*:p-3'>
+                  <td>{homebase.location}</td>
+                  <td>
+                    <AddressToggle
+                      // The first condition ensures that the active home base is rendered as active on component creation
+                      isEnabled={homebase.active || activeBaseId === homebase.id}
+                      onChange={(active: boolean) => onHomeBaseSelection(homebase, active)}
+                    />
+                  </td>
+                  <td>
+                    <PencilIcon
+                      className='w-[20px] text-green-200 cursor-pointer'
+                      onClick={() => {
+                        setEditingHomeBaseId(homebase.id)
+                        setShowLocationPicker(true)
+                        setCoords(homebase.coords)
+                      }}
+                    />
+                  </td>
+                  <td className='flex justify-center'>
+                    <button
+                      disabled={homebase.active || activeBaseId === homebase.id}
+                      className='cursor-pointer disabled:opacity-50 disabled:cursor-default'
+                      title={`${(homebase.active || activeBaseId === homebase.id) ? 'You cannot delete an active home base' : ''}`}>
+                      <TrashIcon
+                        className='w-[20px] text-red-500'
+                        onClick={() => {
+                          removeHomeBase(homebase.id)
+                          setLocalHomeBases(localHomeBases.filter(localHomeBase => localHomeBase.id !== homebase.id))
+                        }}
+                      />
+                    </button>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        }
+        {!maxHomeBases &&
+          <Button
+            className="justify-center items-center rounded-xl"
+            onClick={() => {
+              setCoords('')
+              setEditingHomeBaseId('')
+              setShowLocationPicker(true)
+            }}
+          >
+            <span>Add home base</span>
+            <PlusIcon className='w-[25px] text-blue-500' />
+          </Button>
+        }
+      </div>
+    </div>
+
+  )
+}
 
 function Profile() {
   const { showNotification } = useNotification()
@@ -24,6 +191,33 @@ function Profile() {
   const [open, setOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
+  const [showHomeBasesManager, setShowHomeBasesManager] = useState(false)
+
+  const [homeBases, setHomeBases] = useState<Pick<HomeBase, 'id' | 'location' | 'active' | 'coords'>[]>([])
+
+  const fetchData = async () => {
+    let response = await userHomeBases(session.data?.user.id!)
+    setHomeBases(response)
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const onLocationSet = async (locationData: LocationSetData, localUpdater: (newData: Pick<HomeBase, 'id' | 'location' | 'active' | 'coords'>[]) => void) => {
+    const result = await upsertLocation(locationData)
+    if (result) {
+      let updatedData: Pick<HomeBase, 'id' | 'location' | 'active' | 'coords'>[] = []
+
+      if (locationData.homeBaseId)
+        updatedData = [...homeBases.filter(homebase => result.id !== homebase.id), result]
+      else updatedData = [...homeBases, result]
+
+      localUpdater(updatedData)
+      setHomeBases(updatedData)
+    }
+  }
+
   const handleExport = async () => {
     if (isExporting) return
     setIsExporting(true)
@@ -174,34 +368,48 @@ function Profile() {
             </div>
           </Dialog>
         </Transition>
-        <div className="flex flex-col items-center justify-center gap-10 w-fit mt-5">
-          <Button className="w-52">
-            <span>About me</span> <UserIcon className="w-5" />
-          </Button>
-          <CalendarOptionsMenu userId={session.data?.user.id!} />
-          <Button
-            disabled={isExporting}
-            onClick={() => {
-              handleExport()
-            }}
-            className='w-52'
-          >
-            Export all your contacts{' '}
-            {isExporting ? (
-              <LoadingSpinner size={20} />
-            ) : (
-              <ArrowDownTrayIcon className="w-4" />
-            )}
-          </Button>
-          <Button
-            onClick={() => {
-              setOpen(true)
-            }}
-            className="dark:bg-red-700 dark:enabled:hover:bg-red-800 text-gray-500 w-52"
-          >
-            <span>Delete your account</span> <TrashIcon className="w-4" />
-          </Button>
-        </div>
+        {showHomeBasesManager ?
+          <HomeBasesManager
+            closeAction={() => setShowHomeBasesManager(false)}
+            homeBases={homeBases}
+            onLocationSet={onLocationSet}
+            updateHomeBases={setHomeBases}
+          /> :
+          <div className="flex flex-col items-center justify-center gap-10 w-fit mt-5">
+            <Button className="w-52 flex gap-2" onClick={() => setShowHomeBasesManager(true)}>
+              <span>Manage home bases</span>
+              <MapPinIcon className='w-5' />
+            </Button>
+            <Button className="w-52">
+              <span>About me</span> <UserIcon className="w-5" />
+            </Button>
+            <CalendarOptionsMenu userId={session.data?.user.id!} />
+            <Button
+              disabled={isExporting}
+              onClick={() => {
+                handleExport()
+              }}
+              className='w-52'
+            >
+              Export all your contacts{' '}
+              {isExporting ? (
+                <LoadingSpinner size={20} />
+              ) : (
+                <ArrowDownTrayIcon className="w-4" />
+              )}
+            </Button>
+            <Button
+              onClick={() => {
+                setOpen(true)
+              }}
+              className="dark:enabled:bg-red-700 dark:hover:enabled:bg-red-800 dark:active:enabled:bg-red-800 w-52"
+            >
+              <span>Delete your account</span> <TrashIcon className="w-4" />
+            </Button>
+          </div>
+
+        }
+
       </div>
     </div>
   )
