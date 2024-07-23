@@ -156,6 +156,19 @@ export type PrismaHandlerMultiple<T extends Record<string, any>> = (
   mappedGooglePayload: T[],
 ) => Promise<void>
 
+export enum ResolutionStrategy {
+  KEEP_ONE = 'KEEP_ONE',
+  KEEP_BOTH = 'KEEP_BOTH',
+  MERGE = 'MERGE',
+}
+
+export type DuplicateContactResolutionPayload = {
+  strategy: ResolutionStrategy
+  contactA?: number
+  contactB?: number
+  mergeName?: string
+}
+
 export type { PhoneNumber }
 
 export type TimeDuration = {
@@ -197,6 +210,7 @@ export type LocationSetData = {
   data: Pick<HomeBase, 'location' | 'coords'>
   homeBaseId?: string
 }
+
 
 export type GmailListMessagesResponse = gmail_v1.Schema$ListMessagesResponse
 

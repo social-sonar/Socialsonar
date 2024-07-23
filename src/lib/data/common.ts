@@ -283,7 +283,7 @@ const matches = (sentenceA: string, sentenceB: string): boolean =>
   sentenceA.trim().split(/\s+/).length === sentenceB.trim().split(/\s+/).length
 
 const findDuplicates = async (userId: string) => {
-  const combinations = new Set<number>()
+  const combinations = new Set<string>()
   const duplicates: Duplicate[] = []
   const contacts = await prisma.contact.findMany({
     where: {
@@ -302,10 +302,10 @@ const findDuplicates = async (userId: string) => {
 
   contacts.forEach((contact) => {
     contacts.forEach((innerContact) => {
+      const currentCombination = [contact.id, innerContact.id].sort().toString()
       if (
         contact.id !== innerContact.id &&
-        !combinations.has(contact.id) &&
-        !combinations.has(innerContact.id)
+        !combinations.has(currentCombination)
       ) {
         if (matches(contact.name, innerContact.name)) {
           const posibleDuplicate = fuzzy(contact.name, innerContact.name) > 0.9
@@ -314,13 +314,12 @@ const findDuplicates = async (userId: string) => {
               firstContactId: contact.id,
               secondContactId: innerContact.id,
             })
-            combinations.add(innerContact.id)
+            combinations.add([contact.id, innerContact.id].sort().toString())
           }
         }
-        const contactPhoneNumber = contact.phoneNumbers[0]?.phoneNumber.number
+        const contactPhoneNumber = contact.phoneNumbers[0]?.phoneNumber
         const innerContactPhoneNumber =
-          innerContact.phoneNumbers[0]?.phoneNumber.number
-
+          innerContact.phoneNumbers[0]?.phoneNumber
         if (
           contactPhoneNumber &&
           innerContactPhoneNumber &&
@@ -330,7 +329,7 @@ const findDuplicates = async (userId: string) => {
             firstContactId: contact.id,
             secondContactId: innerContact.id,
           })
-          combinations.add(innerContact.id)
+          combinations.add([contact.id, innerContact.id].sort().toString())
         }
       }
     })
@@ -498,7 +497,6 @@ export const findContacts = async (userId: string) => {
                   OR: [
                     { mergeStatus: 'PENDING' },
                     { mergeStatus: 'MULTIPLE_CHOICE' },
-                    { mergeStatus: 'SINGLE_CHOICE' },
                   ],
                 },
               },
@@ -510,7 +508,6 @@ export const findContacts = async (userId: string) => {
                   OR: [
                     { mergeStatus: 'PENDING' },
                     { mergeStatus: 'MULTIPLE_CHOICE' },
-                    { mergeStatus: 'SINGLE_CHOICE' },
                   ],
                 },
               },
@@ -562,14 +559,131 @@ export const findContacts = async (userId: string) => {
               googleContacts: { select: { googleContactId: true } },
             },
           },
-          finalContact: {
-            select: {
-              id: true,
-            },
-          },
           mergeStatus: true,
         },
       },
+    },
+  })
+}
+export const keepDuplicatedContacts = async (
+  contactA: number,
+  contactB: number,
+): Promise<void> => {
+  await prisma.contactStatus.updateMany({
+    where: {
+      OR: [
+        {
+          firstContactId: contactA,
+          secondContactId: contactB,
+        },
+        {
+          firstContactId: contactB,
+          secondContactId: contactA,
+        },
+      ],
+    },
+    data: {
+      mergeStatus: ContactMergeStatus.MULTIPLE_CHOICE,
+    },
+  })
+}
+
+export const keepSelectedContact = async (
+  contactA: number,
+  contactB: number,
+): Promise<void> => {
+  await prisma.contactStatus.updateMany({
+    where: {
+      OR: [
+        {
+          firstContactId: contactA,
+          secondContactId: contactB,
+        },
+        {
+          firstContactId: contactB,
+          secondContactId: contactA,
+        },
+      ],
+    },
+    data: {
+      finalContactId: contactA,
+      mergeStatus: ContactMergeStatus.SINGLE_CHOICE,
+    },
+  })
+}
+
+export const mergeContacts = async (
+  contactA: number,
+  contactB: number,
+  mergeName?: string,
+): Promise<void> => {
+  const [firstContact, secondContact] = await prisma.contact.findMany({
+    where: {
+      id: {
+        in: [contactA, contactB],
+      },
+    },
+    select: {
+      userId: true,
+      name: true,
+      organizations: { select: { organizationId: true } },
+      phoneNumbers: { select: { phoneNumberId: true } },
+      occupations: { select: { occupationId: true } },
+      photos: { select: { photoId: true } },
+      addresses: { select: { addressId: true } },
+      emails: { select: { emailId: true } },
+    },
+  })
+
+  const newContact = await prisma.contact.create({
+    data: {
+      // both firstContact and secondContact have the same userId and name
+      userId: firstContact.userId,
+      name: mergeName || firstContact.name,
+    },
+  })
+
+  await prisma.contactPhoneNumber.createMany({
+    data: [...firstContact.phoneNumbers, ...secondContact.phoneNumbers].map(
+      (phoneNumber) => ({
+        phoneNumberId: phoneNumber.phoneNumberId,
+        contactId: newContact.id,
+      }),
+    ),
+    skipDuplicates: true,
+  })
+
+  await prisma.contactAddress.createMany({
+    data: [...firstContact.addresses, ...secondContact.addresses].map(
+      (address) => ({ addressId: address.addressId, contactId: newContact.id }),
+    ),
+    skipDuplicates: true,
+  })
+
+  await prisma.contactEmail.createMany({
+    data: [...firstContact.emails, ...secondContact.emails].map((email) => ({
+      emailId: email.emailId,
+      contactId: newContact.id,
+    })),
+    skipDuplicates: true,
+  })
+
+  await prisma.contactStatus.updateMany({
+    where: {
+      OR: [
+        {
+          firstContactId: contactA,
+          secondContactId: contactB,
+        },
+        {
+          firstContactId: contactB,
+          secondContactId: contactA,
+        },
+      ],
+    },
+    data: {
+      finalContactId: newContact.id,
+      mergeStatus: ContactMergeStatus.MERGED_BETWEEN,
     },
   })
 }

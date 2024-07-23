@@ -1,10 +1,9 @@
 import UserIcon from '@/images/icons/user.svg';
-import { FlattenContact } from '@/lib/definitions';
+import { DuplicateContactResolutionPayload, FlattenContact, ResolutionStrategy } from '@/lib/definitions';
 import { Popover, RadioGroup, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/20/solid';
 import { Fragment, useEffect, useState } from 'react';
 import Button from './Button';
-import { keepDuplicatedContacts, keepSelectedContact, mergeContacts } from '@/lib/data/safeQueries';
 
 
 type DuplicatedContacts = {
@@ -13,12 +12,22 @@ type DuplicatedContacts = {
 }
 
 type Options = {
-    contacts: FlattenContact[]
-    localDeletionHandler: (parentId: number) => void
+    optionA: FlattenContact
+    optionB: FlattenContact
+    localDeletionHandler: (parentId: number, duplicatedId: number) => void
 }
 
+async function handleDuplication(payload: DuplicateContactResolutionPayload) {
+    await fetch('/api/handle-duplicates', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+    })
+}
 
-function DuplicateContactCard({ contacts, localDeletionHandler }: Options) {
+function DuplicateContactCard({ optionA, optionB, localDeletionHandler }: Options) {
     const [contactId, setContactId] = useState<number | null>(null)
     const [mergeSelected, setMergeSelection] = useState<boolean>(false)
     const [mergeName, setMergeName] = useState<string>('')
@@ -30,18 +39,24 @@ function DuplicateContactCard({ contacts, localDeletionHandler }: Options) {
                 onChange={setContactId}
                 className="flex cursor-pointer flex-col gap-4 md:flex-row lg:flex-row"
             >
-                {contacts.map(contact => <RadioGroup.Option value={contact.id} key={contact.id}>
-                    {({ checked }) => <Contact contact={contact} className={`${checked ? 'bg-slate-700' : ''} rounded`} />}
-                </RadioGroup.Option>)
-                }
+                <RadioGroup.Option value={optionA.id}>
+                    {({ checked }) => <Contact contact={optionA} className={`${checked ? 'bg-slate-700' : ''} rounded`} />}
+                </RadioGroup.Option>
+                <RadioGroup.Option value={optionB.id}>
+                    {({ checked }) => <Contact contact={optionB} className={`${checked ? 'bg-slate-700' : ''} rounded`} />}
+                </RadioGroup.Option>
             </RadioGroup>
 
             <div className="flex gap-3">
                 {!mergeSelected && !contactId && (
                     <Button
                         onClick={async () => {
-                            await keepDuplicatedContacts(contacts.map(contact => contact.id))
-                            localDeletionHandler(contacts[0].id)
+                            await handleDuplication({
+                                strategy: ResolutionStrategy.KEEP_BOTH,
+                                contactA: optionA.id,
+                                contactB: optionB.id,
+                            })
+                            localDeletionHandler(optionA.id, optionB.id)
                         }}
                     >
                         Keep both
@@ -50,11 +65,15 @@ function DuplicateContactCard({ contacts, localDeletionHandler }: Options) {
                 {!mergeSelected && !contactId && (
                     <Button
                         onClick={async () => {
-                            if (contacts.some((contact) => contact.name !== contacts[0].name)) {
+                            if (optionA.name !== optionB.name) {
                                 setMergeSelection(true)
                             } else {
-                                await mergeContacts(contacts.map(contact => contact.id))
-                                localDeletionHandler(contacts[0].id)
+                                await handleDuplication({
+                                    strategy: ResolutionStrategy.MERGE,
+                                    contactA: optionA.id,
+                                    contactB: optionB.id,
+                                })
+                                localDeletionHandler(optionA.id, optionB.id)
                             }
                         }}
                     >
@@ -64,15 +83,19 @@ function DuplicateContactCard({ contacts, localDeletionHandler }: Options) {
                 {contactId && (
                     <Button
                         onClick={async () => {
-                            await keepSelectedContact(contactId, contacts.map(contact => contact.id))
-                            localDeletionHandler(contactId)
+                            await handleDuplication({
+                                strategy: ResolutionStrategy.KEEP_ONE,
+                                contactA: contactId,
+                                contactB: contactId == optionA.id ? optionB.id : optionA.id,
+                            })
+                            localDeletionHandler(optionA.id, optionB.id)
                         }}
                     >
                         Keep selected contact
                     </Button>
                 )}
                 <div className="flex flex-col justify-center gap-3 md:flex-row lg:flex-row">
-                    {mergeSelected && contacts.some((contact) => contact.name !== contacts[0].name) && !contactId && (
+                    {mergeSelected && optionA.name !== optionB.name && !contactId && (
                         <input
                             className="w-52 text-black md:w-auto lg:w-auto"
                             type="text"
@@ -86,8 +109,13 @@ function DuplicateContactCard({ contacts, localDeletionHandler }: Options) {
                             disabled={!mergeName}
                             className={!mergeName ? 'opacity-50 cursor-not-allowed' : ''}
                             onClick={async () => {
-                                await mergeContacts(contacts.map(contact => contact.id), mergeName)
-                                localDeletionHandler(contacts[0].id)
+                                await handleDuplication({
+                                    strategy: ResolutionStrategy.MERGE,
+                                    contactA: optionA.id,
+                                    contactB: optionB.id,
+                                    mergeName,
+                                })
+                                localDeletionHandler(optionA.id, optionB.id)
                             }}
                         >
                             Done
@@ -152,15 +180,17 @@ export default function DuplicatesScreen({ contacts, showBanner }: DuplicatedCon
         setUpdatedContacts(contacts)
     }, [contacts])
 
-    const deleteContact = (parentId: number) => {
-
-        const filteredContacts = updatedContacts.filter(contact =>
-            contact.id !== parentId &&
-            !contact.duplicates?.some(duplicatedContact =>
-                duplicatedContact.id === parentId
-            )
+    const deleteContact = (parentId: number, duplicatedId: number) => {
+        let filteredContacts = updatedContacts.map((contact) => {
+            if (contact.id !== parentId)
+                return contact;
+            return {
+                ...contact,
+                duplicates: contact.duplicates?.filter((duplicate) => duplicate.id !== duplicatedId),
+            }
+        }
         )
-
+        filteredContacts = filteredContacts.filter((contact) => contact.duplicates?.length! > 0)
         setUpdatedContacts(filteredContacts)
     }
 
@@ -190,13 +220,14 @@ export default function DuplicatesScreen({ contacts, showBanner }: DuplicatedCon
                     >
                         <Popover.Panel className="absolute z-10 flex max-h-screen w-full flex-col gap-5 overflow-scroll rounded-lg bg-slate-800 p-5">
                             {updatedContacts.map((contact) =>
-                                contact.duplicates && contact.duplicates.length > 0 ?
+                                contact.duplicates?.map((duplicate) => (
                                     <DuplicateContactCard
-                                        contacts={[contact, ...contact.duplicates]}
-                                        key={`${contact.id.toString()}`}
+                                        optionA={contact}
+                                        optionB={duplicate}
+                                        key={`${contact.id.toString() + duplicate.id.toString()}`}
                                         localDeletionHandler={deleteContact}
-                                    /> :
-                                    null
+                                    />
+                                )),
                             )}
                         </Popover.Panel>
                     </Transition>

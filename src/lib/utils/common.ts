@@ -1,3 +1,4 @@
+'use server'
 import nextAuth from '@/auth'
 import { CustomSession } from '@/lib/definitions'
 import { GoogleAccount } from '@prisma/client'
