@@ -270,7 +270,7 @@ export default function Menu({ googleAccountId }: { googleAccountId: string }) {
       {fileInput && (
         <Popover className="relative">
           <Popover.Button className="text-white-900 inline-flex items-center gap-x-1 text-sm font-semibold leading-6">
-            <span>More</span>
+            <span>Actions</span>
             <ChevronDownIcon className="h-5 w-5" aria-hidden="true" />
           </Popover.Button>
 
