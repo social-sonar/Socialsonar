@@ -8,6 +8,7 @@ import Button from './Button';
 
 type DuplicatedContacts = {
     contacts: FlattenContact[]
+    showBanner: boolean
 }
 
 type Options = {
@@ -173,7 +174,7 @@ const DismissableBanner = (): React.ReactElement => {
     )
 }
 
-export default function DuplicatesScreen({ contacts }: DuplicatedContacts) {
+export default function DuplicatesScreen({ contacts, showBanner }: DuplicatedContacts) {
     const [updatedContacts, setUpdatedContacts] = useState<FlattenContact[]>([])
     useEffect(() => {
         setUpdatedContacts(contacts)
@@ -193,7 +194,7 @@ export default function DuplicatesScreen({ contacts }: DuplicatedContacts) {
         setUpdatedContacts(filteredContacts)
     }
 
-    if (updatedContacts.length == 0) return <DismissableBanner />
+    if (updatedContacts.length == 0) return showBanner ? <DismissableBanner /> : null
 
     return (
         <Popover className="relative my-4 flex justify-normal md:mt-9 md:justify-end lg:mt-10 lg:justify-end">
