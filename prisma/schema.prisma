@@ -64,8 +64,9 @@ model User {
   googleAccounts UserGoogleAccount[]
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
-  Contact        Contact[]
+  contacts        Contact[]
   events         Event[]
+  contactUserFav ContactUserFav[]
   homeBases      HomeBase[]
 
   @@map("user")
@@ -171,6 +172,7 @@ model Contact {
   firstContacts   ContactStatus[]       @relation("firstContact")
   secondContacts  ContactStatus[]       @relation("secondContact")
   finalContacts   ContactStatus[]       @relation("finalContact")
+  contactUserFav  ContactUserFav[]
 
   @@map("contacts")
 }
@@ -343,4 +345,17 @@ model ContactEmail {
 
   @@unique([contactId, emailId], name: "unique_contact_email")
   @@map("contact_emails")
+}
+
+model ContactUserFav {
+  id        Int      @id @default(autoincrement())
+  contactId Int
+  userId    String
+  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([contactId, userId], name: "unique_contact_user_fav")
+  @@map("contact_user_fav")
 }

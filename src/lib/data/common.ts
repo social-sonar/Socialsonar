@@ -279,10 +279,8 @@ type Duplicate = {
   secondContactId: number
 }
 
-const matches = (sentenceA: string, sentenceB: string): boolean =>  (
-    sentenceA.trim().split(/\s+/).length ===
-    sentenceB.trim().split(/\s+/).length
-  )
+const matches = (sentenceA: string, sentenceB: string): boolean =>
+  sentenceA.trim().split(/\s+/).length === sentenceB.trim().split(/\s+/).length
 
 const findDuplicates = async (userId: string) => {
   const combinations = new Set<string>()
@@ -468,7 +466,6 @@ async function createNewContact(
     })),
     skipDuplicates: true,
   })
-
 }
 export const findContacts = async (userId: string) => {
   const userGoogleAccounts = (
@@ -529,6 +526,7 @@ export const findContacts = async (userId: string) => {
       ],
     },
     include: {
+      contactUserFav: { select: { userId: true } },
       organizations: { select: { organization: { select: { name: true } } } },
       phoneNumbers: {
         select: { phoneNumber: { select: { number: true, type: true } } },
@@ -692,6 +690,7 @@ export const mergeContacts = async (
 
 export const normalizeContact = (contact: any): FlattenContact => ({
   id: contact.id,
+  favorite: contact.contactUserFav?.length > 0,
   userId: contact.userId.toString(),
   name: contact.name,
   nickName: contact.nickName,
@@ -736,6 +735,7 @@ export const updateContactInGoogle = async (contactId: number) => {
       id: contactId!,
     },
     include: {
+      contactUserFav: { select: { userId: true } },
       organizations: { select: { organization: { select: { name: true } } } },
       phoneNumbers: {
         select: { phoneNumber: { select: { number: true, type: true } } },

@@ -103,8 +103,8 @@ function ContactList() {
     setContacts([])
     fetch(`/api/contacts-list`)
       .then((response) => response.json())
-      .then((data: FlattenContact[]) => {
-        setContacts(data)
+      .then((data: { contacts: FlattenContact[] }) => {
+        setContacts(data.contacts)
         setIsLoading(false)
       })
       .catch((error) => {
