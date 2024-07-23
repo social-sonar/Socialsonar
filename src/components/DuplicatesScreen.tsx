@@ -1,6 +1,6 @@
 import UserIcon from '@/images/icons/user.svg';
 import { FlattenContact } from '@/lib/definitions';
-import { Popover, RadioGroup, Transition } from '@headlessui/react';
+import { Dialog, RadioGroup, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/20/solid';
 import { Fragment, useEffect, useState } from 'react';
 import Button from './Button';
@@ -44,7 +44,7 @@ function DuplicateContactCard({ contacts, localDeletionHandler }: Options) {
                             localDeletionHandler(contacts[0].id)
                         }}
                     >
-                        Keep both
+                        Keep all
                     </Button>
                 )}
                 {!mergeSelected && !contactId && (
@@ -79,6 +79,13 @@ function DuplicateContactCard({ contacts, localDeletionHandler }: Options) {
                             placeholder="New name..."
                             onChange={(evt) => setMergeName(evt.target.value)}
                             value={mergeName}
+                            autoFocus
+                            onKeyDown={async (evt) => {
+                                if (evt.key === 'Enter') {
+                                    await mergeContacts(contacts.map(contact => contact.id), mergeName)
+                                    localDeletionHandler(contacts[0].id)
+                                }
+                            }}
                         />
                     )}
                     {mergeSelected && !contactId && (
@@ -148,6 +155,8 @@ const DismissableBanner = (): React.ReactElement => {
 
 export default function DuplicatesScreen({ contacts, showBanner }: DuplicatedContacts) {
     const [updatedContacts, setUpdatedContacts] = useState<FlattenContact[]>([])
+    const [isOpen, setIsOpen] = useState<boolean>(false)
+    
     useEffect(() => {
         setUpdatedContacts(contacts)
     }, [contacts])
@@ -167,41 +176,62 @@ export default function DuplicatesScreen({ contacts, showBanner }: DuplicatedCon
     if (updatedContacts.length == 0) return showBanner ? <DismissableBanner /> : null
 
     return (
-        <Popover className="relative my-4 flex justify-normal md:mt-9 md:justify-end lg:mt-10 lg:justify-end">
-            {({ open }) => (
-                <>
-                    <Popover.Button className="flex w-full items-center justify-between gap-10 bg-gray-800 p-3 md:mt-4 md:w-auto md:justify-normal lg:mt-0 lg:w-auto lg:justify-normal border-l-8 border-yellow-600 rounded-md">
-                        <div className="flex flex-col items-start">
-                            <p>Possible duplicates</p>
-                            <p className="text-sm text-yellow-400">
-                                {updatedContacts[0].name} {updatedContacts.length > 1 && `and ${updatedContacts.length - 1} more`}
-                            </p>
-                        </div>
-                        <p>Review</p>
-                    </Popover.Button>
-                    <Transition
+        <>
+            <div className='my-4 flex justify-normal md:mt-9 md:justify-end lg:mt-10 lg:justify-end'>
+                <button
+                    className="flex w-full items-center justify-between gap-10 bg-gray-800 p-3 md:mt-4 md:w-auto md:justify-normal lg:mt-0 lg:w-auto lg:justify-normal border-l-8 border-yellow-600 rounded-md"
+                    onClick={() => setIsOpen(true)}
+                >
+                    <div className="flex flex-col items-start">
+                        <p>Possible duplicates</p>
+                        <p className="text-sm text-yellow-400">
+                            {updatedContacts[0].name} {updatedContacts.length > 1 && `and ${updatedContacts.length - 1} more`}
+                        </p>
+                    </div>
+                    <p>Review</p>
+                </button>
+            </div>
+            <Transition appear show={isOpen} as={Fragment}>
+                <Dialog as="div" className="relative z-50" onClose={() => setIsOpen(false)}>
+                    <Transition.Child
                         as={Fragment}
-                        enter="transition ease-out duration-200"
-                        enterFrom="opacity-0 translate-y-1"
-                        enterTo="opacity-100 translate-y-0"
-                        leave="transition ease-in duration-150"
-                        leaveFrom="opacity-100 translate-y-0"
-                        leaveTo="opacity-0 translate-y-1"
+                        enter="ease-out duration-300"
+                        enterFrom="opacity-0"
+                        enterTo="opacity-100"
+                        leave="ease-in duration-200"
+                        leaveFrom="opacity-100"
+                        leaveTo="opacity-0"
                     >
-                        <Popover.Panel className="absolute z-10 flex max-h-screen w-full flex-col gap-5 overflow-scroll rounded-lg bg-slate-800 p-5">
-                            {updatedContacts.map((contact) =>
-                                contact.duplicates && contact.duplicates.length > 0 ?
-                                    <DuplicateContactCard
-                                        contacts={[contact, ...contact.duplicates]}
-                                        key={`${contact.id.toString()}`}
-                                        localDeletionHandler={deleteContact}
-                                    /> :
-                                    null
-                            )}
-                        </Popover.Panel>
-                    </Transition>
-                </>
-            )}
-        </Popover>
+                        <div className="fixed inset-0 bg-black/25" />
+                    </Transition.Child>
+
+                    <div className="fixed inset-0 overflow-y-auto">
+                        <div className="flex min-h-full items-center justify-center p-4 text-center">
+                            <Transition.Child
+                                as={Fragment}
+                                enter="ease-out duration-300"
+                                enterFrom="opacity-0 scale-95"
+                                enterTo="opacity-100 scale-100"
+                                leave="ease-in duration-200"
+                                leaveFrom="opacity-100 scale-100"
+                                leaveTo="opacity-0 scale-95"
+                            >
+                                <Dialog.Panel className="flex flex-col gap-4 transform overflow-scroll max-h-screen rounded-2xl bg-slate-800 p-6 shadow-xl transition-all">
+                                    {updatedContacts.map((contact) =>
+                                        contact.duplicates && contact.duplicates.length > 0 ?
+                                            <DuplicateContactCard
+                                                contacts={[contact, ...contact.duplicates]}
+                                                key={`${contact.id.toString()}`}
+                                                localDeletionHandler={deleteContact}
+                                            /> :
+                                            null
+                                    )}
+                                </Dialog.Panel>
+                            </Transition.Child>
+                        </div>
+                    </div>
+                </Dialog>
+            </Transition>
+        </>
     )
 }

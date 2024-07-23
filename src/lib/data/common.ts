@@ -302,13 +302,22 @@ const findDuplicates = async (userId: string) => {
 
   contacts.forEach((contact) => {
     contacts.forEach((innerContact) => {
+      // skip the detection process for contacts with the default name 'Contact'
+      if (contact.name === 'Contact' || innerContact.name === 'Contact') return
       if (
         contact.id !== innerContact.id &&
         !combinations.has(contact.id) &&
         !combinations.has(innerContact.id)
       ) {
         if (matches(contact.name, innerContact.name)) {
-          const posibleDuplicate = fuzzy(contact.name, innerContact.name) > 0.9
+          const posibleDuplicate =
+            fuzzy(contact.name, innerContact.name, {
+              ignoreCase: false,
+              ignoreSymbols: true,
+              normalizeWhitespace: true,
+              useDamerau: true,
+              useSellers: true,
+            }) > 0.9
           if (posibleDuplicate) {
             duplicates.push({
               firstContactId: contact.id,
