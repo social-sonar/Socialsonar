@@ -142,7 +142,7 @@ export default function ContactDetail(props: ContactDetailProps) {
                             </div>
                             <div className="sm:col-span-3">
                               <div className="float-right flex items-center">
-                                <div className='text-yellow-400 cursor-pointer' onClick={() => {
+                                <div className='text-yellow-400 cursor-pointer mr-2' onClick={() => {
                                   setContact({
                                     ...contact,
                                     favorite: !contact.favorite,
