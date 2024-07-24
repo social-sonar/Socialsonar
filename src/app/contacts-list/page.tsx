@@ -7,6 +7,8 @@ import {
   MinusIcon,
   PlusIcon,
   XMarkIcon,
+  ChevronRightIcon,
+  ChevronLeftIcon
 } from '@heroicons/react/20/solid'
 import countries from 'i18n-iso-countries'
 import countriesEnLang from 'i18n-iso-countries/langs/en.json'
@@ -61,9 +63,20 @@ interface Option {
   checked: boolean
 }
 
+const PERPAGE = 10
+
 function ContactList() {
+
+  const eachPaginationButton = ({ page = "", current = false }) => {
+    return <button
+      className={current ? 'relative z-10 inline-flex items-center bg-teal-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600' : "relative inline-flex items-center px-4 py-2 text-sm font-semibold text-white-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"}
+    >
+      {page}
+    </button>
+  }
   countries.registerLocale(countriesEnLang)
   const { getName } = countries
+  const [pagination, setPagination] = useState<{ page: number, perPage: number, total: number, totalPages: number }>({ page: 1, perPage: PERPAGE, total: 0, totalPages: 0 })
   const { contacts, updateContact, setContacts } = useContacts()
   const [isLoading, setIsLoading] = useState(true)
   const [filters, setFilters] = useState(filtersTemplate)
@@ -97,6 +110,18 @@ function ContactList() {
       setDetailedContact(null)
     }
   }, [showContactDetail])
+
+  useEffect(() => {
+    if (filteredContacts.length != pagination.total) {
+
+      setPagination({
+        total: filteredContacts.length,
+        page: 1,
+        perPage: PERPAGE,
+        totalPages: Math.ceil(filteredContacts.length / PERPAGE),
+      })
+    }
+  }, [filteredContacts])
 
   const fetchContacts = () => {
     setIsLoading(true)
@@ -365,7 +390,7 @@ function ContactList() {
                                           e.target.checked,
                                         )
                                       }
-                                      className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                      className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
                                     />
                                     <label
                                       htmlFor={`filter-mobile-${section.id}-${optionIdx}`}
@@ -615,8 +640,8 @@ function ContactList() {
                   role="list"
                   className="w-full max-w-7xl divide-y divide-gray-800"
                 >
-                  {filteredContacts.length > 0 ? (
-                    filteredContacts.map((contact) => (
+                  {pagination && filteredContacts.length > 0 ? (
+                    filteredContacts.slice((pagination.page - 1) * pagination.perPage, pagination.page * pagination.perPage).map((contact) => (
                       <li
                         key={contact.id}
                         className="flex justify-between gap-x-6 py-5 hover:cursor-pointer hover:scale-105 duration-300"
@@ -709,6 +734,46 @@ function ContactList() {
                   )}
                 </ul>
               )}
+              {
+                <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm text-white-700">
+                      Showing <span className="font-medium">{pagination.perPage * (pagination.page - 1) + 1}</span> to <span className="font-medium">{pagination.perPage * (pagination.page-1) + filteredContacts.slice((pagination.page - 1) * pagination.perPage, pagination.page * pagination.perPage).length}</span> of{' '}
+                      <span className="font-medium">{contacts.length}</span> results
+                    </p>
+                  </div>
+                  <div>
+                    <nav aria-label="Pagination" className="isolate inline-flex -space-x-px rounded-md shadow-sm">
+                      <button
+                        onClick={() => {
+                          let prev = pagination
+                          setPagination({ ...prev, page: prev.page - 1 })
+
+                        }}
+                        disabled={pagination.page == 1}
+                        className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                      >
+                        <span className="sr-only">Previous</span>
+                        <ChevronLeftIcon aria-hidden="true" className="h-5 w-5" />
+                      </button>
+                      {/* Current: "z-10 bg-teal-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600", Default: "text-white-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-offset-0" */}
+                      {eachPaginationButton({ page: pagination.page.toString(), current: false })}
+                      <button
+                        className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                        onClick={() => {
+                          let prev = pagination
+                          setPagination({ ...prev, page: prev.page + 1 })
+
+                        }
+                        }
+                        disabled={pagination.page >= pagination.totalPages}
+                      >
+                        <span className="sr-only">Next</span>
+                        <ChevronRightIcon aria-hidden="true" className="h-5 w-5" />
+                      </button>
+                    </nav>
+                  </div>
+                </div>}
             </div>
           </div>
         </section>
