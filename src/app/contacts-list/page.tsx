@@ -1,12 +1,15 @@
 'use client'
 
-import { Dialog, Disclosure, Menu, Transition } from '@headlessui/react'
+import { Combobox, Dialog, Disclosure, Menu, Transition } from '@headlessui/react'
 import {
   ChevronDownIcon,
   FunnelIcon,
   MinusIcon,
   PlusIcon,
   XMarkIcon,
+  ChevronRightIcon,
+  ChevronLeftIcon,
+  MagnifyingGlassIcon
 } from '@heroicons/react/20/solid'
 import countries from 'i18n-iso-countries'
 import countriesEnLang from 'i18n-iso-countries/langs/en.json'
@@ -61,10 +64,22 @@ interface Option {
   checked: boolean
 }
 
+const PERPAGE = 10
+
 function ContactList() {
+
+  const eachPaginationButton = ({ page = "", current = false }) => {
+    return <button
+      className={current ? 'relative z-10 inline-flex items-center bg-teal-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600' : "relative inline-flex items-center px-4 py-2 text-sm font-semibold text-white-900 ring-1 ring-inset ring-gray-300 focus:z-20 focus:outline-offset-0"}
+    >
+      {page}
+    </button>
+  }
   countries.registerLocale(countriesEnLang)
   const { getName } = countries
+  const [pagination, setPagination] = useState<{ page: number, perPage: number, total: number, totalPages: number }>({ page: 1, perPage: PERPAGE, total: 0, totalPages: 0 })
   const { contacts, updateContact, setContacts } = useContacts()
+  const [query, setQuery] = useState("")
   const [isLoading, setIsLoading] = useState(true)
   const [filters, setFilters] = useState(filtersTemplate)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
@@ -97,6 +112,18 @@ function ContactList() {
       setDetailedContact(null)
     }
   }, [showContactDetail])
+
+  useEffect(() => {
+    if (filteredContacts.length != pagination.total) {
+
+      setPagination({
+        total: filteredContacts.length,
+        page: 1,
+        perPage: PERPAGE,
+        totalPages: Math.ceil(filteredContacts.length / PERPAGE),
+      })
+    }
+  }, [filteredContacts])
 
   const fetchContacts = () => {
     setIsLoading(true)
@@ -233,6 +260,10 @@ function ContactList() {
       }
     }
 
+    newFilteredContacts = newFilteredContacts.filter((person) =>
+      person.name.toLowerCase().normalize('NFD').includes(query.toLowerCase()) || person.phoneNumbers.find(phone => phone.number.toLowerCase().normalize('NFD').includes(query.toLowerCase())) !== undefined || person.emails.find(email => email.address.toLowerCase().normalize('NFD').includes(query.toLowerCase())) !== undefined
+    )
+
     if (sortApplied) {
       const filtered = newFilteredContacts.sort((a, b) => {
         return sortApplied == 'AZ'
@@ -243,7 +274,7 @@ function ContactList() {
     } else {
       setFilteredContacts([...newFilteredContacts])
     }
-  }, [filters, contacts, sortApplied, selectedSource])
+  }, [filters, contacts, sortApplied, selectedSource, query])
 
   return (
     <>
@@ -365,7 +396,7 @@ function ContactList() {
                                           e.target.checked,
                                         )
                                       }
-                                      className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                      className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
                                     />
                                     <label
                                       htmlFor={`filter-mobile-${section.id}-${optionIdx}`}
@@ -397,10 +428,30 @@ function ContactList() {
           />
         }
         <div className="flex items-center justify-between gap-7 border-b border-gray-200 pb-6 pt-2 md:mt-10 lg:mt-5">
-          <h1 className="text-white-900 text-xl font-bold tracking-tight md:text-4xl lg:text-4xl">
-            Contact book
-          </h1>
+          <div className='w-1/2 inline-flex'>
+            <h1 className="text-white-900 text-xl font-bold tracking-tight md:text-4xl lg:text-4xl">
+              Contact book
+            </h1>
 
+            <Combobox
+              onChange={(person) => {
+              }}
+            >
+              <div className="relative ml-16">
+                <MagnifyingGlassIcon
+                  className="pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-gray-400"
+                  aria-hidden="true"
+                />
+                <Combobox.Input
+                  autoFocus
+                  className="h-12 w-full border-0 bg-transparent pl-11 pr-4 text-white-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm"
+                  placeholder="Search..."
+                  onChange={(event) => setQuery(event.target.value)}
+                  onBlur={() => setQuery('')}
+                />
+              </div>
+            </Combobox>
+          </div>
           <div className="flex gap-0">
             <button className="h-[25px] w-[25px]">
               <img
@@ -485,7 +536,6 @@ function ContactList() {
             </button>
           </div>
         </div>
-
         <section aria-labelledby="products-heading" className="pb-24 pt-6">
           <h2 id="products-heading" className="sr-only">
             Products
@@ -615,8 +665,8 @@ function ContactList() {
                   role="list"
                   className="w-full max-w-7xl divide-y divide-gray-800"
                 >
-                  {filteredContacts.length > 0 ? (
-                    filteredContacts.map((contact) => (
+                  {pagination && filteredContacts.length > 0 ? (
+                    filteredContacts.slice((pagination.page - 1) * pagination.perPage, pagination.page * pagination.perPage).map((contact) => (
                       <li
                         key={contact.id}
                         className="flex justify-between gap-x-6 py-5 hover:cursor-pointer hover:scale-105 duration-300"
@@ -709,6 +759,121 @@ function ContactList() {
                   )}
                 </ul>
               )}
+              {
+                <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm text-white-700">
+                      Showing <span className="font-medium">{pagination.perPage * (pagination.page - 1) + 1}</span> to <span className="font-medium">{pagination.perPage * (pagination.page - 1) + filteredContacts.slice((pagination.page - 1) * pagination.perPage, pagination.page * pagination.perPage).length}</span> of{' '}
+                      <span className="font-medium">{filteredContacts.length}</span> results
+                    </p>
+                  </div>
+                  <div>
+                    <nav aria-label="Pagination" className="isolate inline-flex -space-x-px rounded-md shadow-sm">
+                      <button
+                        onClick={() => {
+                          let prev = pagination
+                          setPagination({ ...prev, page: prev.page - 1 })
+
+                        }}
+                        disabled={pagination.page == 1}
+                        className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                      >
+                        <span className="sr-only">Previous</span>
+                        <ChevronLeftIcon aria-hidden="true" className="h-5 w-5" />
+                      </button>
+                      {/* Current: "z-10 bg-teal-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600", Default: "text-white-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-offset-0" */}
+                      {eachPaginationButton({ page: pagination.page.toString(), current: false })}
+                      <button
+                        className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                        onClick={() => {
+                          let prev = pagination
+                          setPagination({ ...prev, page: prev.page + 1 })
+
+                        }
+                        }
+                        disabled={pagination.page >= pagination.totalPages}
+                      >
+                        <span className="sr-only">Next</span>
+                        <ChevronRightIcon aria-hidden="true" className="h-5 w-5" />
+                      </button>
+                    </nav>
+                  </div>
+                  <div>
+                    <Menu as="div" className="relative inline-block text-left">
+                      <div>
+                        <Menu.Button className="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                          Items per page ({pagination.perPage})
+                          <ChevronDownIcon aria-hidden="true" className="-ml-1 mt-0.5 h-5 w-5 text-gray-400" />
+                        </Menu.Button>
+                      </div>
+
+                      <Menu.Items
+                        className="absolute right-0 z-10 mt-2 w-12 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 transition focus:outline-none data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
+                      >
+                        <div className="py-1">
+                          <Menu.Item>
+                            <button
+                              onClick={() => {
+                                let prev = pagination
+                                setPagination({ ...prev, perPage: 10 })
+
+                              }
+                              }
+                              disabled={pagination.perPage == 10}
+                              className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-gray-900"
+                            >
+                              10
+                            </button>
+                          </Menu.Item>
+                          <Menu.Item>
+                            <button
+                              onClick={() => {
+                                let prev = pagination
+                                setPagination({ ...prev, perPage: 20 })
+
+                              }
+                              }
+                              disabled={pagination.perPage == 20}
+                              className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-gray-900"
+                            >
+                              20
+                            </button>
+                          </Menu.Item>
+                          <Menu.Item>
+                            <button
+                              onClick={() => {
+                                let prev = pagination
+                                setPagination({ ...prev, perPage: 30 })
+
+                              }
+                              }
+                              disabled={pagination.perPage == 30}
+                              className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-gray-900"
+                            >
+                              30
+                            </button>
+                          </Menu.Item>
+                          <Menu.Item>
+                            <button
+                              onClick={() => {
+                                let prev = pagination
+                                setPagination({ ...prev, perPage: 50 })
+
+                              }
+                              }
+                              disabled={pagination.perPage == 50}
+                              className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-gray-900"
+                            >
+                              50
+                            </button>
+                          </Menu.Item>
+                          
+                        </div>
+                      </Menu.Items>
+                    </Menu>
+
+                  </div>
+                </div>}
             </div>
           </div>
         </section>
