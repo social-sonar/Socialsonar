@@ -166,7 +166,9 @@ export type TimeDuration = {
 
 type ValuePiece = Date | null
 
-export type Value = ValuePiece | [ValuePiece, ValuePiece]
+export type RangeValue = [ValuePiece, ValuePiece]
+
+export type Value = ValuePiece | RangeValue
 
 export type DateRange = {
   minDate: Date

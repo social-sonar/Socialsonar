@@ -8,6 +8,12 @@ const variantStyles = {
     'bg-zinc-50 font-medium text-zinc-900 enabled:hover:bg-zinc-100 enabled:active:bg-zinc-100 enabled:active:text-zinc-900/60 dark:bg-zinc-800/50 dark:text-zinc-300 dark:enabled:hover:bg-zinc-800 dark:enabled:hover:text-zinc-50 dark:enabled:active:bg-zinc-800/50 dark:enabled:active:text-zinc-50/70',
 }
 
+export const predefinedStyle = (variant: keyof typeof variantStyles = 'primary', className?: string) => clsx(
+  'inline-flex items-center gap-2 justify-center rounded-md py-2 px-3 text-sm outline-offset-2 transition enabled:active:transition-none',
+  variantStyles[variant],
+  className
+)
+
 type ButtonProps = {
   variant?: keyof typeof variantStyles
 } & (
@@ -20,11 +26,7 @@ export default function Button({
   className,
   ...props
 }: ButtonProps) {
-  className = clsx(
-    'inline-flex items-center gap-2 justify-center rounded-md py-2 px-3 text-sm outline-offset-2 transition enabled:active:transition-none',
-    variantStyles[variant],
-    className,
-  )
+  className = predefinedStyle(variant, className)
 
   return typeof props.href === 'undefined' ? (
     <button className={className} {...props} />

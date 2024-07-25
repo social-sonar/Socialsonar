@@ -7,14 +7,16 @@ import {
   ChevronUpDownIcon,
   ClipboardDocumentIcon,
   ExclamationTriangleIcon,
-  CheckBadgeIcon
+  CheckBadgeIcon,
+  CheckCircleIcon
 } from '@heroicons/react/20/solid'
 import { useRef, useState } from 'react'
 import AccountBackup from './BackupDialog'
-import Button from './Button'
+import Button, { predefinedStyle } from './Button'
 import EventGenerator from './EventGenerator'
 import RestoreDialog from './RestoreDialog'
 import LoadingSpinner from './common/spinner'
+import TravelManager from './TravelManager'
 
 
 export default function CalendarOptionsMenu({ userId }: { userId: string }) {
@@ -24,8 +26,8 @@ export default function CalendarOptionsMenu({ userId }: { userId: string }) {
 
   const fileInput = useRef<HTMLInputElement>(null)
   const [backupData, setBackupData] = useState<BackupFileData | null>(null)
-
   const [generator, showGenerator] = useState(false)
+  const [travel, showTravel] = useState(false)
   const [backup, showBackup] = useState(false)
   const [restore, showRestore] = useState(false)
 
@@ -97,6 +99,15 @@ export default function CalendarOptionsMenu({ userId }: { userId: string }) {
     await new Promise(() => setTimeout(hideNotification, 5000))
   }
 
+  const registerEventNotificationHandler = async () => {
+    showNotification(
+      'Travel successfully registered',
+      '',
+      <CheckCircleIcon className="w-[25px] text-green-400" />,
+    )
+    await new Promise(() => setTimeout(hideNotification, 5000))
+  }
+
   return (
     <>
       <input
@@ -106,6 +117,14 @@ export default function CalendarOptionsMenu({ userId }: { userId: string }) {
         accept="application/json"
         onChange={handleFileInput}
       ></input>
+      {travel &&
+        <TravelManager
+          showNotification={registerEventNotificationHandler}
+          userId={userId}
+          callClose={() => {
+            showTravel(false)
+          }}
+        />}
       {generator && (
         <EventGenerator
           showNotification={clipBoardNotificationHandler}
@@ -165,13 +184,9 @@ export default function CalendarOptionsMenu({ userId }: { userId: string }) {
       )}
       {fileInput && (
         <Popover className="relative">
-          <Popover.Button className="text-white-900 items-center">
-            <Button
-              className="w-52"
-            >
-              <span>Calendar actions</span>
-              <ChevronUpDownIcon className="w-5" aria-hidden="true" />
-            </Button>
+          <Popover.Button className={`text-white-900 items-center flex w-52 ${predefinedStyle()}`}>
+            <span>Calendar actions</span>
+            <ChevronUpDownIcon className="w-5" aria-hidden="true" />
           </Popover.Button>
 
           <Transition
@@ -184,64 +199,63 @@ export default function CalendarOptionsMenu({ userId }: { userId: string }) {
           >
             <Popover.Panel className="absolute z-10 flex w-screen max-w-max px-4 left-10 top-14">
               <div className="flex flex-col rounded-3xl bg-white p-4 text-left text-sm leading-6 shadow-lg ring-1 ring-gray-900/5 gap-3">
-                <div>
-                  <Button className="w-full"
-                    disabled={syncing}
-                    onClick={async () => {
-                      setSyncing(true)
-                      await syncGoogleCalendar(userId, undefined, false)
-                      setSyncing(false)
-                      showNotification(
-                        'Done',
-                        `Your events were pulled and sync successfully`,
-                        <CheckBadgeIcon
-                          className="text-sm text-green-600 w-[25px]"
-                        />,
-                      )
-                    }}>
-                    {
-                      syncing &&
-                      <LoadingSpinner size={24} />
+                <Button className="w-full"
+                  disabled={syncing}
+                  onClick={async () => {
+                    setSyncing(true)
+                    await syncGoogleCalendar(userId, undefined, false)
+                    setSyncing(false)
+                    showNotification(
+                      'Done',
+                      `Your events were pulled and sync successfully`,
+                      <CheckBadgeIcon
+                        className="text-sm text-green-600 w-[25px]"
+                      />,
+                    )
+                  }}>
+                  {
+                    syncing &&
+                    <LoadingSpinner size={24} />
+                  }
+                  <span>Sync calendar</span>
+                </Button>
+                <Button
+                  onClick={() => {
+                    showTravel(true)
+                  }}
+                >
+                  Register travel
+                </Button>
+                <Button
+                  onClick={async () => {
+                    showGenerator(true)
+                    await syncGoogleCalendar(userId, undefined, false)
+                  }}
+                  className="w-full"
+                >
+                  Generate event URL
+                </Button>
+                <Button
+                  onClick={() => {
+                    showBackup(true)
+                  }}
+                  className="w-full"
+                >
+                  Backup events
+                </Button>
+                <Button
+                  disabled={false}
+                  onClick={() => {
+                    if (fileInput.current) {
+                      fileInput.current.value = ''
+                      setBackupData(null)
+                      fileInput.current?.click()
                     }
-                    <span>Sync calendar</span>
-                  </Button>
-                </div>
-                <div>
-                  <Button
-                    onClick={async () => {
-                      showGenerator(true)
-                      await syncGoogleCalendar(userId, undefined, false)
-                    }}
-                    className="w-full"
-                  >
-                    Generate event URL
-                  </Button>
-                </div>
-                <div>
-                  <Button
-                    onClick={() => {
-                      showBackup(true)
-                    }}
-                    className="w-full"
-                  >
-                    Backup events
-                  </Button>
-                </div>
-                <div>
-                  <Button
-                    disabled={false}
-                    onClick={() => {
-                      if (fileInput.current) {
-                        fileInput.current.value = ''
-                        setBackupData(null)
-                        fileInput.current?.click()
-                      }
-                    }}
-                    className="w-full"
-                  >
-                    Restore events
-                  </Button>
-                </div>
+                  }}
+                  className="w-full"
+                >
+                  Restore events
+                </Button>
               </div>
             </Popover.Panel>
           </Transition>

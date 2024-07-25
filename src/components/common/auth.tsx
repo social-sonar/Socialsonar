@@ -2,7 +2,6 @@
 
 import { redirect, RedirectType } from "next/navigation";
 import { useSession } from "next-auth/react";
-import LoadingSpinner from "./spinner";
 
 type AuthenticatedComponent = (props: any) => React.ReactElement | null
 
@@ -15,7 +14,7 @@ export const protectPage = (WrappedComponent: React.ComponentType<any>): Authent
     if (session.status == 'unauthenticated') {
       redirect("/", RedirectType.replace);
     }
-    return <div className="inline">Authenticating...</div>
+    return <div className="flex justify-center">Authenticating...</div>
   };
 };
 
