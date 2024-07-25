@@ -743,7 +743,121 @@ function ContactList() {
                           )}
                         </div>
                       </li>
-                    ))
+                    )).concat(
+                      <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                        <div>
+                          <p className="text-sm text-white-700">
+                            Showing <span className="font-medium">{pagination.perPage * (pagination.page - 1) + 1}</span> to <span className="font-medium">{pagination.perPage * (pagination.page - 1) + filteredContacts.slice((pagination.page - 1) * pagination.perPage, pagination.page * pagination.perPage).length}</span> of{' '}
+                            <span className="font-medium">{filteredContacts.length}</span> results
+                          </p>
+                        </div>
+                        <div className='mt-2'>
+                          <nav aria-label="Pagination" className="isolate inline-flex -space-x-px rounded-md shadow-sm">
+                            <button
+                              onClick={() => {
+                                let prev = pagination
+                                setPagination({ ...prev, page: prev.page - 1 })
+
+                              }}
+                              disabled={pagination.page == 1}
+                              className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                            >
+                              <span className="sr-only">Previous</span>
+                              <ChevronLeftIcon aria-hidden="true" className="h-5 w-5" />
+                            </button>
+                            {/* Current: "z-10 bg-teal-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600", Default: "text-white-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-offset-0" */}
+                            {eachPaginationButton({ page: pagination.page.toString(), current: false })}
+                            <button
+                              className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                              onClick={() => {
+                                let prev = pagination
+                                setPagination({ ...prev, page: prev.page + 1 })
+
+                              }
+                              }
+                              disabled={pagination.page >= pagination.totalPages}
+                            >
+                              <span className="sr-only">Next</span>
+                              <ChevronRightIcon aria-hidden="true" className="h-5 w-5" />
+                            </button>
+                          </nav>
+                        </div>
+                        <div className='mt-2'>
+                          <Menu as="div" className="relative inline-block text-left">
+                            <div>
+                              <Menu.Button className="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                                Items per page ({pagination.perPage})
+                                <ChevronDownIcon aria-hidden="true" className="-ml-1 mt-0.5 h-5 w-5 text-gray-400" />
+                              </Menu.Button>
+                            </div>
+
+                            <Menu.Items
+                              className="absolute right-0 z-10 mt-2 w-12 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 transition focus:outline-none data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
+                            >
+                              <div className="py-1">
+                                <Menu.Item>
+                                  <button
+                                    onClick={() => {
+                                      let prev = pagination
+                                      setPagination({ ...prev, perPage: 10 })
+
+                                    }
+                                    }
+                                    disabled={pagination.perPage == 10}
+                                    className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-gray-900"
+                                  >
+                                    10
+                                  </button>
+                                </Menu.Item>
+                                <Menu.Item>
+                                  <button
+                                    onClick={() => {
+                                      let prev = pagination
+                                      setPagination({ ...prev, perPage: 20 })
+
+                                    }
+                                    }
+                                    disabled={pagination.perPage == 20}
+                                    className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-gray-900"
+                                  >
+                                    20
+                                  </button>
+                                </Menu.Item>
+                                <Menu.Item>
+                                  <button
+                                    onClick={() => {
+                                      let prev = pagination
+                                      setPagination({ ...prev, perPage: 30 })
+
+                                    }
+                                    }
+                                    disabled={pagination.perPage == 30}
+                                    className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-gray-900"
+                                  >
+                                    30
+                                  </button>
+                                </Menu.Item>
+                                <Menu.Item>
+                                  <button
+                                    onClick={() => {
+                                      let prev = pagination
+                                      setPagination({ ...prev, perPage: 50 })
+
+                                    }
+                                    }
+                                    disabled={pagination.perPage == 50}
+                                    className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-gray-900"
+                                  >
+                                    50
+                                  </button>
+                                </Menu.Item>
+
+                              </div>
+                            </Menu.Items>
+                          </Menu>
+
+                        </div>
+                      </div>)
                   ) : (
                     <p>
                       No contacts yet.{' '}
@@ -759,125 +873,10 @@ function ContactList() {
                   )}
                 </ul>
               )}
-              {
-                <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-sm text-white-700">
-                      Showing <span className="font-medium">{pagination.perPage * (pagination.page - 1) + 1}</span> to <span className="font-medium">{pagination.perPage * (pagination.page - 1) + filteredContacts.slice((pagination.page - 1) * pagination.perPage, pagination.page * pagination.perPage).length}</span> of{' '}
-                      <span className="font-medium">{filteredContacts.length}</span> results
-                    </p>
-                  </div>
-                  <div>
-                    <nav aria-label="Pagination" className="isolate inline-flex -space-x-px rounded-md shadow-sm">
-                      <button
-                        onClick={() => {
-                          let prev = pagination
-                          setPagination({ ...prev, page: prev.page - 1 })
-
-                        }}
-                        disabled={pagination.page == 1}
-                        className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-                      >
-                        <span className="sr-only">Previous</span>
-                        <ChevronLeftIcon aria-hidden="true" className="h-5 w-5" />
-                      </button>
-                      {/* Current: "z-10 bg-teal-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600", Default: "text-white-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-offset-0" */}
-                      {eachPaginationButton({ page: pagination.page.toString(), current: false })}
-                      <button
-                        className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-                        onClick={() => {
-                          let prev = pagination
-                          setPagination({ ...prev, page: prev.page + 1 })
-
-                        }
-                        }
-                        disabled={pagination.page >= pagination.totalPages}
-                      >
-                        <span className="sr-only">Next</span>
-                        <ChevronRightIcon aria-hidden="true" className="h-5 w-5" />
-                      </button>
-                    </nav>
-                  </div>
-                  <div>
-                    <Menu as="div" className="relative inline-block text-left">
-                      <div>
-                        <Menu.Button className="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
-                          Items per page ({pagination.perPage})
-                          <ChevronDownIcon aria-hidden="true" className="-ml-1 mt-0.5 h-5 w-5 text-gray-400" />
-                        </Menu.Button>
-                      </div>
-
-                      <Menu.Items
-                        className="absolute right-0 z-10 mt-2 w-12 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 transition focus:outline-none data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
-                      >
-                        <div className="py-1">
-                          <Menu.Item>
-                            <button
-                              onClick={() => {
-                                let prev = pagination
-                                setPagination({ ...prev, perPage: 10 })
-
-                              }
-                              }
-                              disabled={pagination.perPage == 10}
-                              className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-gray-900"
-                            >
-                              10
-                            </button>
-                          </Menu.Item>
-                          <Menu.Item>
-                            <button
-                              onClick={() => {
-                                let prev = pagination
-                                setPagination({ ...prev, perPage: 20 })
-
-                              }
-                              }
-                              disabled={pagination.perPage == 20}
-                              className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-gray-900"
-                            >
-                              20
-                            </button>
-                          </Menu.Item>
-                          <Menu.Item>
-                            <button
-                              onClick={() => {
-                                let prev = pagination
-                                setPagination({ ...prev, perPage: 30 })
-
-                              }
-                              }
-                              disabled={pagination.perPage == 30}
-                              className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-gray-900"
-                            >
-                              30
-                            </button>
-                          </Menu.Item>
-                          <Menu.Item>
-                            <button
-                              onClick={() => {
-                                let prev = pagination
-                                setPagination({ ...prev, perPage: 50 })
-
-                              }
-                              }
-                              disabled={pagination.perPage == 50}
-                              className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-gray-900"
-                            >
-                              50
-                            </button>
-                          </Menu.Item>
-                          
-                        </div>
-                      </Menu.Items>
-                    </Menu>
-
-                  </div>
-                </div>}
             </div>
           </div>
         </section>
-      </main>
+      </main >
     </>
   )
 }
