@@ -14,7 +14,7 @@ export default createJestConfig({
     'next-auth': '<rootDir>/__tests__/mocks/next-auth.ts',
   },
   testEnvironment: 'jsdom',
-  testRegex: '.*\\.(test|spec)\\.(js|ts|tsx|jsx)$',
+  testRegex: '.*\\.(test)\\.(js|ts|tsx|jsx)$',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts', '<rootDir>/singleton.ts'],
   transform: {
     '^.+.[tj]sx?$': ['ts-jest', {}],

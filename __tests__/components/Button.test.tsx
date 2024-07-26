@@ -43,7 +43,7 @@ describe('Button', () => {
   // Pass all additional props to the button or Link component
   it('should pass all additional props to the button component', () => {
     const { getByRole } = render(
-      <Button id="test-button" onClick={() => console.log('Button clicked')} />,
+      <Button id="test-button" onClick={() => {}} />,
     )
     const button = getByRole('button')
     expect(button).toHaveAttribute('id', 'test-button')
