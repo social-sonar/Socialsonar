@@ -9,7 +9,8 @@ import {
   XMarkIcon,
   ChevronRightIcon,
   ChevronLeftIcon,
-  MagnifyingGlassIcon
+  MagnifyingGlassIcon,
+  CheckCircleIcon
 } from '@heroicons/react/20/solid'
 import countries from 'i18n-iso-countries'
 import countriesEnLang from 'i18n-iso-countries/langs/en.json'
@@ -96,8 +97,6 @@ function ContactList() {
     useState<Partial<FlattenContact> | null>(null)
 
   useEffect(() => {
-    console.log(searchParams, detailedContact)
-
     if (searchParams.has('add-new-contact')) {
       setDetailedContact({
         addresses: [],
@@ -286,7 +285,6 @@ function ContactList() {
           session={session.data}
         />
       )}
-
       <Transition.Root show={mobileFiltersOpen} as={Fragment}>
         <Dialog
           as="div"
