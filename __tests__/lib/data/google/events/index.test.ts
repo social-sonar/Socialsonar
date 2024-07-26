@@ -1,13 +1,45 @@
+jest.mock('../../../../../src/lib/utils/common')
 import { prismaMock } from '../../../../../singleton'
 import {
   getEventsSyncData,
   getSafeCalendarEvents,
   syncGoogleCalendar,
+  restoreGoogleEvents,
 } from '@/lib/data/google/events'
 import { google } from 'googleapis'
 import { OAuth2Client } from 'google-auth-library'
+import { getOAuthClient } from '@/lib/utils/common'
 
-describe('Calendar features', () => {
+const mockDateWithoutParams = new Date('2024-07-25T12:00:00.000Z')
+const OriginalDate = global.Date
+global.Date = jest.fn().mockImplementation((...args) => {
+  if (args.length === 0) {
+    // If no arguments, return the mocked date
+    return mockDateWithoutParams
+  }
+  // Otherwise, call the original Date constructor with provided arguments
+  return new OriginalDate(args[0])
+}) as unknown as DateConstructor
+global.Date.UTC = OriginalDate.UTC
+
+const client = new OAuth2Client()
+jest.mocked(getOAuthClient).mockResolvedValue({
+  oauth2Client: client,
+  googleAccount: {
+    id: '1',
+    googleId: '1',
+    email: 'john.doe@example.com',
+    accessToken: 'ya29.1234567890',
+    refreshToken: '1/234567890',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    token: null,
+    calendarToken: 'token',
+    ableToWrite: true,
+  },
+})
+
+describe('Sync calendar features', () => {
   beforeEach(() => {
     jest.resetModules()
     jest.clearAllMocks()
@@ -41,18 +73,6 @@ describe('Calendar features', () => {
   })
 
   it('should return the corresponding events without calling refreshToken', async () => {
-    const mockDateWithoutParams = new Date('2024-07-25T12:00:00.000Z')
-    const OriginalDate = global.Date
-    global.Date = jest.fn().mockImplementation((...args) => {
-      if (args.length === 0) {
-        // If no arguments, return the mocked date
-        return mockDateWithoutParams
-      }
-      // Otherwise, call the original Date constructor with provided arguments
-      return new OriginalDate(args[0])
-    }) as unknown as DateConstructor
-    global.Date.UTC = OriginalDate.UTC
-
     const oauth2Client = new OAuth2Client()
     const calendar = {
       context: jest.fn(),
@@ -154,32 +174,6 @@ describe('Calendar features', () => {
     ]
 
     prismaMock.event.findMany.mockResolvedValue(mockExistingEvents)
-    const mockDateWithoutParams = new Date('2024-07-25T12:00:00.000Z')
-    const OriginalDate = global.Date
-    global.Date = jest.fn().mockImplementation((...args) => {
-      if (args.length === 0) {
-        // If no arguments, return the mocked date
-        return mockDateWithoutParams
-      }
-      // Otherwise, call the original Date constructor with provided arguments
-      return new OriginalDate(args[0])
-    }) as unknown as DateConstructor
-    global.Date.UTC = OriginalDate.UTC
-    const authData = {
-      oauth2Client: new google.auth.OAuth2(),
-      googleAccount: {
-        id: '1',
-        googleId: '1',
-        email: 'john.doe@example.com',
-        accessToken: 'ya29.1234567890',
-        refreshToken: '1/234567890',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        token: null,
-        calendarToken: 'token',
-        ableToWrite: true,
-      },
-    }
 
     const calendarEvents = [
       {
@@ -288,6 +282,79 @@ describe('Calendar features', () => {
       data: {
         calendarToken: 'testSyncToken',
       },
+    })
+  })
+})
+
+describe('Restore events', () => {
+  it('should delete existing events and insert new ones', async () => {
+    const calendarEvents = [
+      {
+        id: '1',
+        start: {
+          dateTime: '2024-07-30T12:00:00.000Z',
+        },
+        end: {
+          dateTime: '2024-07-31T13:00:00.000Z',
+        },
+        status: 'accepted',
+      },
+      {
+        id: '2',
+        start: {
+          dateTime: '2024-08-30T12:00:00.000Z',
+        },
+        end: {
+          dateTime: '2024-07-31T13:00:00.000Z',
+        },
+        status: 'accepted',
+      },
+      {
+        id: '3',
+        start: {
+          dateTime: '2024-07-23T12:00:00.000Z',
+        },
+        end: {
+          dateTime: '2024-07-31T13:00:00.000Z',
+        },
+        status: 'accepted',
+        recurrence: ['RRULE:FREQ=DAILY;UNTIL=20241010T000000Z'],
+      },
+    ]
+
+    const mockCalendarDelete = jest.fn()
+    const mockCalendarInsert = jest.fn()
+
+    const calendar = {
+      context: jest.fn(),
+      acl: jest.fn(),
+      calendarList: jest.fn(),
+      calendars: jest.fn(),
+      channels: jest.fn(),
+      colors: jest.fn(),
+      freebusy: jest.fn(),
+      settings: jest.fn(),
+      events: {
+        list: jest.fn().mockResolvedValue({
+          data: {
+            items: calendarEvents.slice(1),
+            nextSyncToken: 'testSyncToken',
+          },
+        }),
+        delete: mockCalendarDelete,
+        insert: mockCalendarInsert,
+      },
+    }
+    jest.spyOn(google, 'calendar').mockReturnValue(calendar as any)
+    await restoreGoogleEvents('1', [calendarEvents[0]])
+
+    expect(mockCalendarDelete).toHaveBeenCalledWith({ eventId: '2' })
+    expect(mockCalendarDelete).toHaveBeenCalledWith({ eventId: '3' })
+    expect(mockCalendarInsert).toHaveBeenCalledWith({
+      auth: client,
+      calendarId: 'primary',
+      requestBody: calendarEvents[0],
+      sendNotifications: true,
     })
   })
 })

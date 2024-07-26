@@ -3,7 +3,7 @@
 import {
   getSafeCalendarEvents,
   restoreGoogleEvents,
-} from '@/lib/data/google/events/'
+} from '@/lib/data/google/events'
 import { BackupFileData } from '@/lib/definitions'
 import { getOAuthClient, getSession } from '@/lib/utils/common'
 import { calendar_v3 } from 'googleapis'
