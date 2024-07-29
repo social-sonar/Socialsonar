@@ -585,7 +585,7 @@ export default function ContactDetail(props: ContactDetailProps) {
                             )
                           })}
 
-                        <div className="mt-8 border-b border-white/10 pb-12">
+                        {false && <div className="mt-8 border-b border-white/10 pb-12">
                           <h2 className="text-base font-semibold leading-7 text-white">
                             Notifications
                           </h2>
@@ -673,7 +673,7 @@ export default function ContactDetail(props: ContactDetailProps) {
                               </div>
                             </fieldset>
                           </div>
-                        </div>
+                        </div>}
                       </div>
 
                       <div className="mt-6 flex items-center justify-end gap-x-6">
