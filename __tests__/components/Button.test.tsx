@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, fireEvent } from '@testing-library/react'
 
-import Button from './Button'
+import Button from '@/components/Button'
 import React from 'react'
 
 describe('Button', () => {
@@ -43,7 +43,7 @@ describe('Button', () => {
   // Pass all additional props to the button or Link component
   it('should pass all additional props to the button component', () => {
     const { getByRole } = render(
-      <Button id="test-button" onClick={() => console.log('Button clicked')} />,
+      <Button id="test-button" onClick={() => {}} />,
     )
     const button = getByRole('button')
     expect(button).toHaveAttribute('id', 'test-button')
