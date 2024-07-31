@@ -240,20 +240,23 @@ export const syncGoogleCalendar = async (
 
   const syncData = await getEventsSyncData(results.data)
 
-  syncData.toUpdate.forEach(async (event) => await prisma.event.updateMany({
-    where: {
-      googleEventId: event.id!
-    },
-    data: {
-      start: event.start?.dateTime || `${event.start?.date!}T00:00:00.000Z`,
-      end: event.end?.dateTime! || `${event.end?.date!}T00:00:00.000Z`,
-      timezone: event.start?.timeZone || 'not applicable', // events with no datetime have no timezone
-      recurrence: event.recurrence?.[0],
-    }
-  }))
+  syncData.toUpdate.forEach(
+    async (event) =>
+      await prisma.event.updateMany({
+        where: {
+          googleEventId: event.id!,
+        },
+        data: {
+          start: event.start?.dateTime || `${event.start?.date!}T00:00:00.000Z`,
+          end: event.end?.dateTime! || `${event.end?.date!}T00:00:00.000Z`,
+          timezone: event.start?.timeZone || 'not applicable', // events with no datetime have no timezone
+          recurrence: event.recurrence?.[0],
+        },
+      }),
+  )
 
   await prisma.event.createMany({
-    data: syncData.toCreate.map(event => ({
+    data: syncData.toCreate.map((event) => ({
       userId,
       googleEventId: event.id,
       start: event.start?.dateTime || `${event.start?.date!}T00:00:00.000Z`,

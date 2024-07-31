@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render } from '@testing-library/react'
 
-import ContactDetailAddress from './ContactDetailAddress'
+import ContactDetailAddress from '@/components/ContactDetailAddress'
 
 describe('ContactDetailAddress', () => {
   // Component renders without crashing
